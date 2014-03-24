@@ -1,4 +1,6 @@
 pacs_proj
 =========
 
-Repository to work on pacs project
+This repository was created in order
+
+\sum_1^2
