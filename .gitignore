@@ -11,3 +11,12 @@
 *.lai
 *.la
 *.a
+
+# Cmake Files
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/*
+
+#kde project files
+*.kdev4
+.kdev4/*
