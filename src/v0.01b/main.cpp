@@ -86,6 +86,7 @@
 #include <deal.II/grid/grid_out.h>
 
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 using namespace dealii;
@@ -107,24 +108,56 @@ public:
         Parametri(const Parametri &)=default;
 };
 
-class BoundaryValues : public Function<dim>
+class PayOff : public Function<dim>
 {
 public:
-        BoundaryValues (double S_, double K_) : Function<dim>(), S(S_), K(K_) {}
+        PayOff (double K_) : Function<dim>(), K(K_) {};
         
         virtual double value (const Point<dim>   &p,
                               const unsigned int  component = 0) const;
 private:
-        double S;
         double K;
 };
 
 
-double BoundaryValues::value (const Point<dim>  &/*p*/,
+double PayOff::value (const Point<dim>  &p,
                                    const unsigned int component) const
 {
         Assert (component == 0, ExcInternalError());
-        return (S-K);
+        return max(exp(p(0))-K,0.);
+}
+
+class Boundary_Left_Side : public Function<dim>
+{
+  public:
+    Boundary_Left_Side() : Function< dim>() {};
+    
+    virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+    
+};
+
+double Boundary_Left_Side::value(const Point<dim> &p, const unsigned int component) const
+{
+  Assert (component == 0, ExcInternalError());
+  return 0;
+
+}
+
+class Boundary_Right_Side: public Function<dim>
+{
+  public:
+    Boundary_Right_Side(double K) : Function< dim>(), _K(K) {};
+    
+    virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+  private:
+      double _K;
+};
+
+double Boundary_Right_Side::value(const Point<dim> &p, const unsigned int component) const
+{
+  Assert (component == 0, ExcInternalError());
+  return exp(p[0])-_K;
+
 }
 
 
@@ -133,6 +166,7 @@ class Opzione{
 private:
         Parametri par;
         void setup_system ();
+	void assemble_system ();
         void solve ();
         void output_results () const {};
         
@@ -150,6 +184,7 @@ private:
         SparseMatrix<double> df_matrix;
         
         Vector<double>       solution;
+// 	Vector<double>       old_solution;
         Vector<double>       system_rhs;
         
         double time, time_step;
@@ -160,11 +195,12 @@ public:
         par(par_),
         fe (1),
         dof_handler (triangulation),
-        time_step (1./4)
+        time_step (1./10)
         {};
         
         void run(){
                 setup_system();
+		assemble_system();
                 solve();
         };
 };
@@ -178,17 +214,25 @@ void Opzione::setup_system ()
         xmin=log(Smin);
         xmax=log(Smax);
         
-        double diff=par.sigma*par.sigma/2;
-        double trasp=par.r-par.sigma*par.sigma/2;
-        double reaz=-par.r;
+
         
         GridGenerator::hyper_cube (triangulation, xmin, xmax);
-        triangulation.refine_global (3);
-        
-        std::cout << "Number of active cells: "
+        triangulation.refine_global (4);
+
+	typename Triangulation<dim>::cell_iterator
+	cell = triangulation.begin (),
+        endc = triangulation.end();
+        for (; cell!=endc; ++cell)
+	  for (unsigned int face=0;
+                 face<GeometryInfo<dim>::faces_per_cell;++face)
+		    if (std::fabs(cell->face(face)->center()(0) - (xmax)) < 1e-8)
+		      cell->face(face)->set_boundary_indicator (1);
+	
+	/*        
+         std::cout << "Number of active cells: "
         << triangulation.n_active_cells()
         << std::endl;
-        
+        */
         dof_handler.distribute_dofs (fe);
         
         std::cout << "Number of degrees of freedom: "
@@ -207,7 +251,16 @@ void Opzione::setup_system ()
         df_matrix.reinit (sparsity_pattern);
         system_M2.reinit (sparsity_pattern);
         
-        //build matrix...
+        
+}
+	
+void Opzione::assemble_system ()
+{
+  
+	double diff=par.sigma*par.sigma/2;
+        double trasp=par.r-par.sigma*par.sigma/2;
+        double reaz=-par.r;
+	
         QGauss<dim> quadrature_formula(2);
         FEValues<dim> fe_values (fe, quadrature_formula,
                                update_values | update_gradients | update_JxW_values);
@@ -219,12 +272,12 @@ void Opzione::setup_system ()
         Vector<double>       cell_rhs (dofs_per_cell);
         FullMatrix<double>   cell_df (dofs_per_cell, dofs_per_cell);
         FullMatrix<double>   cell_M2 (dofs_per_cell, dofs_per_cell);
-        
+/*        
         MatrixCreator::create_mass_matrix (dof_handler, QGauss<dim>(2),
                                            mass_matrix);
         MatrixCreator::create_laplace_matrix (dof_handler, QGauss<dim>(2),
                                               laplace_matrix);
-        
+        */
         std::vector<types::global_dof_index> local_dof_indices (dofs_per_cell);
         
         //Tensor<1,dim> beta(1.0);
@@ -243,17 +296,20 @@ void Opzione::setup_system ()
                         for (unsigned int j=0; j<dofs_per_cell; ++j)
                                 for (unsigned int q_point=0; q_point<n_q_points; ++q_point)
                                 {
-                                        if (i==j)       cell_df(i,j)=0;
-                                        else if (j>i)   cell_df(i,j)=0.25;
-                                        else            cell_df(i,j)=-0.25;
                                         
-                                        cell_matrix(i,j) += diff * fe_values.JxW (q_point) *
+                                        cell_matrix(i,j) = fe_values.JxW (q_point)*(diff *
                                         fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
-                                        (1/time_step - reaz) * fe_values.JxW (q_point) *
-                                        fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point) -
-                                        trasp * cell_df(i,j);
+                                        (1/time_step - reaz) *
+                                        fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point)
+					+trasp*fe_values.shape_value(i,q_point)*fe_values.shape_grad(j,q_point)[0]);
+					
+					cout<<"i= "<<i<<"e j= "<<j<<" ma q_point è " << q_point<<endl;
+                                        cout << "Grad*funz"<<fe_values.shape_value(i,q_point)*
+                                        fe_values.shape_grad(j,q_point)[0] *fe_values.JxW (q_point)<<endl;
                                         
-                                        cell_M2(i,j) += (1/time_step) * fe_values.JxW (q_point) *
+					
+// 					cout<<"Punto " << <<"Grad"<< fe_values.shape_grad(j,q_point)<<endl;
+					cell_M2(i,j) += (1/time_step) * fe_values.JxW (q_point) *
                                         fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point);
                                 }
                 
@@ -269,19 +325,20 @@ void Opzione::setup_system ()
                                 system_M2.add (local_dof_indices[i],
                                                    local_dof_indices[j],
                                                    cell_M2(i,j));
-                                df_matrix.add (local_dof_indices[i],
-                                                   local_dof_indices[j],
-                                                   cell_df(i,j));
+//                                 df_matrix.add (local_dof_indices[i],
+//                                                    local_dof_indices[j],
+//                                                    cell_df(i,j));
                         }
         }
         
-        cout<<"system_matrix:\n";
-        system_matrix.print(cout);
-        cout<<"M2:\n";
-        system_M2.print(cout);
+//         cout<<"system_matrix:\n";
+//         system_matrix.print(cout);
+//         cout<<"M2:\n";
+//         system_M2.print(cout);
         
         
         solution.reinit (dof_handler.n_dofs());
+	
         system_rhs.reinit (dof_handler.n_dofs());
         
         constraints.close ();
@@ -292,20 +349,25 @@ void Opzione::solve () {
         cout<<xmin<<"\t"<<xmax<<"\n";
         
         // costruisco la soluzione al tempo T
-        vector<double> nodes(dof_handler.n_dofs());
-        double delta=(xmax-xmin)/(dof_handler.n_dofs()-1);
-        for (int i=0; i<dof_handler.n_dofs(); ++i) {
-                nodes[i]=xmin+i*delta;
-                cout<<nodes[i]<<"\t";
-        }
-        cout<<"\n";
+//         vector<double> nodes(dof_handler.n_dofs());
+//         double delta=(xmax-xmin)/(dof_handler.n_dofs()-1);
+//         for (int i=0; i<dof_handler.n_dofs(); ++i) {
+//                 nodes[i]=xmin+i*delta;
+//                 cout<<nodes[i]<<"\t";
+//         }
+//         cout<<"\n";
+//         
+//         for (int i=0; i<dof_handler.n_dofs(); ++i) {
+//                 solution(i)=max(exp(nodes[i])-par.K,0.);
+//                 cout<<solution(i)<<"\t";
+//         }
+//         cout<<"\n";
         
-        for (int i=0; i<dof_handler.n_dofs(); ++i) {
-                solution(i)=max(exp(nodes[i])-par.K,0.);
-                cout<<solution(i)<<"\t";
-        }
-        cout<<"\n";
-        
+	//dato iniziale
+	VectorTools::project (dof_handler, constraints, QGauss<dim>(2),
+                          PayOff(par.K),
+                          solution);
+	
         // ciclo sul tempo, da T a 0+time_step
         for (timestep_number=par.T/time_step, time=par.T-time_step;
              time>=0;
@@ -320,15 +382,13 @@ void Opzione::solve () {
                         std::map<types::global_dof_index,double> boundary_values;
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   0,
-                                                                  ZeroFunction<1>(),
+                                                                  Boundary_Left_Side(),
                                                                   boundary_values);
                         
-                        BoundaryValues boundary_values_function(Smax, par.K);
-                        boundary_values_function.set_time (time);
-                        cout<<Smax-par.K<<"\n";
+
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   1,
-                                                                  boundary_values_function,
+                                                                  Boundary_Right_Side(par.K),
                                                                   boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
@@ -336,7 +396,7 @@ void Opzione::solve () {
                                                             solution,
                                                             system_rhs);
                 }
-                
+/*                
                 cout<<"system_matrix:\n";
                 system_matrix.print(cout);
                 cout<<"M2:\n";
@@ -344,7 +404,7 @@ void Opzione::solve () {
                 cout<<"rhs:\n";
                 system_rhs.print(cout);
                 cout<<"\n";
-                
+                */
                 // Risolvo il sistema
                 SparseDirectUMFPACK solver;
                 solver.initialize(sparsity_pattern);
@@ -353,10 +413,10 @@ void Opzione::solve () {
                 
                 solution=system_rhs;
                 
-                cout<<"solution:\n";
-                solution.print(cout);
-                cout<<"\n";
-                
+//                 cout<<"solution:\n";
+//                 solution.print(cout);
+//                 cout<<"\n";
+//                 
         }
         cout<<"solution:\n";
         solution.print(cout);
