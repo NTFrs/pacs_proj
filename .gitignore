@@ -16,6 +16,11 @@
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/*
+CMakeFiles
+
+#Makefiles
+Makefile
+
 
 #kde project files
 *.kdev4
