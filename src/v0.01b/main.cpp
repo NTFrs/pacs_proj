@@ -225,6 +225,7 @@ void Opzione::setup_system ()
         for (; cell!=endc; ++cell)
 	  for (unsigned int face=0;
                  face<GeometryInfo<dim>::faces_per_cell;++face)
+		    if (cell->face(face)->at_boundary())
 		    if (std::fabs(cell->face(face)->center()(0) - (xmax)) < 1e-8)
 		      cell->face(face)->set_boundary_indicator (1);
 	
