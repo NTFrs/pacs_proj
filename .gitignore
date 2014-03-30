@@ -12,6 +12,9 @@
 *.la
 *.a
 
+#compiled practice mains
+main
+
 # Cmake Files
 CMakeCache.txt
 cmake_install.cmake
