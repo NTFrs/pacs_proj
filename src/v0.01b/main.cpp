@@ -409,7 +409,7 @@ void Opzione::solve () {
 
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   1,
-                                                                  Boundary_Right_Side(par.K),
+                                                                  Boundary_Right_Side(par.K)/*Boundary_Left_Side() */,
                                                                   boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
@@ -434,9 +434,9 @@ void Opzione::solve () {
                 
                 solution=system_rhs;
                 
-//                 cout<<"solution:\n";
-//                 solution.print(cout);
-//                 cout<<"\n";
+                cout<<"solution:\n";
+                solution.print(cout);
+                cout<<"\n";
 //                 
         }
         cout<<"solution:\n";
