@@ -169,6 +169,7 @@ private:
 	void assemble_system ();
         void solve ();
         void output_results () const {};
+	double GetPrice() const;
         
         Triangulation<dim>   triangulation;
         FE_Q<dim>            fe;
@@ -198,10 +199,13 @@ public:
         time_step (1./10)
         {};
         
-        void run(){
+        double run(){
                 setup_system();
 		assemble_system();
                 solve();
+		double Price;
+		Price=GetPrice();
+		return Price;
         };
 };
 
@@ -298,17 +302,30 @@ void Opzione::assemble_system ()
                                 for (unsigned int q_point=0; q_point<n_q_points; ++q_point)
                                 {
                                         
-                                        cell_matrix(i,j) = fe_values.JxW (q_point)*(diff *
-                                        fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
-                                        (1/time_step - reaz) *
-                                        fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point)
-					+trasp*fe_values.shape_value(i,q_point)*fe_values.shape_grad(j,q_point)[0]);
-					
-					cout<<"i= "<<i<<"e j= "<<j<<" ma q_point è " << q_point<<endl;
-                                        cout << "Grad*funz"<<fe_values.shape_value(i,q_point)*
-                                        fe_values.shape_grad(j,q_point)[0] *fe_values.JxW (q_point)<<endl;
+					if (i==j)       cell_df(i,j)=0;
+                                        else if (j>i)   cell_df(i,j)=0.25;
+                                        else            cell_df(i,j)=-0.25;
                                         
-					
+                                        cell_matrix(i,j) += diff * fe_values.JxW (q_point) *
+                                        fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
+                                        (1/time_step - reaz) * fe_values.JxW (q_point) *
+                                        fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point) -
+                                        trasp * cell_df(i,j);
+				  
+				  
+//                                         cell_matrix(i,j) = fe_values.JxW (q_point)*(diff *
+//                                         fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
+//                                         (1/time_step - reaz) *
+//                                         fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point)
+// 					+trasp*fe_values.shape_value(i,q_point)*fe_values.shape_grad(j,q_point)[0]);
+// 					
+// 					cout<<"i= "<<i<<"e j= "<<j<<" ma q_point è " << q_point<<endl;
+//                                         cout << "Grad*funz"<<fe_values.shape_value(i,q_point)*
+//                                         fe_values.shape_grad(j,q_point)[0] *fe_values.JxW (q_point)<<endl;
+//                                         
+// 					cell_df(i,j)=fe_values.shape_value(j,q_point)*
+//                                         fe_values.shape_grad(i,q_point)[0] *fe_values.JxW (q_point);
+// 					
 // 					cout<<"Punto " << <<"Grad"<< fe_values.shape_grad(j,q_point)<<endl;
 					cell_M2(i,j) += (1/time_step) * fe_values.JxW (q_point) *
                                         fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point);
@@ -326,9 +343,9 @@ void Opzione::assemble_system ()
                                 system_M2.add (local_dof_indices[i],
                                                    local_dof_indices[j],
                                                    cell_M2(i,j));
-//                                 df_matrix.add (local_dof_indices[i],
-//                                                    local_dof_indices[j],
-//                                                    cell_df(i,j));
+                                df_matrix.add (local_dof_indices[i],
+                                                   local_dof_indices[j],
+                                                   cell_df(i,j));
                         }
         }
         
@@ -336,6 +353,8 @@ void Opzione::assemble_system ()
 //         system_matrix.print(cout);
 //         cout<<"M2:\n";
 //         system_M2.print(cout);
+	    cout<<"df:\n";
+	    df_matrix.print(cout);
         
         
         solution.reinit (dof_handler.n_dofs());
@@ -365,9 +384,10 @@ void Opzione::solve () {
 //         cout<<"\n";
         
 	//dato iniziale
-	VectorTools::project (dof_handler, constraints, QGauss<dim>(2),
-                          PayOff(par.K),
-                          solution);
+	VectorTools::interpolate (dof_handler, PayOff(par.K),solution);
+	cout<<"solution:\n";
+        solution.print(cout);
+        cout<<"\n";
 	
         // ciclo sul tempo, da T a 0+time_step
         for (timestep_number=par.T/time_step, time=par.T-time_step;
@@ -424,14 +444,25 @@ void Opzione::solve () {
         cout<<"\n";
 }
 
+double Opzione::GetPrice() const
+{
+  double Price(0);
+  
+  
+  
+  return Price;
+  
+}
+
+
 int main(){
         
         Parametri par;
         par.T=1.;
         par.K=100;
         par.S0=100;
-        par.r=0.1;
-        par.sigma=0.2;
+        par.r=0.03;
+        par.sigma=0.4;
         
         Opzione x(par);
         x.run();
