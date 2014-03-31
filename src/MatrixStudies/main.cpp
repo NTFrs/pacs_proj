@@ -129,8 +129,16 @@ void MatrixStudy<dim, quad>::assemble_system() {
 	cell=dof_handler.begin_active(),
 	endc=dof_handler.end();
 	Tensor< 1 , dim, double > ones;
-	for (unsigned i=0;i<dim;++i)
+	Tensor< 1 , dim, double > increasing;
+
+	for (unsigned i=0;i<dim;++i) {
 	 ones[i]=1;
+	 increasing[i]=i;
+	}
+	 
+	 cout << "Tensore ones " << ones << endl;
+	 cout << "Prodotto tensori " << ones*increasing<< endl;
+	 
 	for (; cell !=endc;++cell) {
 	 fe_values.reinit();
 	 cell_dd=0;
@@ -147,13 +155,54 @@ void MatrixStudy<dim, quad>::assemble_system() {
 		
 	   }
 	 
+	cell->get_dof_indices (local_dof_indices);
+	
+	for (unsigned int i; i<dofs_per_cell;++i)
+	 for (unsigned int j; j< dofs_per_cell; ++j) {
+	  
+	  dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
+	  fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
+	  ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
+	  
+	 }
+ 
 	}
+	
+	
 	
 	
 }
 
 
+
+
+
+
+
+
+
+template<int T>
+void print_tensor_product() {
+
+	Tensor< 1 , T, double > ones;
+	Tensor< 1 , T, double > increasing;
+
+	for (unsigned int i=0;i<T;++i) {
+	 ones[i]=1;
+	 increasing[i]=i+1;
+   }
+
+	cout << "Tensore ones " << ones << endl;
+	cout << "Tensore increasing " << increasing << endl;
+	cout << "Prodotto tensori " << ones*increasing<< endl;
+
+}
+
 int main () {
+
+	print_tensor_product<1>();
+	print_tensor_product<2>();
+	print_tensor_product<3>();
 	
 	return 0;
 }
