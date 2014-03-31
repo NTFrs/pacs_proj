@@ -56,12 +56,12 @@ private:
 	FE_Q<dim> fe;
 	DoFHandler<dim> dof_handler;
 
-
+	SparsityPattern sparsity_pattern;
 	SparseMatrix<double>  dd_matrix;
 	SparseMatrix<double> fd_matrix;
 	SparseMatrix<double> ff_matrix;
 
-	SparsityPattern sparsity_pattern;
+	
 
   };
 
@@ -71,8 +71,8 @@ MatrixStudy<dim,quad>::MatrixStudy() : fe(1), dof_handler(triangulation) {}
 template<int dim, int quad>
 void MatrixStudy<dim,quad>::make_grid() {
 
-	GridGenerator::hyper_cube(triangulation,0,1.6);
-	triangulation.refine_global(4);
+	GridGenerator::hyper_cube(triangulation,0,0.8);
+	triangulation.refine_global(3);
 
 	std::cout << "   Number of active cells: "
 	<< triangulation.n_active_cells()
@@ -130,29 +130,32 @@ void MatrixStudy<dim, quad>::assemble_system() {
 	cell=dof_handler.begin_active(),
 	endc=dof_handler.end();
 	Tensor< 1 , dim, double > ones;
-	Tensor< 1 , dim, double > increasing;
+// 	Tensor< 1 , dim, double > increasing;
 
 	for (unsigned i=0;i<dim;++i) {
 	 ones[i]=1;
-	 increasing[i]=i;
+// 	 increasing[i]=i;
    }
 
-	cout << "Tensore ones " << ones << endl;
-	cout << "Prodotto tensori " << ones*increasing<< endl;
+// 	cout << "Tensore ones " << ones << endl;
+// 	cout << "Prodotto tensori " << ones*increasing<< endl;
 
 	for (; cell !=endc;++cell) {
 	 fe_values.reinit(cell);
 	 cell_dd=0;
 	 cell_fd=0;
 	 cell_ff=0;
-
 	 for (unsigned q_point=0;q_point<n_q_points;++q_point)
 	 for (unsigned i=0;i<dofs_per_cell;++i)
 	 for (unsigned j=0; j<dofs_per_cell;++j) {
 
-	  cell_dd(i, j)=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
-	  cell_fd(i, j)=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
-	  cell_ff(i, j)=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
+	  cout<<fe_values.JxW(q_point)<< " è il JxW quà\n";
+	  cout<< fe_values.shape_grad(i, q_point)<< " e "<< fe_values.shape_grad(j, q_point)<< " gradiente\n";
+	  cout<< fe_values.shape_value(i, q_point)<< " e " << fe_values.shape_value(j, q_point)<< " funzione\n";
+		
+		cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
+		cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
+		cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
 
 	}
 
@@ -222,10 +225,13 @@ int main () {
 	print_tensor_product<3>();
  */
 
-	MatrixStudy<1, 1> M11;
-	M11.print_matrixes(cout);
-	MatrixStudy<1, 2> M12;
-	M12.print_matrixes(cout);
+	MatrixStudy<1, 1> M1;
+	M1.print_matrixes(cout);
+	MatrixStudy<1, 2> M2;
+	M2.print_matrixes(cout);
+	MatrixStudy<1, 3> M3;
+	M3.print_matrixes(cout);
+
 	
 	/*
 	MatrixStudy<2, 1> M21;
