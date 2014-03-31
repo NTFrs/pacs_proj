@@ -90,6 +90,9 @@
 using namespace std;
 using namespace dealii;
 
+//#define __VERBOSE__
+//#define __MATLAB__
+
 const int dim=1;
 
 class Parametri{
@@ -127,6 +130,25 @@ double BoundaryValues::value (const Point<dim>  &/*p*/,
         return (S-K);
 }
 
+class PayOff : public Function<dim>
+{
+public:
+        PayOff (double K_) : Function<dim>(), K(K_) {};
+        
+        virtual double value (const Point<dim>   &p,
+                              const unsigned int  component = 0) const;
+private:
+        double K;
+};
+
+
+double PayOff::value (const Point<dim>  &p,
+                      const unsigned int component) const
+{
+        Assert (component == 0, ExcInternalError());
+        return max(exp(p(0))-K,0.);
+}
+
 
 
 class Opzione{
@@ -160,7 +182,7 @@ public:
         par(par_),
         fe (1),
         dof_handler (triangulation),
-        time_step (1./4)
+        time_step (1./100)
         {};
         
         void run(){
@@ -183,7 +205,7 @@ void Opzione::setup_system ()
         double reaz=-par.r;
         
         GridGenerator::hyper_cube (triangulation, xmin, xmax);
-        triangulation.refine_global (3);
+        triangulation.refine_global (5);
         
         std::cout << "Number of active cells: "
         << triangulation.n_active_cells()
@@ -208,7 +230,7 @@ void Opzione::setup_system ()
         system_M2.reinit (sparsity_pattern);
         
         //build matrix...
-        QGauss<dim> quadrature_formula(2);
+        QGauss<dim> quadrature_formula(1);
         FEValues<dim> fe_values (fe, quadrature_formula,
                                update_values | update_gradients | update_JxW_values);
         
@@ -244,16 +266,16 @@ void Opzione::setup_system ()
                                 for (unsigned int q_point=0; q_point<n_q_points; ++q_point)
                                 {
                                         if (i==j)       cell_df(i,j)=0;
-                                        else if (j>i)   cell_df(i,j)=0.25;
-                                        else            cell_df(i,j)=-0.25;
+                                        else if (j>i)   cell_df(i,j)=0.5;
+                                        else            cell_df(i,j)=-0.5;
                                         
                                         cell_matrix(i,j) += diff * fe_values.JxW (q_point) *
                                         fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
-                                        (1/time_step - reaz) * fe_values.JxW (q_point) *
+                                        (1./time_step - reaz) * fe_values.JxW (q_point) *
                                         fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point) -
                                         trasp * cell_df(i,j);
                                         
-                                        cell_M2(i,j) += (1/time_step) * fe_values.JxW (q_point) *
+                                        cell_M2(i,j) += (1./time_step) * fe_values.JxW (q_point) *
                                         fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point);
                                 }
                 
@@ -275,10 +297,19 @@ void Opzione::setup_system ()
                         }
         }
         
+        //df_matrix[0][0]=-0.5;
+        //df_matrix[dof_handler.n_dofs()-1][dof_handler.n_dofs()-1]=0.5;
+        system_matrix.add(0,0,-0.5);
+        system_matrix.add(dof_handler.n_dofs()-1,dof_handler.n_dofs()-1,0.5);
+        
+#ifdef __VERBOSE__
         cout<<"system_matrix:\n";
         system_matrix.print(cout);
         cout<<"M2:\n";
         system_M2.print(cout);
+        cout<<"df:\n";
+        df_matrix.print(cout);
+#endif
         
         
         solution.reinit (dof_handler.n_dofs());
@@ -291,6 +322,9 @@ void Opzione::solve () {
         
         cout<<xmin<<"\t"<<xmax<<"\n";
         
+        Vector<double>       solution2;
+        solution2.reinit (dof_handler.n_dofs());
+        
         // costruisco la soluzione al tempo T
         vector<double> nodes(dof_handler.n_dofs());
         double delta=(xmax-xmin)/(dof_handler.n_dofs()-1);
@@ -301,10 +335,17 @@ void Opzione::solve () {
         cout<<"\n";
         
         for (int i=0; i<dof_handler.n_dofs(); ++i) {
-                solution(i)=max(exp(nodes[i])-par.K,0.);
-                cout<<solution(i)<<"\t";
+                solution2(i)=max(exp(nodes[i])-par.K,0.);
+                cout<<solution2(i)<<"\t";
         }
         cout<<"\n";
+        
+        VectorTools::interpolate (dof_handler, PayOff(par.K),solution);
+//#ifdef __VERBOSE__
+	cout<<"solution:\n";
+        solution.print(cout);
+        cout<<"\n";
+//#endif
         
         // ciclo sul tempo, da T a 0+time_step
         for (timestep_number=par.T/time_step, time=par.T-time_step;
@@ -337,14 +378,15 @@ void Opzione::solve () {
                                                             system_rhs);
                 }
                 
-                cout<<"system_matrix:\n";
+#ifdef __VERBOSE__
+                cout<<"Solving...system_matrix:\n";
                 system_matrix.print(cout);
                 cout<<"M2:\n";
                 system_M2.print(cout);
                 cout<<"rhs:\n";
                 system_rhs.print(cout);
-                cout<<"\n";
-                
+                cout<<"\nM1(0,1) "<<system_matrix(1,2)<<"\n";
+#endif                
                 // Risolvo il sistema
                 SparseDirectUMFPACK solver;
                 solver.initialize(sparsity_pattern);
@@ -353,14 +395,23 @@ void Opzione::solve () {
                 
                 solution=system_rhs;
                 
+#ifdef __VERBOSE__
                 cout<<"solution:\n";
                 solution.print(cout);
                 cout<<"\n";
-                
+#endif                
         }
+#ifndef __MATLAB__
         cout<<"solution:\n";
         solution.print(cout);
         cout<<"\n";
+#else
+        cout<<"x=[";
+        for (int i=0; i<dof_handler.n_dofs(); ++i) {
+                cout<<solution[i]<<"; ";
+        }
+        cout<<"]";
+#endif
 }
 
 int main(){
@@ -369,7 +420,7 @@ int main(){
         par.T=1.;
         par.K=100;
         par.S0=100;
-        par.r=0.1;
+        par.r=0.03;
         par.sigma=0.2;
         
         Opzione x(par);
