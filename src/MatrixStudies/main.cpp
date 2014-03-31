@@ -43,11 +43,16 @@ template<int dim, int quad>
 class MatrixStudy {
 public:
 	MatrixStudy() ;
+	
+	//calls all methods to build matrixes and prints them
 	void print_matrixes(ostream& out);
 
 private:
+	//makes the grid,  a hypercube
 	void make_grid() ;
+	//sets up the system and matrix pattern
 	void setup_system() ;
+	//assembles the system through quadrature
 	void assemble_system();
 
 
@@ -56,7 +61,10 @@ private:
 	FE_Q<dim> fe;
 	DoFHandler<dim> dof_handler;
 
-	SparsityPattern sparsity_pattern;
+	// sparsity_pattern be declared before matrixes! Cause matrixes depend
+	// on it and destructor gets angry if you try to destroy him before matrixes
+	// (it's counter is different form zero)
+	SparsityPattern sparsity_pattern;                          
 	SparseMatrix<double>  dd_matrix;
 	SparseMatrix<double> fd_matrix;
 	SparseMatrix<double> ff_matrix;
@@ -71,6 +79,7 @@ MatrixStudy<dim,quad>::MatrixStudy() : fe(1), dof_handler(triangulation) {}
 template<int dim, int quad>
 void MatrixStudy<dim,quad>::make_grid() {
 
+	//simple mesh generation
 	GridGenerator::hyper_cube(triangulation,0,0.8);
 	triangulation.refine_global(3);
 
@@ -153,6 +162,7 @@ void MatrixStudy<dim, quad>::assemble_system() {
 	  cout<< fe_values.shape_grad(i, q_point)<< " e "<< fe_values.shape_grad(j, q_point)<< " gradiente\n";
 	  cout<< fe_values.shape_value(i, q_point)<< " e " << fe_values.shape_value(j, q_point)<< " funzione\n";
 		
+		//a lot of time lost on this: it's important to summ all q_points (obvious,  but we forgot to use +=)
 		cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
 		cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
 		cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);

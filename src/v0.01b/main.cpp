@@ -175,17 +175,14 @@
 	  FE_Q<dim>            fe;
 	  DoFHandler<dim>      dof_handler;
 	  
-	  ConstraintMatrix constraints;
+// 	  ConstraintMatrix constraints;
 	  
 	  SparsityPattern      sparsity_pattern;
 	  SparseMatrix<double> system_matrix;
 	  SparseMatrix<double> system_M2;
-	  SparseMatrix<double> mass_matrix;
-	  SparseMatrix<double> laplace_matrix;
-	  SparseMatrix<double> df_matrix;
+
 	  
 	  Vector<double>       solution;
-  // 	Vector<double>       old_solution;
 	  Vector<double>       system_rhs;
 	  
 	  double time, time_step;
@@ -244,17 +241,14 @@
 	  << dof_handler.n_dofs()
 	  << std::endl;
 	  
-	  sparsity_pattern.reinit (dof_handler.n_dofs(),
-				  dof_handler.n_dofs(),
-				  dof_handler.max_couplings_between_dofs());
-	  DoFTools::make_sparsity_pattern (dof_handler, sparsity_pattern);
-	  sparsity_pattern.compress();
+	  CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
+	  DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	  
+	  sparsity_pattern.copy_from(c_sparsity);
 	  
 	  system_matrix.reinit (sparsity_pattern);
-	  mass_matrix.reinit (sparsity_pattern);
-	  laplace_matrix.reinit (sparsity_pattern);
-	  df_matrix.reinit (sparsity_pattern);
 	  system_M2.reinit (sparsity_pattern);
+	  
 	  
 	  
   }
@@ -268,11 +262,8 @@
 	  
 	  QGauss<dim> quadrature_formula(2);
 	  FEValues<dim> fe_values (fe, quadrature_formula,
-				update_values | update_gradients | update_JxW_values | update_quadrature_points);
+				update_values | update_gradients | update_JxW_values);
 	  
-	  QGauss<dim> quadrature_formula2(1);
-	  FEValues<dim> fe_values2 (fe, quadrature_formula2,
-				update_values | update_gradients | update_JxW_values | update_quadrature_points);
 	  
 	  
 	  
@@ -281,17 +272,14 @@
 	  
 	  FullMatrix<double>   cell_matrix (dofs_per_cell, dofs_per_cell);
 	  Vector<double>       cell_rhs (dofs_per_cell);
-	  FullMatrix<double>   cell_df (dofs_per_cell, dofs_per_cell);
 	  FullMatrix<double>   cell_M2 (dofs_per_cell, dofs_per_cell);
-  /*        
-	  MatrixCreator::create_mass_matrix (dof_handler, QGauss<dim>(2),
-					    mass_matrix);
-	  MatrixCreator::create_laplace_matrix (dof_handler, QGauss<dim>(2),
-						laplace_matrix);
-	  */
+
 	  std::vector<types::global_dof_index> local_dof_indices (dofs_per_cell);
 	  
 	  //Tensor<1,dim> beta(1.0);
+	  Tensor< 1 , dim, double > ones;
+	  for (unsigned i=0;i<dim;++i)
+	   ones[i]=1;
 	  
 	  DoFHandler<dim>::active_cell_iterator
 	  cell = dof_handler.begin_active(),
@@ -299,60 +287,24 @@
 	  for (; cell!=endc; ++cell)
 	  {
 		  fe_values.reinit (cell);
-		  fe_values2.reinit (cell);
 		  cell_matrix = 0;
 		  cell_M2 = 0;
-		  cell_df = 0;
 		  
-		  for (unsigned int i=0; i<dofs_per_cell; ++i)
-			  for (unsigned int j=0; j<dofs_per_cell; ++j)
-			  {
-			    for (unsigned int q_point=0; q_point<n_q_points; ++q_point)
-				  {
-  /*                                        
-					  if (i==j)       cell_df(i,j)=0;
-					  else if (j>i)   cell_df(i,j)=+0.5;
-					  else            cell_df(i,j)=-0.5;
-					  
-					  cell_matrix(i,j) = +diff * fe_values.JxW (q_point) *
-					  fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
-					  (+1./time_step - reaz) * fe_values.JxW (q_point) *
-					  fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point) -
-					  trasp * cell_df(i,j);
-				    */
-
-					  //Questo dovrebbe misurare l'intervallino, ma i punti interpolanti cadono a metà!
-					  /*vector< Point<dim> > vert=fe_values.get_quadrature_points();
-					  double dx=fabs(vert[1][0]-vert[0][0]);
-					  cout<<"dx= "<<dx<<"from points:"<<endl;
-					  cout<<"Right "<<vert[1]<<" and Left "<<vert[0]<<endl;
-					  */
-  // 					cout<<"Il vettore è lungo "<<vert.size()<<endl;
-					  
-					  
-					  cell_matrix(i,j) = fe_values.JxW (q_point)*(diff*
+	   for (unsigned int q_point=0; q_point<n_q_points; ++q_point)  
+				for (unsigned int i=0; i<dofs_per_cell; ++i)
+					for (unsigned int j=0; j<dofs_per_cell; ++j)
+					{
+			  
+					  cell_matrix(i,j) += fe_values.JxW (q_point)*(diff*
 					  fe_values.shape_grad (i, q_point) * fe_values.shape_grad (j, q_point) +
 					  (1./time_step - reaz) *
-					  fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point));
+					  fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point)-
+					  trasp*fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j, q_point)));
 					  
-  // 					cout<<"i= "<<i<<"e j= "<<j<<" ma q_point è " << q_point<<endl;
-  //                                         cout << "Grad*funz*shape"<<fe_values.shape_value(i,q_point)*
-  //                                         fe_values.shape_grad(j,q_point)[0] *fe_values.JxW (q_point)<<endl;
-				      
-  // 					
-  // 					cout<<"Punto (" <<i<<","<<j<<") "<<endl;
-  // 					cout<<"Grad"<< fe_values.shape_grad(j,q_point)<<endl;
-  // 					cout<<"Funz"<< fe_values.shape_value(i,q_point)<<endl;
 					  
-					  cell_M2(i,j) = (1./time_step) * fe_values.JxW (q_point) *
+					  cell_M2(i,j) += (1./time_step) * fe_values.JxW (q_point) *
 					  fe_values.shape_value (i, q_point) * fe_values.shape_value (j, q_point);
-				  }
-				cell_matrix(i,j)+=-trasp*fe_values2.JxW(0)*fe_values2.shape_value(i,0)*
-					  fe_values2.shape_grad(j,0)[0];
-					  
-					  cell_df(i,j)=fe_values2.shape_value(j,0)*
-					  fe_values2.shape_grad(i,0)[0] *fe_values2.JxW (0);
-			  }
+	 }
 		  cell->get_dof_indices (local_dof_indices);
 		  
 		  for (unsigned int i=0; i<dofs_per_cell; ++i)
@@ -364,25 +316,22 @@
 				  system_M2.add (local_dof_indices[i],
 						    local_dof_indices[j],
 						    cell_M2(i,j));
-				  df_matrix.add (local_dof_indices[i],
-						    local_dof_indices[j],
-						    cell_df(i,j));
 			  }
 	  }
 	  
-	  cout<<"system_matrix:\n";
-	  system_matrix.print(cout);
-	  cout<<"M2:\n";
-	  system_M2.print(cout);
-	      cout<<"df:\n";
-	      df_matrix.print(cout);
+// 	  cout<<"system_matrix:\n";
+// 	  system_matrix.print(cout);
+// 	  cout<<"M2:\n";
+// 	  system_M2.print(cout);
+// 	      cout<<"df:\n";
+// 	      df_matrix.print(cout);
 	  
 	  
 	  solution.reinit (dof_handler.n_dofs());
 	  
 	  system_rhs.reinit (dof_handler.n_dofs());
 	  
-	  constraints.close ();
+// 	  constraints.close ();
   }
 
   void Opzione::solve () {
@@ -418,7 +367,7 @@
 		  cout<<"Time step "<<timestep_number<<"\t"<<time<<"\t"<<time_step<<"\n";
 		  // creo l'rhs
 		  system_M2.vmult (system_rhs, solution); //system_rhs=M2*solution
-		  
+	   solution.reinit (dof_handler.n_dofs());
 		  //Applico le BC: 0 in xmin e Smax-K in xmax
 		  {
 			  std::map<types::global_dof_index,double> boundary_values;
