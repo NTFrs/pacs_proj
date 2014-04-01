@@ -161,7 +161,7 @@ public:
 	dof_handler (triangulation),
 	refs(refinement), 
 	Nsteps(Nsteps_), 
-	time_step (par.T/double(Nsteps_+1))
+	time_step (par.T/double(Nsteps_))
 	{};
 
 	double run(){
@@ -180,9 +180,9 @@ void Opzione<dim>::make_grid() {
 	//simple mesh generation
 	
 	Smin=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
-					-par.sigma*sqrt(6)*par.T);
+					-par.sigma*sqrt(par.T)*6);
 	Smax=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
-					+par.sigma*sqrt(6)*par.T);
+					+par.sigma*sqrt(par.T)*6);
 					
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
 	xmin=log(Smin);xmax=log(Smax);
