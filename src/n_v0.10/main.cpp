@@ -35,6 +35,9 @@
 #include <deal.II/numerics/matrix_tools.h>
 
 #include <deal.II/lac/sparse_direct.h>
+#include <deal.II/lac/solver_richardson.h>
+#include <deal.II/lac/precondition.h>
+
 
 #include <cmath>
 #include <algorithm>
@@ -350,14 +353,19 @@ void Opzione<dim>::solve() {
 	   system_rhs);
 	  
 	 }
-	 
+/*	 
 	 SparseDirectUMFPACK solver;
 	 solver.initialize(sparsity_pattern);
 	 solver.factorize(system_matrix);
 	 solver.solve(system_rhs);
 	 
-	 solution=system_rhs;
+	 solution=system_rhs;*/
 
+	 SolverControl	solver_control (1000, 1e-12);
+	 SolverRichardson<> solver(solver_control);
+	 solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
+	 
+	 
 	 cout<<"solution:\n";
 	 solution.print(cout);
 	 cout<<"\n";
