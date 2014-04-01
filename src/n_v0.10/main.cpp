@@ -101,7 +101,7 @@ template<int dim>
 class Boundary_Right_Side: public Function<dim>
 {
 public:
-	Boundary_Right_Side(double K, double T,  double r) : Function< dim>(), _K(K) {};
+	Boundary_Right_Side(double K, double T,  double r) : Function< dim>(), _K(K), _T(T), _r(r) {};
 
 	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
 private:
@@ -114,6 +114,12 @@ template<int dim>
 double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
+	/*
+	cout<< "time in function: "<< this->get_time()<< endl;
+	cout<< "T= "<< _T<< endl;
+	double discount(exp(-_r*(_T-this->get_time())));
+	cout<< "Discount is : "<< discount<< endl;
+	*/
 	return exp(p[0])-_K*exp(-_r*(_T-this->get_time()));
 
 }
