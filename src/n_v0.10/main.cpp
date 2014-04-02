@@ -353,24 +353,20 @@ void Opzione<dim>::solve() {
 	   system_rhs);
 	  
 	 }
-/*	 
+	 
 	 SparseDirectUMFPACK solver;
 	 solver.initialize(sparsity_pattern);
 	 solver.factorize(system_matrix);
 	 solver.solve(system_rhs);
-	 
-	 solution=system_rhs;*/
+                
+                solution=system_rhs;
 
-	 SolverControl	solver_control (1000, 1e-12);
-	 SolverRichardson<> solver(solver_control);
-	 solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
-	 
-	 
+
 	 cout<<"solution:\n";
 	 solution.print(cout);
 	 cout<<"\n";
 	 
- 
+                
 	 
 	 
 	}
@@ -396,7 +392,7 @@ int main() {
 	par.r=0.03;
 	par.sigma=0.2;
 	
-	Opzione<1> Call(par, 10, 4);
+	Opzione<1> Call(par, 1000, 8);
 	Call.run();
 	
 	return 0;

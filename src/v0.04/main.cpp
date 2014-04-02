@@ -92,11 +92,11 @@ using namespace dealii;
 
 //#define __VERBOSE__
 #define __MATLAB__
-//#define __MARAZZINA__
+#define __MARAZZINA__
 
 const int dim=1;
-const double dt_=0.5;
-const int refinement=2;
+const double dt_=0.001;
+const int refinement=10;
 
 class Parametri{
 public:
@@ -151,17 +151,19 @@ double Boundary_Left_Side::value(const Point<dim> &p, const unsigned int compone
 class Boundary_Right_Side: public Function<dim>
 {
 public:
-        Boundary_Right_Side(double K) : Function< dim>(), _K(K) {};
+        Boundary_Right_Side(double K, double r, double t) : Function< dim>(), _K(K), _r(r), _T(t) {};
         
         virtual double value (const Point<dim> &p, const unsigned int component =0) const;
 private:
         double _K;
+        double _r;
+        double _T;
 };
 
 double Boundary_Right_Side::value(const Point<dim> &p, const unsigned int component) const
 {
         Assert (component == 0, ExcInternalError());
-        return exp(p[0])-_K;
+        return exp(p[0])-_K*exp(-_r*_T);
         
 }
 
@@ -315,6 +317,8 @@ void Opzione::solve () {
 #endif
         mass_matrix/=dt;
 #ifdef __MARAZZINA__
+        double temp2=mass_matrix(1,2);
+        double temp1=system_matrix(1,2);
         mass_matrix.set(0,1,0);
         mass_matrix.set(1,0,0);
         mass_matrix.set(mass_matrix.n()-1,mass_matrix.n()-2,0);
@@ -325,13 +329,19 @@ void Opzione::solve () {
         cout<<"mass_matrix/dt:\n";
         mass_matrix.print(cout);
 #endif
+        double t=par.T-dt;
+        double time_step=par.T/dt-1;
         
-        for (double t=par.T; t>0; t-=dt) {
+        for ( ; t>=0; t-=dt, --time_step) {
                 mass_matrix.vmult (system_rhs, solution);
 #ifdef __VERBOSE__
-                cout<<"rhs:\n";
+                cout<<"***t "<<t<<" time_step "<<time_step<<"\n";
+                cout<<"mass_matrix:\n";
+                mass_matrix.print(cout);
+                cout<<"\nrhs before:\n";
                 system_rhs.print(cout);
 #endif
+                double temp3=system_rhs(dof_handler.n_dofs()-2);
                 // BC
                 {
                         std::map<types::global_dof_index,double> boundary_values;
@@ -343,7 +353,7 @@ void Opzione::solve () {
                         
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   1,
-                                                                  Boundary_Right_Side(par.K),
+                                                                  Boundary_Right_Side(par.K, par.r, par.T),
                                                                   boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
@@ -351,14 +361,23 @@ void Opzione::solve () {
                                                             solution,
                                                             system_rhs);
                 }
+#ifdef __VERBOSE__
+                cout<<"system_matrix mid:\n";
+                system_matrix.print(cout);
+                cout<<"rhs mid:\n";
+                system_rhs.print(cout);
+#endif
 #ifdef __MARAZZINA__
-                system_rhs[dof_handler.n_dofs()-2]+=-system_matrix(1,2)*
-                (Smax-par.K*exp(-par.r*(par.T-(dt*par.T/t-1)*dt)))+
-                mass_matrix(1,2)*(Smax-par.K*exp(-par.r*(par.T-(dt*par.T/t)*dt)));
+                // -BC1_N*(Smax-K*exp(-r*(T-it*dt)))+BC2_N*(Smax-K*exp(-r*(T-(it+1)*dt)))
+                system_rhs[dof_handler.n_dofs()-2]=temp3-temp1*
+                (Smax-par.K*exp(-par.r*(par.T-time_step*dt)))+
+                temp2*(Smax-par.K*exp(-par.r*(par.T-(time_step+1)*dt)));
 #endif
                 
 #ifdef __VERBOSE__
-                cout<<"rhs:\n";
+                cout<<"system_matrix after:\n";
+                system_matrix.print(cout);
+                cout<<"rhs after:\n";
                 system_rhs.print(cout);
 #endif
                 // Risolvo il sistema
@@ -380,11 +399,11 @@ void Opzione::solve () {
         solution.print(cout);
         cout<<"\n";
 #else
-        cout<<"x=[";
+        cout<<"x=[ ";
         for (int i=0; i<dof_handler.n_dofs()-1; ++i) {
                 cout<<solution[i]<<"; ";
         }
-        cout<<solution[dof_handler.n_dofs()-1]<<"]";
+        cout<<solution[dof_handler.n_dofs()-1]<<" ]";
 #endif
 }
 
