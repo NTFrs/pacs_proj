@@ -151,19 +151,19 @@ double Boundary_Left_Side::value(const Point<dim> &p, const unsigned int compone
 class Boundary_Right_Side: public Function<dim>
 {
 public:
-        Boundary_Right_Side(double K, double r, double t) : Function< dim>(), _K(K), _r(r), _T(t) {};
-        
+        Boundary_Right_Side(double K, double r, double T, double t) : Function< dim>(), _K(K), _r(r), _T(T), _t(t) {};
         virtual double value (const Point<dim> &p, const unsigned int component =0) const;
 private:
         double _K;
         double _r;
         double _T;
+        double _t;
 };
 
 double Boundary_Right_Side::value(const Point<dim> &p, const unsigned int component) const
 {
         Assert (component == 0, ExcInternalError());
-        return exp(p[0])-_K*exp(-_r*_T);
+        return exp(p[0])-_K*exp(-_r*(_T-_t));
         
 }
 
@@ -353,7 +353,7 @@ void Opzione::solve () {
                         
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   1,
-                                                                  Boundary_Right_Side(par.K, par.r, par.T),
+                                                                  Boundary_Right_Side(par.K, par.r, par.T, t),
                                                                   boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
