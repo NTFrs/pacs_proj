@@ -39,6 +39,47 @@
 using namespace std;
 using namespace dealii;
 
+template<int dim>
+class Boundary_Left_Side : public Function<dim>
+{
+public:
+	Boundary_Left_Side() : Function< dim>() {};
+
+	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+
+};
+
+
+template<int dim>
+double Boundary_Left_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	return 0;
+
+}
+
+
+template<int dim>
+class Boundary_Right_Side: public Function<dim>
+{
+public:
+	Boundary_Right_Side(double K) : Function< dim>(), _K(K){};
+	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+private:
+	double _K;
+};
+
+
+template<int dim>
+double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	return _K;
+
+}
+
+
+
 template<int dim, int quad>
 class MatrixStudy {
 public:
@@ -47,6 +88,8 @@ public:
 	//calls all methods to build matrixes and prints them
 	void print_matrixes(ostream& out);
 
+	void study_conditions(ostream& out,  double K);
+	
 private:
 	//makes the grid,  a hypercube
 	void make_grid() ;
@@ -54,6 +97,8 @@ private:
 	void setup_system() ;
 	//assembles the system through quadrature
 	void assemble_system();
+	
+	void print_state(ostream &out);
 
 
 
@@ -68,6 +113,12 @@ private:
 	SparseMatrix<double>  dd_matrix;
 	SparseMatrix<double> fd_matrix;
 	SparseMatrix<double> ff_matrix;
+	SparseMatrix<double> system_matrix;
+	SparseMatrix<double> m2_matrix;
+	
+	Vector<double>       solution;
+	Vector<double>       system_rhs;
+
 
 	
 
@@ -112,6 +163,12 @@ void MatrixStudy<dim,quad>::setup_system() {
 	dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);	
+	system_matrix.reinit(sparsity_pattern);	
+	m2_matrix.reinit(sparsity_pattern);
+	
+	system_rhs.reinit(dof_handler.n_dofs());
+
+	solution.reinit(dof_handler.n_dofs());
 
   }
 
@@ -206,10 +263,47 @@ void MatrixStudy<dim, quad>::print_matrixes(ostream& out)
 
 }
 
+template<int dim,  int quad>
+void MatrixStudy<dim, quad>::print_state(ostream &out) {
+	
+	out<< "System Matrix:\n";
+	system_matrix.print_formatted(out);
+	out<< "System M2:\n";
+	m2_matrix.print_formatted(out);
+	out<< "System solution:\n";
+	solution.print(out);
+	out<< "System rhs:\n";
+	system_rhs.print(out);
+	
+}
+
+template<int dim,  int quad>
+void MatrixStudy<dim, quad>::study_conditions(ostream& out,  double K) {
+
+
+	make_grid();
+	setup_system();
+	assemble_system();
+	
+	double diff(1),  trasp(2),  reaz(0.5);
+	
+	system_matrix.add(reaz, ff_matrix);
+	system_matrix.add(-trasp, fd_matrix);
+	system_matrix.add(diff, dd_matrix);
+	
+	m2_matrix.add(1, ff_matrix);
+	solution.add(1.);
+	m2_matrix.vmult(system_rhs, solution);
+	
+	print_state(cout);
+	
+	
+	
+	
 
 
 
-
+}
 
 
 
@@ -237,20 +331,20 @@ int main () {
 	print_tensor_product<3>();
  */
 
-	MatrixStudy<1, 1> M1;
-	M1.print_matrixes(cout);
+// 	MatrixStudy<1, 1> M1;
+// 	M1.print_matrixes(cout);
 	MatrixStudy<1, 2> M2;
-	M2.print_matrixes(cout);
-	MatrixStudy<1, 3> M3;
-	M3.print_matrixes(cout);
+// 	M2.print_matrixes(cout);
+// 	MatrixStudy<1, 3> M3;
+// 	M3.print_matrixes(cout);
 
 	
-	
+	/*
 	MatrixStudy<2, 1> M21;
 	MatrixStudy<2, 2> M22;
 	M21.print_matrixes(cout);
 	M22.print_matrixes(cout);
-	
+	*/
 
 
 	return 0;
