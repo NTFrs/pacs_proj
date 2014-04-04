@@ -138,15 +138,17 @@ void MatrixStudy<dim, quad>::assemble_system() {
 	typename DoFHandler<dim>::active_cell_iterator
 	cell=dof_handler.begin_active(),
 	endc=dof_handler.end();
-	Tensor< 1 , dim, double > ones;
+	Tensor< 1 , dim, double > ones(1.);
+	
 // 	Tensor< 1 , dim, double > increasing;
+	cout<< "Tensore ones prima"<< ones<< endl;
 
 	for (unsigned i=0;i<dim;++i) {
 	 ones[i]=1;
 // 	 increasing[i]=i;
    }
 
-// 	cout << "Tensore ones " << ones << endl;
+	cout << "Tensore ones dopo" << ones << endl;
 // 	cout << "Prodotto tensori " << ones*increasing<< endl;
 
 	for (; cell !=endc;++cell) {
@@ -157,11 +159,11 @@ void MatrixStudy<dim, quad>::assemble_system() {
 	 for (unsigned q_point=0;q_point<n_q_points;++q_point)
 	 for (unsigned i=0;i<dofs_per_cell;++i)
 	 for (unsigned j=0; j<dofs_per_cell;++j) {
-
+/*
 	  cout<<fe_values.JxW(q_point)<< " è il JxW quà\n";
 	  cout<< fe_values.shape_grad(i, q_point)<< " e "<< fe_values.shape_grad(j, q_point)<< " gradiente\n";
 	  cout<< fe_values.shape_value(i, q_point)<< " e " << fe_values.shape_value(j, q_point)<< " funzione\n";
-		
+		*/
 		//a lot of time lost on this: it's important to summ all q_points (obvious,  but we forgot to use +=)
 		cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
 		cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
@@ -243,10 +245,12 @@ int main () {
 	M3.print_matrixes(cout);
 
 	
-	/*
+	
 	MatrixStudy<2, 1> M21;
 	MatrixStudy<2, 2> M22;
-	*/
+	M21.print_matrixes(cout);
+	M22.print_matrixes(cout);
+	
 
 
 	return 0;
