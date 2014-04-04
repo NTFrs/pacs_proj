@@ -350,7 +350,7 @@ void Opzione<dim>::solve() {
 	  MatrixTools::apply_boundary_values (boundary_values,
 	   system_matrix,
 	   solution,
-	   system_rhs);
+	   system_rhs, false);
 	  
 	 }
 	 
@@ -392,7 +392,7 @@ int main() {
 	par.r=0.03;
 	par.sigma=0.2;
 	
-	Opzione<1> Call(par, 1000, 8);
+	Opzione<1> Call(par, 10, 3);
 	Call.run();
 	
 	return 0;
