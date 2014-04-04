@@ -28,3 +28,6 @@ makefile
 #kde project files
 *.kdev4
 .kdev4/*
+
+#generic trash file
+*.trash
