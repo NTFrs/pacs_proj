@@ -165,7 +165,7 @@ void MatrixStudy<dim,quad>::setup_system() {
 
 	sparsity_pattern.copy_from(c_sparsity);
 
-	std::ofstream out ("sparsity_pattern.1");
+	std::ofstream out ("sparsity_pattern1.aux");
 	sparsity_pattern.print_gnuplot (out);
 
 	dd_matrix.reinit(sparsity_pattern);
