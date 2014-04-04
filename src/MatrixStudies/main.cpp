@@ -29,12 +29,18 @@
 #include <vector>
 
 #include <deal.II/grid/grid_out.h>
+#include <deal.II/lac/sparse_direct.h>
+
 
 #include <cmath>
 #include <algorithm>
-#include "../../../../dealII/include/deal.II/lac/sparse_matrix.h"
-#include "../../../../dealII/include/deal.II/bundled/boost/graph/stoer_wagner_min_cut.hpp"
-#include "../../../../dealII/include/deal.II/grid/tria.h"
+
+#include <deal.II/numerics/vector_tools.h>
+#include <deal.II/numerics/matrix_tools.h>
+
+// #include "../../../../dealII/include/deal.II/lac/sparse_matrix.h"
+// #include "../../../../dealII/include/deal.II/bundled/boost/graph/stoer_wagner_min_cut.hpp"
+// #include "../../../../dealII/include/deal.II/grid/tria.h"
 
 using namespace std;
 using namespace dealii;
@@ -89,6 +95,8 @@ public:
 	void print_matrixes(ostream& out);
 
 	void study_conditions(ostream& out,  double K);
+	
+	void make_all();
 	
 private:
 	//makes the grid,  a hypercube
@@ -244,13 +252,22 @@ void MatrixStudy<dim, quad>::assemble_system() {
 
   }
 
+  
+  
+template<int dim,  int quad>
+void MatrixStudy<dim, quad>::make_all() {
+	
+	make_grid();
+	setup_system();
+	assemble_system();
+	
+}
+  
 template<int dim,  int quad>
 void MatrixStudy<dim, quad>::print_matrixes(ostream& out)
 {
 
-	make_grid();
-	setup_system();
-	assemble_system();
+
 
 	out<<"Derivata Derivata:\n";
 	dd_matrix.print_formatted(out);
@@ -281,28 +298,52 @@ template<int dim,  int quad>
 void MatrixStudy<dim, quad>::study_conditions(ostream& out,  double K) {
 
 
-	make_grid();
-	setup_system();
-	assemble_system();
-	
-	double diff(1),  trasp(2),  reaz(0.5);
+	double diff(1),  trasp(2),  reaz(12);
 	
 	system_matrix.add(reaz, ff_matrix);
 	system_matrix.add(-trasp, fd_matrix);
 	system_matrix.add(diff, dd_matrix);
 	
-	m2_matrix.add(1, ff_matrix);
+	m2_matrix.add(6, ff_matrix);
 	solution.add(1.);
 	m2_matrix.vmult(system_rhs, solution);
 	
-	print_state(cout);
+	print_state(out);
 	
-	
-	
-	
+	{
+	 std::map<types::global_dof_index,double> boundary_values;
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  0,
+	  Boundary_Left_Side<dim>(),
+	  boundary_values);
 
 
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  1,
+	  Boundary_Right_Side<dim>(K),
+	  boundary_values);
 
+	 MatrixTools::apply_boundary_values (boundary_values,
+	  system_matrix,
+	  solution,
+	  system_rhs);
+	}
+	
+	cout << "#########################################################CONDITIONS##########################################################\n";
+	
+	print_state(out);
+	Vector<double> old_rhs(system_rhs);
+	
+	SparseDirectUMFPACK solver;
+	solver.initialize(sparsity_pattern);
+	solver.factorize(system_matrix);
+	solver.solve(system_rhs);
+	solution=system_rhs;
+	cout << "##############################################################SOLVED##########################################################\n";
+	
+	print_state(out);
+	cout<< "old_rhs is :\n";
+	old_rhs.print();
 }
 
 
@@ -334,7 +375,10 @@ int main () {
 // 	MatrixStudy<1, 1> M1;
 // 	M1.print_matrixes(cout);
 	MatrixStudy<1, 2> M2;
-// 	M2.print_matrixes(cout);
+	M2.make_all();
+	M2.print_matrixes(cout);
+	M2.study_conditions(cout, 10);
+ 	
 // 	MatrixStudy<1, 3> M3;
 // 	M3.print_matrixes(cout);
 
