@@ -42,6 +42,9 @@
 #include <cmath>
 #include <algorithm>
 
+// #define __VERBOSE__
+
+
 using namespace std;
 using namespace dealii;
 
@@ -361,11 +364,11 @@ void Opzione<dim>::solve() {
                 
                 solution=system_rhs;
 
-
+#ifdef __VERBOSE__
 	 cout<<"solution:\n";
 	 solution.print(cout);
 	 cout<<"\n";
-	 
+# endif
                 
 	 
 	 
@@ -392,7 +395,7 @@ int main() {
 	par.r=0.03;
 	par.sigma=0.2;
 	
-	Opzione<1> Call(par, 10, 3);
+	Opzione<1> Call(par, 1000, 10);
 	Call.run();
 	
 	return 0;
