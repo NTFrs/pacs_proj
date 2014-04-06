@@ -335,7 +335,6 @@ void Opzione<dim>::solve() {
                 system_M2.vmult(system_rhs, solution);
                 right_bound.set_time(time);
                 
-                
                 {
                         
                         std::map<types::global_dof_index,double> boundary_values;
@@ -395,7 +394,7 @@ int main() {
 	par.r=0.03;
 	par.sigma=0.2;
 	
-	Opzione<1> Call(par, 1000, 10);
+	Opzione<1> Call(par, 100, 10);
 	Call.run();
 	
 	return 0;

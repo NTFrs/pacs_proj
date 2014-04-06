@@ -42,6 +42,8 @@
 // #include "../../../../dealII/include/deal.II/bundled/boost/graph/stoer_wagner_min_cut.hpp"
 // #include "../../../../dealII/include/deal.II/grid/tria.h"
 
+// #define __NO_KILL_ROW__
+
 using namespace std;
 using namespace dealii;
 
@@ -322,11 +324,24 @@ void MatrixStudy<dim, quad>::study_conditions(ostream& out,  double K) {
 	  1,
 	  Boundary_Right_Side<dim>(K),
 	  boundary_values);
+	
+#ifndef __NO_KILL_ROW__	
+	
+	bool delcols(true);
+	cout<< "Eliminating rows";
+	
+# endif
+	
+#ifdef __NO_KILL_ROW__
+	bool delcols(false);
+	cout<< "Not eliminating rows\n";
+# endif
 
+	  
 	 MatrixTools::apply_boundary_values (boundary_values,
 	  system_matrix,
 	  solution,
-	  system_rhs);
+	  system_rhs, delcols);
 	}
 	
 	cout << "#########################################################CONDITIONS##########################################################\n";
