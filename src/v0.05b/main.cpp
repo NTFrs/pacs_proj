@@ -438,11 +438,20 @@ void Opzione<dim>::assemble_system() {
                 
         }
         
+#ifdef __PIDE__
+        system_M2.add(1, ff_matrix);
+        system_matrix.add(1-time_step*(par.r+par.lambda), ff_matrix); 
+        system_matrix.add(par.sigma*par.sigma*time_step/2, dd_matrix);
+        system_matrix.add(-time_step*(par.r-par.sigma*par.sigma/2-alpha), fd_matrix);
+        system_matrix.add(par.r*time_step, ff_matrix);
+#else
         system_M2.add(1, ff_matrix);
         system_matrix.add(1, ff_matrix);
         system_matrix.add(par.sigma*par.sigma*time_step/2, dd_matrix);
         system_matrix.add(-time_step*(par.r-par.sigma*par.sigma/2), fd_matrix);
         system_matrix.add(par.r*time_step, ff_matrix);
+
+#endif
 	
 }
 
