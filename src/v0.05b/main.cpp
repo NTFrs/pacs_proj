@@ -56,7 +56,7 @@ using namespace dealii;
 
 // #define dim 1
 
-//#define __PIDE__
+#define __PIDE__
 
 class Parametri{
 public:
@@ -457,6 +457,9 @@ void Opzione<dim>::solve() {
         for (int i=0; i<x.size(); ++i) {
                 x(i)=xmin+i*(xmax-xmin)/(x.size()-1);
         }
+        
+        double dx=x(2)-x(1);
+        cout<<"dx "<<dx<<"\n";
 	
 	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0),solution);
 	cout<<"solution:\n";
@@ -472,8 +475,17 @@ void Opzione<dim>::solve() {
                 Vector<double> J;
                 J.reinit(solution.size());
                 integrale2_Levy(J, x, 2*solution.size());
-                system_M2.vmult(system_rhs, J);
+                system_M2.vmult(system_rhs, solution);
+                
+                J*=dx;
+                system_rhs+=J;
                 /*
+                cout<<"rhs before ";
+                system_rhs.print(cout);
+                cout<<"\n";
+                cout<<"rhs after ";
+                system_rhs.print(cout);
+                cout<<"\n";
                 cout<<"J ";
                 J.print(cout);
                 cout<<"\n";*/
