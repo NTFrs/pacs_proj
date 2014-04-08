@@ -48,7 +48,7 @@
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
 
-// #define __VERBOSE__
+#define __VERBOSE__
 
 
 using namespace std;
@@ -215,10 +215,11 @@ void Opzione<dim>::integrale_Levy(int n){
         
         while(k(Bmin)>tol)
                 Bmin-=step;
-        
+        cout<< k(Bmin)<< " k in Bmin \n";
         while(k(Bmax)>tol)
                 Bmax+=step;
-        
+		cout<< k(Bmax)<< " k in Bmax \n";
+
         // Calcolo di alpha e lambda con formula dei trapezi
         double dB=(Bmax-Bmin)/(n-1);
         Vector<double> y; // Nodi di quadratura
@@ -265,10 +266,10 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x, i
         double u_array[solution.size()];
         
         for (int i=0; i<x.size(); ++i) {
-                x_array[i]=x(i);
-                u_array[i]=solution(i);
+                x_array[i]=x[i];
+                u_array[i]=solution[i];
         }
-        for (int i=1; i<J.size(); ++i) {
+        for (int i=0; i<J.size(); ++i) {
                 Vector<double> val;
                 Vector<double> z(y);
                 z.add(x(i));
@@ -288,28 +289,27 @@ void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, 
         gsl_spline_init (my_spline_ptr, x_array, u_array, n);
         
         val=Vector<double>(y.size());
-        int j=0;
         int k=0;
-        while (y(j)<x_array[0]) {
+        while (y(k)<x_array[0]) {
                 val(k)=0;
-                cout<< "1 val in "<< y(k)<< " è " << val(k)<< endl;
+//                 cout<< "1 val in "<< y(k)<< " è " << val(k)<< endl;
                 ++k;
-                ++j;
+
         }
         
-        while (j<y.size() && y(j)<x_array[n-1]) {
+        while (k<y.size() && y(k)<x_array[n-1]) {
                 val(k)=gsl_spline_eval(my_spline_ptr, y(k) , my_accel_ptr);
-				cout<< "2 val in "<< y(k)<< " è " << val(k)<< endl;
-                ++j;
+// 				cout<< "2 val in "<< y(k)<< " è " << val(k)<< endl;
                 ++k;
         }
         
         for (int i=k; i<y.size(); ++i) {
-                val(i)=payoff(x_array[n-1],par.K,par.S0);
-				cout<< "3 val in "<< y(i)<< " è " << val(i)<< endl;
+                val(i)=payoff(y(i),par.K,par.S0);
+// 				cout<< "3 val in "<< y(i)<< " è " << val(i)<< endl;
 				
         }
-        cout<< "-----------------------------------------------------------------------------------\n";
+//         cout<< val<< endl;
+//         cout<< "-----------------------------------------------------------------------------------\n";
         gsl_spline_free(my_spline_ptr);
         gsl_interp_accel_free(my_accel_ptr);
         
@@ -487,25 +487,25 @@ void Opzione<dim>::solve() {
 #ifdef __PIDE__
                 Vector<double> J;
                 J.reinit(solution.size());
-                integrale2_Levy(J, x, 2*solution.size());
+                integrale2_Levy(J, x, 50*solution.size());
                 system_M2.vmult(system_rhs, solution);
 				cout<< "-----------------------------------------------------------------------------------\n";
 				cout<< "-----------------------------------------------------------------------------------\n";
                 cout<< "look at J\n";
                 cout<< J;
-                
+// 				cout<<"rhs before ";
+// 				system_rhs.print(cout);
+// 				cout<<"\n";
                 J*=dx;
                 system_rhs+=J;
-                /*
-                cout<<"rhs before ";
-                system_rhs.print(cout);
-                cout<<"\n";
+/*                
                 cout<<"rhs after ";
                 system_rhs.print(cout);
                 cout<<"\n";
                 cout<<"J ";
                 J.print(cout);
-                cout<<"\n";*/
+                cout<<"\n";
+                */
 #else
                 system_M2.vmult(system_rhs, solution);
 #endif
