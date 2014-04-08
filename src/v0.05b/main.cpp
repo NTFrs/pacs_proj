@@ -303,7 +303,7 @@ void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, 
         }
         
         for (int i=k; i<y.size(); ++i) {
-                val(i)=payoff(y(k),par.K,par.S0);
+			val(i)=payoff(x_array[n-1],par.K,par.S0);
         }
         
         gsl_spline_free(my_spline_ptr);
