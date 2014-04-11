@@ -56,7 +56,7 @@ using namespace dealii;
 
 //#define dim 1
 
-//#define __PIDE__
+#define __PIDE__
 
 class Parametri{
 public:
@@ -372,9 +372,9 @@ template<int dim>
 void Opzione<dim>::make_grid() {
 	//simple mesh generation
 	
-	Smin=0.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+	Smin=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                         -par.sigma*sqrt(par.T)*6);
-	Smax=1.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+	Smax=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                         +par.sigma*sqrt(par.T)*6);
         
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
