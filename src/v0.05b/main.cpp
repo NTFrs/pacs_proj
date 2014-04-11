@@ -56,7 +56,8 @@ using namespace dealii;
 
 //#define dim 1
 
-//#define __PIDE__
+#define __PIDE__
+
 
 class Parametri{
 public:
@@ -648,8 +649,10 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 50, 10);
+	Opzione<1> Call(par, 2, 10);
 	Call.run();
+        
+        cout<<"v005b\n";
 	
 	return 0;
 }

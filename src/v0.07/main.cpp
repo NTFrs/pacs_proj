@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include <vector>
+#include <algorithm>
 
 #include <deal.II/grid/grid_out.h>
 
@@ -57,6 +58,14 @@ using namespace dealii;
 //#define dim 1
 
 #define __PIDE__
+
+/*
+ auto greater = [] (Point<dim> p1, Point<dim> p2) {
+ return p1[0]<p2[0];
+ };
+ 
+ sort(integral_points.begin(), integral_points.end(), greater);
+ */
 
 class Parametri{
 public:
@@ -155,6 +164,8 @@ private:
 	FE_Q<dim>            fe;
 	DoFHandler<dim>      dof_handler;
         
+        Triangulation<dim>   integral_triangulation;
+        
 	SparsityPattern      sparsity_pattern;
 	SparseMatrix<double> system_matrix;
 	SparseMatrix<double> system_M2;
@@ -165,9 +176,15 @@ private:
 	Vector<double>       solution;
 	Vector<double>       system_rhs;
         
+        std::vector< Point<dim> > grid_points;
+        std::vector< Point<dim> > integral_grid_points;
+        
+        std::vector< double > integral_weights;
+        std::vector< Point<dim> > integral_points;
 	
 	unsigned int refs, Nsteps;
 	double time_step;
+        double dx;
 	double Smin, Smax, xmin, xmax;
         
         double alpha, Bmin, Bmax;
@@ -207,7 +224,11 @@ double Opzione<dim>::k(double y){
 template<int dim>
 void Opzione<dim>::integrale_Levy(int n){
         
-        double step=0.5;
+        auto greater = [] (Point<1> p1, Point<1> p2) {
+                return p1[0]<p2[0];
+        };
+        
+        double step=dx;
         double tol=10e-9;
         
         Bmin=xmin;
@@ -219,28 +240,30 @@ void Opzione<dim>::integrale_Levy(int n){
         while(k(Bmax)>tol)
                 Bmax+=step;
         
-        //Bmax=5;
-        //Bmin=-1.5;
+        GridGenerator::hyper_cube(integral_triangulation, Bmin, Bmax);
+	integral_triangulation.refine_global(refs+1);
+        
+        integral_grid_points=integral_triangulation.get_vertices();
+        
+        sort(integral_grid_points.begin(), integral_grid_points.end(), greater);
         
         // Calcolo di alpha e lambda con formula dei trapezi
-        double dB=(Bmax-Bmin)/(n-1);
-        Vector<double> y; // Nodi di quadratura
+        double dB=(Bmax-Bmin)/(pow(2.,refs+1));
         Vector<double> w; // Pesi di quadratura
-        y.reinit(n);
-        w.reinit(n);
+        w.reinit(pow(2.,refs+1)+1);
         
-        for (int i=0; i<n; ++i) {
-                y(i)=Bmin+i*dB;
+        w(0)=dB/2;
+        for (int i=1; i<w.size()-1; ++i) {
                 w(i)=dB;
         }
-        w(0)=dB/2;
-        w(n-1)=dB/2;
+        w(w.size()-1)=dB/2;
         
         alpha=0;
         
-        for (int i=0; i<n; ++i) {
-                alpha+=w(i)*(exp(y(i))-1)*k(y(i));
+        for (int i=0; i<integral_grid_points.size(); ++i) {
+                alpha+=w[i]*(exp(integral_grid_points[i][0])-1)*k(integral_grid_points[i][0]);
         }
+        
         return;
 }
 
@@ -372,9 +395,9 @@ template<int dim>
 void Opzione<dim>::make_grid() {
 	//simple mesh generation
 	
-	Smin=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+	Smin=0.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                         -par.sigma*sqrt(par.T)*6);
-	Smax=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+	Smax=1.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                         +par.sigma*sqrt(par.T)*6);
         
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
@@ -383,6 +406,17 @@ void Opzione<dim>::make_grid() {
         
 	GridGenerator::hyper_cube(triangulation,xmin,xmax);
 	triangulation.refine_global(refs);
+        
+        grid_points=triangulation.get_vertices();
+        
+        cout<<"grid ";
+        for (int i=0; i<grid_points.size(); ++i) {
+                cout<<grid_points[i][0]<<" ";
+        }
+        cout<<"\n";
+        
+        dx=(xmax-xmin)/(grid_points.size()-1);
+        cout<<"dx "<<dx<<"\n";
         
 	std::cout << "   Number of active cells: "
 	<< triangulation.n_active_cells()
@@ -648,8 +682,10 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 50, 10);
+	Opzione<1> Call(par, 2, 2);
 	Call.run();
+        
+        cout<<"v007\n";
 	
 	return 0;
 }
