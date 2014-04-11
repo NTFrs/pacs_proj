@@ -54,7 +54,7 @@
 using namespace std;
 using namespace dealii;
 
-// #define dim 1
+//#define dim 1
 
 #define __PIDE__
 
@@ -219,6 +219,9 @@ void Opzione<dim>::integrale_Levy(int n){
         while(k(Bmax)>tol)
                 Bmax+=step;
         
+        //Bmax=5;
+        //Bmin=-1.5;
+        
         // Calcolo di alpha e lambda con formula dei trapezi
         double dB=(Bmax-Bmin)/(n-1);
         Vector<double> y; // Nodi di quadratura
@@ -260,20 +263,37 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x, i
         for (int i=0; i<J.size(); ++i) {
                 J(i)=0;
         }
-        
+        /*
+        cout<<"y ";
+        y.print(cout);
+        cout<<"\n";
+        cout<<"w ";
+        w.print(cout);
+        cout<<"\n";
+        */
         double x_array[x.size()];
         double u_array[solution.size()];
         
         for (int i=0; i<x.size(); ++i) {
                 x_array[i]=x(i);
                 u_array[i]=solution(i);
-        }
+        }/*
+        cout<<"x ";
+        x.print(cout);
+        cout<<"\n";
+        cout<<"solution ";
+        solution.print(cout);
+        cout<<"\n";*/
         for (int i=1; i<J.size()-1; ++i) {
                 Vector<double> val;
                 Vector<double> z(y);
-                z.add(x(i));
-                
-                f_u(val,x_array,u_array,z,x.size());
+                z.add(x(i));/*
+                cout<<"z ";
+                z.print(cout);*/
+                f_u(val,x_array,u_array,z,x.size());/*
+                cout<<"val ";
+                val.print(cout);
+                cout<<"\n";*/
                 for (int j=0; j<y.size(); ++j) {
                         J(i)+=w(j)*k(y(j))*val(j);
                 }
@@ -283,21 +303,54 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x, i
 template<int dim>
 void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, Vector<double> const &y, int n){
         
+        //66.2425 45.1334 5.26828 0.800746 0
+        /*
+        u_array[0]=66.2425;
+        u_array[1]=45.1334;
+        u_array[2]=5.26828;
+        u_array[3]=0.800746;
+        u_array[4]=0;
+        */
+        
         gsl_interp_accel *my_accel_ptr = gsl_interp_accel_alloc ();
         gsl_spline *my_spline_ptr = gsl_spline_alloc (gsl_interp_cspline, n);
         gsl_spline_init (my_spline_ptr, x_array, u_array, n);
         
+        /*
+        //gsl_interp * workspace = gsl_interp_alloc(gsl_interp_polynomial, n);
+        gsl_interp * workspace = gsl_interp_alloc(gsl_interp_linear, n);
+        gsl_interp_accel * accel = gsl_interp_accel_alloc();
+        gsl_interp_init(workspace, x_array, u_array, n);
+         */
+        /*
+        cout<<"***in f_u\nn "<<n<<"\nx ";
+        for (int i=0; i<n; ++i) {
+                cout<<x_array[i]<<" ";
+        }
+        cout<<"\n";
+        cout<<"u ";
+        for (int i=0; i<n; ++i) {
+                cout<<u_array[i]<<" ";
+        }
+        cout<<"\n";
+        cout<<"y.size "<<y.size()<<"y ";
+        y.print(cout);
+        cout<<"\n";
+        */
         val=Vector<double>(y.size());
         int j=0;
         int k=0;
+        
         while (y(j)<x_array[0]) {
                 val(k)=0;
                 ++k;
                 ++j;
         }
-        
+        //cout<<"k "<<k<<"\n";
         while (j<y.size() && y(j)<x_array[n-1]) {
                 val(k)=gsl_spline_eval(my_spline_ptr, y(k) , my_accel_ptr);
+                //val(k)=gsl_interp_eval(workspace, x_array, u_array, y(k) , NULL);
+                //val(k)=interp_linear(y(k), x_array, u_array);
                 ++j;
                 ++k;
         }
@@ -305,7 +358,10 @@ void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, 
         for (int i=k; i<y.size(); ++i) {
 			val(i)=payoff(x_array[n-1],par.K,par.S0);
         }
-        
+        /*
+        gsl_interp_free(workspace);
+        gsl_interp_accel_free(accel);
+        */
         gsl_spline_free(my_spline_ptr);
         gsl_interp_accel_free(my_accel_ptr);
         
@@ -377,7 +433,7 @@ void Opzione<dim>::setup_system() {
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
-        integrale_Levy(dof_handler.n_dofs());
+        integrale_Levy(2*dof_handler.n_dofs());
         cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
 }
 
@@ -438,12 +494,19 @@ void Opzione<dim>::assemble_system() {
                 
         }
         
+        
 #ifdef __PIDE__
-        system_M2.add(1, ff_matrix);
-        system_matrix.add(1-time_step*(par.r+par.lambda), ff_matrix); 
-        system_matrix.add(par.sigma*par.sigma*time_step/2, dd_matrix);
-        system_matrix.add(-time_step*(par.r-par.sigma*par.sigma/2-alpha), fd_matrix);
-        system_matrix.add(par.r*time_step, ff_matrix);
+        double diff=par.sigma*par.sigma/2;
+        double trasp=par.r-par.sigma*par.sigma/2-alpha;
+        double reaz=-par.r-par.lambda;
+        
+        system_matrix.add(1/time_step-0.5*reaz, ff_matrix); 
+        system_matrix.add(0.5*diff, dd_matrix);
+        system_matrix.add(-0.5*trasp, fd_matrix);
+        
+        system_M2.add(1/time_step+0.5*reaz, ff_matrix); 
+        system_M2.add(-0.5*diff, dd_matrix);
+        system_M2.add(0.5*trasp, fd_matrix);
 #else
         system_M2.add(1, ff_matrix);
         system_matrix.add(1, ff_matrix);
@@ -469,25 +532,38 @@ void Opzione<dim>::solve() {
         
         double dx=x(2)-x(1);
         cout<<"dx "<<dx<<"\n";
-	
+        
+        cout<<"x=[ ";
+        for (int i=0; i<x.size()-1; ++i) {
+                cout<<x(i)<<"; ";
+        }
+	cout<<x(x.size()-1)<<" ]\n";
+        
 	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0),solution);
-	cout<<"solution:\n";
+	/*cout<<"solution:\n";
 	solution.print(cout);
-	cout<<"\n";
+	cout<<"\n";*/
 	unsigned int Step=Nsteps;
 	
 	Boundary_Right_Side<dim> right_bound(par.S0, par.K, par.T, par.r);
 	cout<< "time step is"<< time_step<< endl;
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-#ifdef __PIDE__
+#ifdef __PIDE__/*
+                cout<<"x ";
+                x.print(cout);
+                cout<<"\n";*/
                 Vector<double> J;
                 J.reinit(solution.size());
                 integrale2_Levy(J, x, 2*solution.size());
-                system_M2.vmult(system_rhs, solution);
-                
-                J*=dx;
-                system_rhs+=J;
+                /*cout<<"J ";
+                J.print(cout);
+                cout<<"\n";*/
+                ff_matrix.vmult(system_rhs, J);
+                Vector<double> temp;
+                temp.reinit(dof_handler.n_dofs());
+                system_M2.vmult(temp,solution);
+                system_rhs+=temp;
                 /*
                 cout<<"rhs before ";
                 system_rhs.print(cout);
@@ -543,9 +619,11 @@ void Opzione<dim>::solve() {
 	}
 	
         
-	cout<<"solution:\n";
-	solution.print(cout);
-	cout<<"\n";
+	cout<<"sol=[ ";
+	for (int i=0; i<solution.size()-1; ++i) {
+                cout<<solution(i)<<"; ";
+        }
+	cout<<solution(solution.size()-1)<<" ]\n";
 }
 
 template<int dim>
@@ -558,10 +636,10 @@ double Opzione<dim>::get_price() {
 int main() {
 	Parametri par;
 	par.T=1.;
-	par.K=100;
-	par.S0=100;
-	par.r=0.03;
-	par.sigma=0.2;
+	par.K=90;
+	par.S0=95;
+	par.r=0.0367;
+	par.sigma=0.120381;
         
         // Parametri della parte salto
         par.p=0.20761;           // Parametro 1 Kou
@@ -570,7 +648,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 100, 10);
+	Opzione<1> Call(par, 50, 10);
 	Call.run();
 	
 	return 0;
