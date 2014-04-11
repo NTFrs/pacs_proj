@@ -1,11 +1,15 @@
 Things to do go here
 
 Giorgio:
--)Provare a reimplementare da zero semplificando al max
+-)Velocizzare integrale in v0.07 usando gli strumenti della libreria dealii
 
 
 Nahuel:
--)Capire se l'integrazione numerica da i risultati giusti (integrazione esatta)
+Partendo da v0.06
+-)Provare a implementare cambio di variabili nell'integrale
+-)Provare a pensare/implementare metodo con matrice prima (piena)
 
+Entrambi:
+-)PDE bidimensionale con payoff max(S1+S2-K,0)
 
 
