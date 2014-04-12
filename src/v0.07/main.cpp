@@ -30,6 +30,7 @@
 #include <algorithm>
 
 #include <deal.II/grid/grid_out.h>
+#include <deal.II/grid/grid_tools.h>
 
 #include <deal.II/base/function.h>
 #include <deal.II/numerics/vector_tools.h>
@@ -87,6 +88,8 @@ public:
 	Parametri()=default;
 	Parametri(const Parametri &)=default;
 };
+
+auto grid_order = [] (Point<1> p1, Point<1> p2) {return p1[0]<p2[0];};
 
 template<int dim>
 class PayOff : public Function<dim>
@@ -187,12 +190,17 @@ private:
         double dx;
 	double Smin, Smax, xmin, xmax;
         
+        std::vector<int> grid_size;
+        
         double alpha, Bmin, Bmax;
         double k(double y);
-        void integrale_Levy(int n);
-        void integrale2_Levy(Vector<double> &J, Vector<double> const &x, int NN);
+        void Levy_integral_part1();
+        void integrale2_Levy(Vector<double> &J, Vector<double> const &x);
         void f_u(Vector<double> &val, double * x_array, double * u_array, Vector<double> const &y, int n);
+        void f_u2(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y);
         inline double payoff(double x, double K, double S0){return max(S0*exp(x)-K, 0.);}
+        void calculate_weights();
+        
 public:
 	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
 	par(par_),
@@ -222,78 +230,43 @@ double Opzione<dim>::k(double y){
 }
 
 template<int dim>
-void Opzione<dim>::integrale_Levy(int n){
-        
-        auto greater = [] (Point<1> p1, Point<1> p2) {
-                return p1[0]<p2[0];
-        };
-        
-        double step=dx;
-        double tol=10e-9;
-        
-        Bmin=xmin;
-        Bmax=xmax;
-        
-        while(k(Bmin)>tol)
-                Bmin-=step;
-        
-        while(k(Bmax)>tol)
-                Bmax+=step;
-        
-        GridGenerator::hyper_cube(integral_triangulation, Bmin, Bmax);
-	integral_triangulation.refine_global(refs+1);
-        
-        integral_grid_points=integral_triangulation.get_vertices();
-        
-        sort(integral_grid_points.begin(), integral_grid_points.end(), greater);
-        
-        // Calcolo di alpha e lambda con formula dei trapezi
-        double dB=(Bmax-Bmin)/(pow(2.,refs+1));
-        Vector<double> w; // Pesi di quadratura
-        w.reinit(pow(2.,refs+1)+1);
-        
-        w(0)=dB/2;
-        for (int i=1; i<w.size()-1; ++i) {
-                w(i)=dB;
-        }
-        w(w.size()-1)=dB/2;
-        
+void Opzione<dim>::calculate_weights(){
+        integral_weights=std::vector<double>(integral_grid_points.size(), dx);
+        integral_weights[0]=dx/2;
+        integral_weights[integral_weights.size()-1]=dx/2;
+}
+
+template<int dim>
+void Opzione<dim>::Levy_integral_part1(){
+                
         alpha=0;
         
         for (int i=0; i<integral_grid_points.size(); ++i) {
-                alpha+=w[i]*(exp(integral_grid_points[i][0])-1)*k(integral_grid_points[i][0]);
+                alpha+=integral_weights[i]*(exp(integral_grid_points[i][0])-1)*k(integral_grid_points[i][0]);
         }
         
         return;
 }
 
 template<int dim>
-void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x, int NN) {
+void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x) {
         
-        double dB=(Bmax-Bmin)/(NN-1);
-        Vector<double> y(NN); // Nodi di quadratura
-        Vector<double> w(NN); // Pesi di quadratura
-        y.reinit(NN);
-        w.reinit(NN);
+        int n=integral_grid_points.size();
         
-        for (int i=0; i<NN; ++i) {
-                y(i)=Bmin+i*dB;
-                w(i)=dB;
+        Vector<double> J2(J.size());
+        
+        Vector<double> y(n); // Nodi di quadratura
+        y.reinit(n);
+        
+        for (int i=0; i<n; ++i) {
+                y(i)=integral_grid_points[i][0];
         }
-        w(0)=dB/2;
-        w(NN-1)=dB/2;
         
         for (int i=0; i<J.size(); ++i) {
                 J(i)=0;
+                J2(i)=0;
         }
-        /*
-        cout<<"y ";
-        y.print(cout);
-        cout<<"\n";
-        cout<<"w ";
-        w.print(cout);
-        cout<<"\n";
-        */
+        
         double x_array[x.size()];
         double u_array[solution.size()];
         
@@ -302,25 +275,130 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x, i
                 u_array[i]=solution(i);
         }/*
         cout<<"x ";
-        x.print(cout);
+        for (int k=0; k<x.size(); ++k) {
+                cout<<x[k]<<" ";
+        }
+        cout<<"\n";
+        cout<<"grid ";
+        for (int k=0; k<grid_points.size(); ++k) {
+                cout<<grid_points[k]<<" ";
+        }
         cout<<"\n";
         cout<<"solution ";
-        solution.print(cout);
-        cout<<"\n";*/
+        for (int k=0; k<solution.size(); ++k) {
+                cout<<solution[k]<<" ";
+        }
+        cout<<"\n";
+        */
+        std::vector<Point<dim> > z_(integral_grid_points);
+        
         for (int i=1; i<J.size()-1; ++i) {
                 Vector<double> val;
                 Vector<double> z(y);
-                z.add(x(i));/*
+                z.add(x(i));
+                
+                // calcolo z+x(i)
+                std::vector<Point<dim> > x_i(z_.size(),grid_points[i]);
+                for (int k=0; k<x_i.size(); ++k) {
+                        x_i[k][0]=x_i[k][0]+z_[k][0];
+                }
+                
+                // stampo
+                
                 cout<<"z ";
-                z.print(cout);*/
-                f_u(val,x_array,u_array,z,x.size());/*
+                for (int k=0; k<z.size(); ++k) {
+                        cout<<z[k]<<" ";
+                }
+                cout<<"\nz_ ";
+                for (int k=0; k<x_i.size(); ++k) {
+                        cout<<x_i[k]<<" ";
+                }
+                cout<<"\n z.size "<<z.size()<<" z_.size() "<<z_.size()<<"\n";
+                
+                std::vector<Point<dim> > val2(z_.size());
+                f_u2(val2, x_i);
+                f_u(val,x_array,u_array,z,x.size());
+                
                 cout<<"val ";
-                val.print(cout);
-                cout<<"\n";*/
+                for (int k=0; k<val.size(); ++k) {
+                        cout<<val[k]<<" ";
+                }
+                cout<<"\n";
+                cout<<"val2 ";
+                for (int k=0; k<val2.size(); ++k) {
+                        cout<<val2[k]<<" ";
+                }
+                cout<<"\n";
                 for (int j=0; j<y.size(); ++j) {
-                        J(i)+=w(j)*k(y(j))*val(j);
+                        J(i)+=integral_weights[j]*k(y(j))*val(j);
+                        J2(i)+=integral_weights[j]*k(integral_grid_points[j][0])*val2[j][0];
                 }
         }
+        cout<<"J ";
+        for (int k=0; k<J.size(); ++k) {
+                cout<<J[k]<<" ";
+        }
+        cout<<"\n";
+        cout<<"J2 ";
+        for (int k=0; k<J2.size(); ++k) {
+                cout<<J2[k]<<" ";
+        }
+        cout<<"\n";
+        //J=J2;
+}
+
+template<int dim>
+void Opzione<dim>::f_u2(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y){
+        /*
+        auto part1_begin=val.begin();
+        auto part1_end=part1_begin+grid_size[0];
+        auto part2_begin=part1_end;
+        auto part2_end=part2_begin+grid_size[1];
+        auto part3_begin=part2_end;
+        auto part3_end=part3_begin+grid_size[2];
+        auto check=val.end();
+        
+        cout<<"val size "<<val.size()<<"\n";
+        cout<<"grid size "<<grid_size[0]<<" "<<grid_size[1]<<" "<<grid_size[2]<<"\n";
+        
+        
+        if ( check!=part3_end ){
+                cout<<"Meeeeeeeeeeeeeeh\n";
+        }
+        if ( check==part3_end-1 ){
+                cout<<"Maybe, it's correct!\n";
+        }*/
+        /*
+        double x_array[grid_points.size()];
+        double u_array[solution.size()];
+        
+        for (int i=0; i<grid_points.size(); ++i) {
+                x_array[i]=grid_points[i][0];
+                u_array[i]=solution(i);
+        }
+        
+        //VectorTools::interpolate (dof_handler, solution, solution);
+        
+        gsl_interp_accel *my_accel_ptr = gsl_interp_accel_alloc ();
+        gsl_spline *my_spline_ptr = gsl_spline_alloc (gsl_interp_cspline, grid_points.size());
+        gsl_spline_init (my_spline_ptr, x_array, u_array, grid_points.size());
+        */
+        
+        
+        for (int i=0; i<grid_size[0]; ++i)
+                val[i]=Point<dim> (0.);
+        
+        for (int i=grid_size[0]; i<grid_size[0]+grid_size[1]; ++i) 
+                val[i]=Point<dim> (solution(i-grid_size[0]));
+                //val[i]=Point<dim> (gsl_spline_eval(my_spline_ptr, y[i][0] , my_accel_ptr));
+        
+        for (int i=grid_size[0]+grid_size[1]; i<val.size(); ++i)
+                val[i]=Point<dim> (payoff(grid_points[grid_points.size()-1][0], par.K, par.S0));
+        /*
+        gsl_spline_free(my_spline_ptr);
+        gsl_interp_accel_free(my_accel_ptr);
+         */
+        return;
 }
 
 template<int dim>
@@ -393,9 +471,8 @@ void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, 
 
 template<int dim>
 void Opzione<dim>::make_grid() {
-	//simple mesh generation
 	
-	Smin=0.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+        Smin=0.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                         -par.sigma*sqrt(par.T)*6);
 	Smax=1.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                         +par.sigma*sqrt(par.T)*6);
@@ -404,26 +481,130 @@ void Opzione<dim>::make_grid() {
 	xmin=log(Smin/par.S0);
         xmax=log(Smax/par.S0);
         
-	GridGenerator::hyper_cube(triangulation,xmin,xmax);
-	triangulation.refine_global(refs);
+        dx=(xmax-xmin)/pow(2., refs);
+        double tol=10e-9;
         
-        grid_points=triangulation.get_vertices();
-        
-        cout<<"grid ";
-        for (int i=0; i<grid_points.size(); ++i) {
-                cout<<grid_points[i][0]<<" ";
-        }
-        cout<<"\n";
-        
-        dx=(xmax-xmin)/(grid_points.size()-1);
         cout<<"dx "<<dx<<"\n";
         
-	std::cout << "   Number of active cells: "
-	<< triangulation.n_active_cells()
-	<< std::endl
-	<< "   Total number of cells: "
-	<< triangulation.n_cells()
-	<< std::endl;
+        Bmin=xmin;
+        Bmax=xmax;
+        
+        while(k(Bmin)>tol)
+                Bmin-=dx;
+        
+        while(k(Bmax)>tol)
+                Bmax+=dx;
+        
+        if (Bmin==xmin && Bmax==xmax) {
+                
+                GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs), xmin,xmax);
+                
+                grid_points=triangulation.get_vertices();
+                
+                cout<<"grid ";
+                for (int i=0; i<grid_points.size(); ++i) {
+                        cout<<grid_points[i][0]<<" ";
+                }
+                cout<<"\n";
+                
+                cout<<"here!\n";
+                
+                GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2,refs), Bmin, Bmax);
+                
+                integral_grid_points=integral_triangulation.get_vertices();
+                
+                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+                
+        }
+        else {
+                GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs), xmin,xmax);
+                
+                grid_points=triangulation.get_vertices();
+                
+                cout<<"grid ";
+                for (int i=0; i<grid_points.size(); ++i) {
+                        cout<<grid_points[i][0]<<" ";
+                }
+                cout<<"\n";
+                
+                // Left & Right Triangulation
+                Triangulation<dim> left_triangulation;
+                Triangulation<dim> right_triangulation;
+                
+                cout<<"error "<<(Bmin-xmin)/dx<<"\n";
+                
+                GridGenerator::subdivided_hyper_cube(left_triangulation, round((xmin-Bmin)/dx), Bmin, xmin);
+                
+                GridGenerator::subdivided_hyper_cube(right_triangulation, round((Bmax-xmax)/dx), xmax, Bmax);
+                
+                auto left_grid_points=left_triangulation.get_vertices();
+                auto right_grid_points=right_triangulation.get_vertices();
+                
+                sort(left_grid_points.begin(), left_grid_points.end(), grid_order);
+                sort(right_grid_points.begin(), right_grid_points.end(), grid_order);
+                
+                cout<<"left grid ";
+                for (int i=0; i<left_grid_points.size(); ++i) {
+                        cout<<left_grid_points[i]<<" ";
+                }
+                cout<<"\n";
+                
+                cout<<"right grid ";
+                for (int i=0; i<right_grid_points.size(); ++i) {
+                        cout<<right_grid_points[i]<<" ";
+                }
+                cout<<"\n";
+                
+                Triangulation<dim> temp;
+                GridGenerator::merge_triangulations(left_triangulation, triangulation, temp);
+                
+                auto temp_grid_points=temp.get_vertices();
+                sort(temp_grid_points.begin(), temp_grid_points.end(), grid_order);
+                
+                cout<<"temp grid ";
+                for (int i=0; i<temp_grid_points.size(); ++i) {
+                        cout<<temp_grid_points[i]<<" ";
+                }
+                cout<<"\n";
+                
+                grid_points=triangulation.get_vertices();
+                
+                cout<<"grid ";
+                for (int i=0; i<grid_points.size(); ++i) {
+                        cout<<grid_points[i][0]<<" ";
+                }
+                cout<<"\n";
+                
+                std::cout << "   Number of active cells: "
+                << temp.n_active_cells()
+                << std::endl
+                << "   Total number of cells: "
+                << temp.n_cells()
+                << std::endl;
+                
+                GridGenerator::merge_triangulations(temp, right_triangulation, integral_triangulation);
+                
+                integral_grid_points=integral_triangulation.get_vertices();
+                
+                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+                
+                cout<<"integral grid ";
+                for (int i=0; i<integral_grid_points.size(); ++i) {
+                        cout<<integral_grid_points[i]<<" ";
+                }
+                cout<<"\n";
+                cout<<"differences ";
+                for (int i=0; i<integral_grid_points.size()-1; ++i) {
+                        cout<<integral_grid_points[i+1]-integral_grid_points[i]<<" ";
+                }
+                cout<<"\n";
+                
+                grid_size.reserve(3);
+                grid_size[0]=left_grid_points.size()-1;
+                grid_size[1]=grid_points.size();
+                grid_size[2]=right_grid_points.size()-1;
+        }
+        
 }
 
 template<int dim>
@@ -467,12 +648,15 @@ void Opzione<dim>::setup_system() {
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
-        integrale_Levy(2*dof_handler.n_dofs());
-        cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
+        calculate_weights();
 }
 
 template<int dim>
 void Opzione<dim>::assemble_system() {
+        
+        Levy_integral_part1();
+        
+        cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
 	
 	QGauss<dim> quadrature_formula(2);
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
@@ -589,7 +773,7 @@ void Opzione<dim>::solve() {
                 cout<<"\n";*/
                 Vector<double> J;
                 J.reinit(solution.size());
-                integrale2_Levy(J, x, 2*solution.size());
+                integrale2_Levy(J, x);
                 /*cout<<"J ";
                 J.print(cout);
                 cout<<"\n";*/

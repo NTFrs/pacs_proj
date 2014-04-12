@@ -649,7 +649,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 2, 10);
+	Opzione<1> Call(par, 2, 2);
 	Call.run();
         
         cout<<"v005b\n";
