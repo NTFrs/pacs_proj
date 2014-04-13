@@ -60,7 +60,7 @@ using namespace dealii;
 
 #define __PIDE__
 #define __MATLAB__
-//#define __INTERPOLATION__
+#define __INTERPOLATION__
 /*
  auto greater = [] (Point<dim> p1, Point<dim> p2) {
  return p1[0]<p2[0];
@@ -343,19 +343,11 @@ void Opzione<dim>::make_grid() {
         while(k(Bmax)>tol)
                 Bmax+=dx;
         
+        GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs), xmin,xmax);
+        
+        grid_points=triangulation.get_vertices();
+        
         if (Bmin==xmin && Bmax==xmax) {
-                
-                GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs), xmin,xmax);
-                
-                grid_points=triangulation.get_vertices();
-                
-                cout<<"grid ";
-                for (int i=0; i<grid_points.size(); ++i) {
-                        cout<<grid_points[i][0]<<" ";
-                }
-                cout<<"\n";
-                
-                cout<<"here!\n";
                 
                 GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2,refs), Bmin, Bmax);
                 
@@ -364,32 +356,43 @@ void Opzione<dim>::make_grid() {
                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
         }
+        else if (Bmin==xmin && Bmax>=xmax) {
+                
+                Triangulation<dim> right_triangulation;
+                
+                GridGenerator::subdivided_hyper_cube(right_triangulation, round((Bmax-xmax)/dx), xmax, Bmax);
+                
+                GridGenerator::merge_triangulations(triangulation, right_triangulation, integral_triangulation);
+                
+                integral_grid_points=integral_triangulation.get_vertices();
+                
+                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+                
+        }
+        else if (Bmin<=xmin && Bmax==xmax) {
+                
+                Triangulation<dim> left_triangulation;
+                
+                GridGenerator::subdivided_hyper_cube(left_triangulation, round((xmin-Bmin)/dx), Bmin, xmin);
+                
+                GridGenerator::merge_triangulations(left_triangulation, triangulation, integral_triangulation);
+                
+                integral_grid_points=integral_triangulation.get_vertices();
+                
+                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+                
+        }
         else {
-                GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs), xmin,xmax);
-                
-                grid_points=triangulation.get_vertices();
-                
                 // Left & Right Triangulation
                 Triangulation<dim> left_triangulation;
                 Triangulation<dim> right_triangulation;
-                
-                cout<<"error "<<(Bmin-xmin)/dx<<"\n";
                 
                 GridGenerator::subdivided_hyper_cube(left_triangulation, round((xmin-Bmin)/dx), Bmin, xmin);
                 
                 GridGenerator::subdivided_hyper_cube(right_triangulation, round((Bmax-xmax)/dx), xmax, Bmax);
                 
-                auto left_grid_points=left_triangulation.get_vertices();
-                auto right_grid_points=right_triangulation.get_vertices();
-                
-                sort(left_grid_points.begin(), left_grid_points.end(), grid_order);
-                sort(right_grid_points.begin(), right_grid_points.end(), grid_order);
-                
                 Triangulation<dim> temp;
                 GridGenerator::merge_triangulations(left_triangulation, triangulation, temp);
-                
-                auto temp_grid_points=temp.get_vertices();
-                sort(temp_grid_points.begin(), temp_grid_points.end(), grid_order);
                 
                 GridGenerator::merge_triangulations(temp, right_triangulation, integral_triangulation);
                 
@@ -397,15 +400,16 @@ void Opzione<dim>::make_grid() {
                 
                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
-                x_array=new double[grid_points.size()];
-                
-                index=std::vector<unsigned int>(grid_points.size());
-                u_array=std::vector<double> (grid_points.size());
-
-                for (int i=0; i<grid_points.size(); ++i) {
-                        x_array[i]=grid_points[i][0];
-                        index[i]=i;
-                }
+        }
+        
+        x_array=new double[grid_points.size()];
+        
+        index=std::vector<unsigned int>(grid_points.size());
+        u_array=std::vector<double> (grid_points.size());
+        
+        for (int i=0; i<grid_points.size(); ++i) {
+                x_array[i]=grid_points[i][0];
+                index[i]=i;
         }
         
 }
@@ -647,7 +651,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 100, 12);
+	Opzione<1> Call(par, 2, 2);
 	Call.run();
         
         cout<<"v007b\n";
