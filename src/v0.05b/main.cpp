@@ -225,6 +225,7 @@ void Opzione<dim>::integrale_Levy(int n){
         
         // Calcolo di alpha e lambda con formula dei trapezi
         double dB=(Bmax-Bmin)/(n-1);
+        
         Vector<double> y; // Nodi di quadratura
         Vector<double> w; // Pesi di quadratura
         y.reinit(n);
@@ -260,6 +261,7 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x, i
         }
         w(0)=dB/2;
         w(NN-1)=dB/2;
+        //cout<<"******* dB "<<dB<<"\n";
         
         for (int i=0; i<J.size(); ++i) {
                 J(i)=0;
@@ -649,7 +651,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 2, 2);
+	Opzione<1> Call(par, 100, 10);
 	Call.run();
         
         cout<<"v005b\n";

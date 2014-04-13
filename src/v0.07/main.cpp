@@ -179,6 +179,10 @@ private:
 	Vector<double>       solution;
 	Vector<double>       system_rhs;
         
+        std::vector<unsigned int>     index;
+        std::vector<double>  u_array;
+        double *             x_array;
+        
         std::vector< Point<dim> > grid_points;
         std::vector< Point<dim> > integral_grid_points;
         
@@ -196,8 +200,7 @@ private:
         double k(double y);
         void Levy_integral_part1();
         void integrale2_Levy(Vector<double> &J, Vector<double> const &x);
-        void f_u(Vector<double> &val, double * x_array, double * u_array, Vector<double> const &y, int n);
-        void f_u2(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y);
+        void f_u(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y);
         inline double payoff(double x, double K, double S0){return max(S0*exp(x)-K, 0.);}
         void calculate_weights();
         
@@ -250,30 +253,47 @@ void Opzione<dim>::Levy_integral_part1(){
 
 template<int dim>
 void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x) {
-        
+        /*
         int n=integral_grid_points.size();
         
-        Vector<double> J2(J.size());
+        Vector<double> J3(J.size());
         
         Vector<double> y(n); // Nodi di quadratura
         y.reinit(n);
         
         for (int i=0; i<n; ++i) {
                 y(i)=integral_grid_points[i][0];
-        }
+        }*/
         
         for (int i=0; i<J.size(); ++i) {
                 J(i)=0;
-                J2(i)=0;
+                //J3(i)=0;
         }
         
-        double x_array[x.size()];
-        double u_array[solution.size()];
+        //double x_array[x.size()];
         
+        solution.extract_subvector_to(index, u_array);
+        /*
+        cout<<"index ";
+        for (int k=0; k<index.size(); ++k) {
+                cout<<index[k]<<" ";
+        }
+        cout<<"\n";
+         */
+        /*
+        cout<<"temp ";
+        for (int k=0; k<temp.size(); ++k) {
+                cout<<temp[k]<<" ";
+        }
+        cout<<"\n";
+        */
+        /*
         for (int i=0; i<x.size(); ++i) {
-                x_array[i]=x(i);
+                //x_array[i]=x(i);
                 u_array[i]=solution(i);
-        }/*
+        }*/
+        //u_array=&temp[0];
+        /*
         cout<<"x ";
         for (int k=0; k<x.size(); ++k) {
                 cout<<x[k]<<" ";
@@ -293,10 +313,11 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x) {
         std::vector<Point<dim> > z_(integral_grid_points);
         
         for (int i=1; i<J.size()-1; ++i) {
+                /*
                 Vector<double> val;
                 Vector<double> z(y);
                 z.add(x(i));
-                
+                */
                 // calcolo z+x(i)
                 std::vector<Point<dim> > x_i(z_.size(),grid_points[i]);
                 for (int k=0; k<x_i.size(); ++k) {
@@ -304,7 +325,7 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x) {
                 }
                 
                 // stampo
-                
+                /*
                 cout<<"z ";
                 for (int k=0; k<z.size(); ++k) {
                         cout<<z[k]<<" ";
@@ -314,11 +335,13 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x) {
                         cout<<x_i[k]<<" ";
                 }
                 cout<<"\n z.size "<<z.size()<<" z_.size() "<<z_.size()<<"\n";
-                
-                std::vector<Point<dim> > val2(z_.size());
-                f_u2(val2, x_i);
-                f_u(val,x_array,u_array,z,x.size());
-                
+                */
+                std::vector<Point<dim> > val(z_.size());
+                f_u(val, x_i);
+                /*
+                f_u(val,x_array,&u_array[0],z,x.size());
+                 */
+                /*
                 cout<<"val ";
                 for (int k=0; k<val.size(); ++k) {
                         cout<<val[k]<<" ";
@@ -329,145 +352,128 @@ void Opzione<dim>::integrale2_Levy(Vector<double> &J, Vector<double> const &x) {
                         cout<<val2[k]<<" ";
                 }
                 cout<<"\n";
-                for (int j=0; j<y.size(); ++j) {
-                        J(i)+=integral_weights[j]*k(y(j))*val(j);
-                        J2(i)+=integral_weights[j]*k(integral_grid_points[j][0])*val2[j][0];
+                cout<<"val3 ";
+                for (int k=0; k<val3.size(); ++k) {
+                        cout<<val3[k]<<" ";
+                }
+                cout<<"\n";*/
+                for (int j=0; j<integral_grid_points.size(); ++j) {
+                        J(i)+=integral_weights[j]*k(integral_grid_points[j][0])*val[j][0];
+                        //J3(i)+=integral_weights[j]*k(integral_grid_points[j][0])*val3[j][0];
                 }
         }
+        /*
+        cout<<"J ";
+        for (int k=0; k<J.size(); ++k) {
+                cout<<J[k]<<" ";
+        }
+        cout<<"\n";*/
         cout<<"J ";
         for (int k=0; k<J.size(); ++k) {
                 cout<<J[k]<<" ";
         }
         cout<<"\n";
-        cout<<"J2 ";
-        for (int k=0; k<J2.size(); ++k) {
-                cout<<J2[k]<<" ";
-        }
-        cout<<"\n";
-        //J=J2;
+        //J=J3;
 }
 
 template<int dim>
-void Opzione<dim>::f_u2(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y){
-        /*
-        auto part1_begin=val.begin();
-        auto part1_end=part1_begin+grid_size[0];
-        auto part2_begin=part1_end;
-        auto part2_end=part2_begin+grid_size[1];
-        auto part3_begin=part2_end;
-        auto part3_end=part3_begin+grid_size[2];
-        auto check=val.end();
-        
-        cout<<"val size "<<val.size()<<"\n";
-        cout<<"grid size "<<grid_size[0]<<" "<<grid_size[1]<<" "<<grid_size[2]<<"\n";
-        
-        
-        if ( check!=part3_end ){
-                cout<<"Meeeeeeeeeeeeeeh\n";
-        }
-        if ( check==part3_end-1 ){
-                cout<<"Maybe, it's correct!\n";
-        }*/
-        /*
-        double x_array[grid_points.size()];
-        double u_array[solution.size()];
-        
-        for (int i=0; i<grid_points.size(); ++i) {
-                x_array[i]=grid_points[i][0];
-                u_array[i]=solution(i);
-        }
-        
-        //VectorTools::interpolate (dof_handler, solution, solution);
+void Opzione<dim>::f_u(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y){
         
         gsl_interp_accel *my_accel_ptr = gsl_interp_accel_alloc ();
         gsl_spline *my_spline_ptr = gsl_spline_alloc (gsl_interp_cspline, grid_points.size());
-        gsl_spline_init (my_spline_ptr, x_array, u_array, grid_points.size());
-        */
+        gsl_spline_init (my_spline_ptr, x_array, &u_array[0], grid_points.size());
         
-        
-        for (int i=0; i<grid_size[0]; ++i)
-                val[i]=Point<dim> (0.);
-        
-        for (int i=grid_size[0]; i<grid_size[0]+grid_size[1]; ++i) 
-                val[i]=Point<dim> (solution(i-grid_size[0]));
-                //val[i]=Point<dim> (gsl_spline_eval(my_spline_ptr, y[i][0] , my_accel_ptr));
-        
-        for (int i=grid_size[0]+grid_size[1]; i<val.size(); ++i)
-                val[i]=Point<dim> (payoff(grid_points[grid_points.size()-1][0], par.K, par.S0));
-        /*
-        gsl_spline_free(my_spline_ptr);
-        gsl_interp_accel_free(my_accel_ptr);
-         */
-        return;
-}
-
-template<int dim>
-void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, Vector<double> const &y, int n){
-        
-        //66.2425 45.1334 5.26828 0.800746 0
-        /*
-        u_array[0]=66.2425;
-        u_array[1]=45.1334;
-        u_array[2]=5.26828;
-        u_array[3]=0.800746;
-        u_array[4]=0;
-        */
-        
-        gsl_interp_accel *my_accel_ptr = gsl_interp_accel_alloc ();
-        gsl_spline *my_spline_ptr = gsl_spline_alloc (gsl_interp_cspline, n);
-        gsl_spline_init (my_spline_ptr, x_array, u_array, n);
-        
-        /*
-        //gsl_interp * workspace = gsl_interp_alloc(gsl_interp_polynomial, n);
-        gsl_interp * workspace = gsl_interp_alloc(gsl_interp_linear, n);
-        gsl_interp_accel * accel = gsl_interp_accel_alloc();
-        gsl_interp_init(workspace, x_array, u_array, n);
-         */
-        /*
-        cout<<"***in f_u\nn "<<n<<"\nx ";
-        for (int i=0; i<n; ++i) {
-                cout<<x_array[i]<<" ";
-        }
-        cout<<"\n";
-        cout<<"u ";
-        for (int i=0; i<n; ++i) {
-                cout<<u_array[i]<<" ";
-        }
-        cout<<"\n";
-        cout<<"y.size "<<y.size()<<"y ";
-        y.print(cout);
-        cout<<"\n";
-        */
-        val=Vector<double>(y.size());
-        int j=0;
         int k=0;
         
-        while (y(j)<x_array[0]) {
-                val(k)=0;
+        while (y[k][0]<x_array[0]) {
+                val[k]=Point<dim> (0.);
                 ++k;
-                ++j;
         }
-        //cout<<"k "<<k<<"\n";
-        while (j<y.size() && y(j)<x_array[n-1]) {
-                val(k)=gsl_spline_eval(my_spline_ptr, y(k) , my_accel_ptr);
-                //val(k)=gsl_interp_eval(workspace, x_array, u_array, y(k) , NULL);
-                //val(k)=interp_linear(y(k), x_array, u_array);
-                ++j;
+        int j=0;
+        while (k<y.size() && y[k][0]<x_array[grid_points.size()-1]) {
+                val[k]=Point<dim> (gsl_spline_eval(my_spline_ptr, y[k][0] , my_accel_ptr));
+                //val[k]=Point<dim> (solution(j));
                 ++k;
+                ++j;
         }
         
         for (int i=k; i<y.size(); ++i) {
-			val(i)=payoff(x_array[n-1],par.K,par.S0);
+                val[i]=Point<dim> (payoff(x_array[grid_points.size()-1],par.K,par.S0));
         }
-        /*
-        gsl_interp_free(workspace);
-        gsl_interp_accel_free(accel);
-        */
+        
         gsl_spline_free(my_spline_ptr);
         gsl_interp_accel_free(my_accel_ptr);
         
         return;
 }
+
+//template<int dim>
+//void Opzione<dim>::f_u(Vector<double> &val, double * x_array, double * u_array, Vector<double> const &y, int n){
+//        
+//        //66.2425 45.1334 5.26828 0.800746 0
+//        /*
+//        u_array[0]=66.2425;
+//        u_array[1]=45.1334;
+//        u_array[2]=5.26828;
+//        u_array[3]=0.800746;
+//        u_array[4]=0;
+//        */
+//        
+//        gsl_interp_accel *my_accel_ptr = gsl_interp_accel_alloc ();
+//        gsl_spline *my_spline_ptr = gsl_spline_alloc (gsl_interp_cspline, n);
+//        gsl_spline_init (my_spline_ptr, x_array, u_array, n);
+//        
+//        /*
+//        //gsl_interp * workspace = gsl_interp_alloc(gsl_interp_polynomial, n);
+//        gsl_interp * workspace = gsl_interp_alloc(gsl_interp_linear, n);
+//        gsl_interp_accel * accel = gsl_interp_accel_alloc();
+//        gsl_interp_init(workspace, x_array, u_array, n);
+//         */
+//        /*
+//        cout<<"***in f_u\nn "<<n<<"\nx ";
+//        for (int i=0; i<n; ++i) {
+//                cout<<x_array[i]<<" ";
+//        }
+//        cout<<"\n";
+//        cout<<"u ";
+//        for (int i=0; i<n; ++i) {
+//                cout<<u_array[i]<<" ";
+//        }
+//        cout<<"\n";
+//        cout<<"y.size "<<y.size()<<"y ";
+//        y.print(cout);
+//        cout<<"\n";
+//        */
+//        val=Vector<double>(y.size());
+//        int j=0;
+//        int k=0;
+//        
+//        while (y(j)<x_array[0]) {
+//                val(k)=0;
+//                ++k;
+//                ++j;
+//        }
+//        //cout<<"k "<<k<<"\n";
+//        while (j<y.size() && y(j)<x_array[n-1]) {
+//                val(k)=gsl_spline_eval(my_spline_ptr, y(k) , my_accel_ptr);
+//                //val(k)=gsl_interp_eval(workspace, x_array, u_array, y(k) , NULL);
+//                //val(k)=interp_linear(y(k), x_array, u_array);
+//                ++j;
+//                ++k;
+//        }
+//        
+//        for (int i=k; i<y.size(); ++i) {
+//			val(i)=payoff(x_array[n-1],par.K,par.S0);
+//        }
+//        /*
+//        gsl_interp_free(workspace);
+//        gsl_interp_accel_free(accel);
+//        */
+//        gsl_spline_free(my_spline_ptr);
+//        gsl_interp_accel_free(my_accel_ptr);
+//        
+//        return;
+//}
 
 template<int dim>
 void Opzione<dim>::make_grid() {
@@ -542,7 +548,7 @@ void Opzione<dim>::make_grid() {
                 
                 sort(left_grid_points.begin(), left_grid_points.end(), grid_order);
                 sort(right_grid_points.begin(), right_grid_points.end(), grid_order);
-                
+                /*
                 cout<<"left grid ";
                 for (int i=0; i<left_grid_points.size(); ++i) {
                         cout<<left_grid_points[i]<<" ";
@@ -554,13 +560,14 @@ void Opzione<dim>::make_grid() {
                         cout<<right_grid_points[i]<<" ";
                 }
                 cout<<"\n";
-                
+                */
                 Triangulation<dim> temp;
                 GridGenerator::merge_triangulations(left_triangulation, triangulation, temp);
                 
                 auto temp_grid_points=temp.get_vertices();
                 sort(temp_grid_points.begin(), temp_grid_points.end(), grid_order);
                 
+                /*
                 cout<<"temp grid ";
                 for (int i=0; i<temp_grid_points.size(); ++i) {
                         cout<<temp_grid_points[i]<<" ";
@@ -574,7 +581,7 @@ void Opzione<dim>::make_grid() {
                         cout<<grid_points[i][0]<<" ";
                 }
                 cout<<"\n";
-                
+                */
                 std::cout << "   Number of active cells: "
                 << temp.n_active_cells()
                 << std::endl
@@ -588,6 +595,7 @@ void Opzione<dim>::make_grid() {
                 
                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
+                /*
                 cout<<"integral grid ";
                 for (int i=0; i<integral_grid_points.size(); ++i) {
                         cout<<integral_grid_points[i]<<" ";
@@ -598,11 +606,30 @@ void Opzione<dim>::make_grid() {
                         cout<<integral_grid_points[i+1]-integral_grid_points[i]<<" ";
                 }
                 cout<<"\n";
-                
+                */
                 grid_size.reserve(3);
                 grid_size[0]=left_grid_points.size()-1;
                 grid_size[1]=grid_points.size();
                 grid_size[2]=right_grid_points.size()-1;
+                
+                x_array=new double[grid_points.size()];
+                //u_array=new double[grid_points.size()];
+                
+                index=std::vector<unsigned int>(grid_points.size());
+                u_array=std::vector<double> (grid_points.size());
+                //index.reserve(grid_points.size());
+                cout<<"grid size "<<grid_points.size()<<" index size "<<index.size()<<"\n";
+                
+                for (int i=0; i<grid_points.size(); ++i) {
+                        x_array[i]=grid_points[i][0];
+                        index[i]=i;
+                }
+                /*
+                cout<<"index ";
+                for (int i=0; i<index.size(); ++i) {
+                        cout<<index[i]<<" ";
+                }
+                cout<<"\n";*/
         }
         
 }
