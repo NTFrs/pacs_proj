@@ -60,7 +60,9 @@ using namespace dealii;
 
 #define __PIDE__
 #define __MATLAB__
-#define __INTERPOLATION__
+//#define __INTERPOLATION__
+
+const double toll=1e-8;
 /*
  auto greater = [] (Point<dim> p1, Point<dim> p2) {
  return p1[0]<p2[0];
@@ -161,8 +163,9 @@ private:
 	void setup_system ();
 	void assemble_system ();
 	void solve ();
-	double get_price();
 	void output_results () const {};
+        
+        double                  price;
         
 	Triangulation<dim>   triangulation;
 	FE_Q<dim>            fe;
@@ -205,6 +208,8 @@ private:
         inline double payoff(double x, double K, double S0){return max(S0*exp(x)-K, 0.);}
         void calculate_weights();
         
+        bool ran;
+        
 public:
 	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
 	par(par_),
@@ -212,8 +217,11 @@ public:
 	dof_handler (triangulation),
 	refs(refinement), 
 	Nsteps(Nsteps_), 
-	time_step (par.T/double(Nsteps_))
+	time_step (par.T/double(Nsteps_)),
+        ran(false)
 	{};
+        
+        double get_price();
         
 	double run(){
                 make_grid();
@@ -330,18 +338,19 @@ void Opzione<dim>::make_grid() {
         xmax=log(Smax/par.S0);
         
         dx=(xmax-xmin)/pow(2., refs);
-        double tol=10e-9;
         
         cout<<"dx "<<dx<<"\n";
         
         Bmin=xmin;
         Bmax=xmax;
         
-        while(k(Bmin)>tol)
+        while(k(Bmin)>toll)
                 Bmin-=dx;
         
-        while(k(Bmax)>tol)
+        while(k(Bmax)>toll)
                 Bmax+=dx;
+        
+        cout<<"Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
         
         GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs), xmin,xmax);
         
@@ -441,7 +450,7 @@ void Opzione<dim>::setup_system() {
 		for (unsigned int face=0;
                      face<GeometryInfo<dim>::faces_per_cell;++face)
 			if (cell->face(face)->at_boundary())
-                                if (std::fabs(cell->face(face)->center()(0) - (xmax)) < 1e-8)
+                                if (std::fabs(cell->face(face)->center()(0) - (xmax)) < toll)
                                         cell->face(face)->set_boundary_indicator (1);
 	
 	cout<< "Controlling Boundary indicators\n";
@@ -546,27 +555,6 @@ void Opzione<dim>::assemble_system() {
 template<int dim>
 void Opzione<dim>::solve() {
 	
-        /*
-	cout<< "xmin e xmx\n";
-	cout<<xmin<<"\t"<<xmax<<"\n";
-        
-        Vector<double> x;
-        x.reinit(dof_handler.n_dofs());
-        for (int i=0; i<x.size(); ++i) {
-                x(i)=xmin+i*(xmax-xmin)/(x.size()-1);
-        }
-        
-        double dx=x(2)-x(1);
-        cout<<"dx "<<dx<<"\n";
-        */
-#ifdef __MATLAB__
-        cout<<"x=[ ";
-        for (int i=0; i<grid_points.size()-1; ++i) {
-                cout<<grid_points[i][0]<<"; ";
-        }
-	cout<<grid_points[grid_points.size()-1][0]<<" ];\n";
-#endif
-        
 	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0),solution);
 	
 	unsigned int Step=Nsteps;
@@ -619,8 +607,16 @@ void Opzione<dim>::solve() {
                 
                 solution=system_rhs;       
 	}
+        
+        ran=true;
 	
 #ifdef __MATLAB__
+        cout<<"x=[ ";
+        for (int i=0; i<grid_points.size()-1; ++i) {
+                cout<<grid_points[i][0]<<"; ";
+        }
+	cout<<grid_points[grid_points.size()-1][0]<<" ];\n";
+        
 	cout<<"sol=[ ";
 	for (int i=0; i<solution.size()-1; ++i) {
                 cout<<solution(i)<<"; ";
@@ -631,8 +627,29 @@ void Opzione<dim>::solve() {
 
 template<int dim>
 double Opzione<dim>::get_price() {
+        
+        if (ran==false) {
+                this->run();
+        }
+        
+        solution.extract_subvector_to(index, u_array);
+        
+        double grid_array[grid_points.size()];
+        
+        for (int i=0; i<grid_points.size(); ++i) {
+                grid_array[i]=par.S0*exp(grid_points[i][0]);
+        }
+        
+        gsl_interp_accel *my_accel_ptr = gsl_interp_accel_alloc ();
+        gsl_spline *my_spline_ptr = gsl_spline_alloc (gsl_interp_cspline, grid_points.size());
+        gsl_spline_init (my_spline_ptr, grid_array, &u_array[0], grid_points.size());
+        
+        price=gsl_spline_eval(my_spline_ptr, par.S0 , my_accel_ptr);
+        
+        gsl_spline_free(my_spline_ptr);
+        gsl_interp_accel_free(my_accel_ptr);
 	
-	return 0;
+	return price;
 }
 
 
@@ -651,9 +668,10 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 2, 2);
+	Opzione<1> Call(par, 100, 10);
 	Call.run();
         
+        cout<<"Prezzo "<<Call.get_price()<<"\n";
         cout<<"v007b\n";
 	
 	return 0;
