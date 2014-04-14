@@ -165,42 +165,41 @@ private:
 	void solve ();
 	void output_results () const {};
         
-        double                  price;
+        double                          price;
         
-	Triangulation<dim>   triangulation;
-	FE_Q<dim>            fe;
-	DoFHandler<dim>      dof_handler;
+	Triangulation<dim>              triangulation;
+	FE_Q<dim>                       fe;
+	DoFHandler<dim>                 dof_handler;
         
-        Triangulation<dim>   integral_triangulation;
+        Triangulation<dim>              integral_triangulation;
         
-	SparsityPattern      sparsity_pattern;
-	SparseMatrix<double> system_matrix;
-	SparseMatrix<double> system_M2;
-	SparseMatrix<double> dd_matrix;
-	SparseMatrix<double> fd_matrix;
-	SparseMatrix<double> ff_matrix;
+	SparsityPattern                 sparsity_pattern;
+	SparseMatrix<double>            system_matrix;
+	SparseMatrix<double>            system_M2;
+	SparseMatrix<double>            dd_matrix;
+	SparseMatrix<double>            fd_matrix;
+	SparseMatrix<double>            ff_matrix;
         
-	Vector<double>       solution;
-	Vector<double>       system_rhs;
+	Vector<double>                  solution;
+	Vector<double>                  system_rhs;
         
-        std::vector<unsigned int>     index;
-        std::vector<double>  u_array;
-        double *             x_array;
+        std::vector<unsigned int>       index;
+        std::vector<double>             u_array;
+        double *                        x_array;
         
-        std::vector< Point<dim> > grid_points;
-        std::vector< Point<dim> > integral_grid_points;
+        std::vector< Point<dim> >       grid_points;
+        std::vector< Point<dim> >       integral_grid_points;
         
-        std::vector< double > integral_weights;
-        std::vector< Point<dim> > integral_points;
+        std::vector< double >           integral_weights;
+        std::vector< Point<dim> >       integral_points;
 	
 	unsigned int refs, Nsteps;
 	double time_step;
         double dx;
 	double Smin, Smax, xmin, xmax;
         
-        std::vector<int> grid_size;
-        
         double alpha, Bmin, Bmax;
+        
         double k(double y);
         void Levy_integral_part1();
         void Levy_integral_part2(Vector<double> &J);
@@ -555,7 +554,7 @@ void Opzione<dim>::assemble_system() {
 template<int dim>
 void Opzione<dim>::solve() {
 	
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0),solution);
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
 	
 	unsigned int Step=Nsteps;
 	
@@ -605,7 +604,8 @@ void Opzione<dim>::solve() {
                 solver.factorize(system_matrix);
                 solver.solve(system_rhs);
                 
-                solution=system_rhs;       
+                solution=system_rhs;
+                
 	}
         
         ran=true;
