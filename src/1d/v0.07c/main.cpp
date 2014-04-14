@@ -60,7 +60,7 @@ using namespace dealii;
 
 #define __PIDE__
 #define __MATLAB__
-//#define __INTERPOLATION__
+#define __INTERPOLATION__
 
 const double toll=1e-8;
 /*
@@ -701,11 +701,11 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 100, 10);
+	Opzione<1> Call(par, 252, 10);
 	Call.run();
         
         cout<<"Prezzo "<<Call.get_price()<<"\n";
-        cout<<"v007b\n";
+        cout<<"v007c\n";
 	
 	return 0;
 }
