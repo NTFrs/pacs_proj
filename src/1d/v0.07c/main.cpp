@@ -337,11 +337,12 @@ void Opzione<dim>::make_J_matrix() {
 	
 	A=FullMatrix<double>(grid_points.size());
 	A=0;
-	
+	int t=round(xmin/dx);
 	for (unsigned i=0;i<grid_points.size();++i)
 	 for (unsigned j=0;j<grid_points.size();++j)
-	  A(i, j)=weights[i]*integral_weights[j-i+dist]*
-	  k(integral_grid_points[j-i+dist][0]-grid_points[i][0]);
+	  if ((j-i+dist-t)<integral_grid_points.size())
+	  A(i, j)=weights[i]*integral_weights[j-i+dist-t]*
+	  k(integral_grid_points[j-i+dist-t][0]-grid_points[i][0]);
 	
 // 	A.print_formatted(cout);
 	
