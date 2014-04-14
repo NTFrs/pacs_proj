@@ -29,6 +29,9 @@ makefile
 *.kdev4
 .kdev4/*
 
+#images and data files
+*.eps
+
 #generic trash file
 *.trash
 .DS_Store
