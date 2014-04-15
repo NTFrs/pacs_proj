@@ -1,0 +1,23 @@
+real T=1, K=100, r=0.05, alpha=1, beta=1 , m=0.2 , gamma=0, eta=0.5;
+int Lx=800, Ly=3, Nmax=100;
+real scale=100, dt =T/Nmax;
+
+mesh th = square(50,50,[x*Lx,(2*y-1)*Ly*scale]);
+fespace Vh(th,P1);
+
+func u0 = max(K-x,0.)*exp(-(1-eta)*(y/scale-m)^2 * alpha/(beta^2));
+func e = beta*gamma -(1-2*eta)*alpha*(y/scale-m);
+func f = r + 2*(alpha/beta)^2 * eta*(1-eta)*(y/scale-m)^2+ 2*(1-eta)*(alpha/beta)*(y/scale-m)*gamma - alpha*(1-eta);
+
+Vh uold=u0,u,v;
+
+int n;
+
+problem stein(u,v,init=n) = int2d(th)( u*v*(f+1/dt) + dx(u)*dx(v)*(x*y/scale)^2/2 + dy(u)*dy(v)*(beta*scale)^2/2
++ dx(u)*v*x*((y/scale)^2-r) + dy(u)*v *e*scale ) - int2d(th)(uold*v/dt) + on(2,u=0);
+
+for (int n=0; n<Nmax ; n++){
+	stein;
+	uold=u;
+	plot(u, dim=3, fill=true, value=true, cmm="Tempo t = "+n);
+};
