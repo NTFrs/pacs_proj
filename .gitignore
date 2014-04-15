@@ -31,6 +31,7 @@ makefile
 
 #images and data files
 *.eps
+*.gpl
 
 #generic trash file
 *.trash

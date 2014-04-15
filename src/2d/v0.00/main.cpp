@@ -82,6 +82,30 @@ public:
 };
 
 template<int dim>
+class Boundary_Condition: public Function<dim>
+{
+public:
+	Boundary_Condition(double S01, double S02, double K, double T,  double r) : Function< dim>(),
+        _S01(S01), _S02(S02), _K(K), _T(T), _r(r) {};
+        
+	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+private:
+        double _S01;
+        double _S02;
+	double _K;
+	double _T;
+	double _r;
+};
+
+template<int dim>
+double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+        return max(_S01*exp(p[0])+_S02*exp(p[1])-_K*exp(-_r*(_T-this->get_time())),0.);
+        
+}
+
+template<int dim>
 class PayOff : public Function<dim>
 {
 public:
@@ -110,7 +134,7 @@ private:
 	void make_grid();
 	void setup_system () ;
 	void assemble_system () ;
-	void solve () {};
+	void solve () ;
 	void output_results () const {};
         
         double                          price;
@@ -156,6 +180,7 @@ public:
                 setup_system();
                 assemble_system();
                 solve();
+                output_results();
                 return get_price();
                 
         };
@@ -227,7 +252,7 @@ void Opzione<dim>::setup_system() {
 template<int dim>
 void Opzione<dim>::assemble_system() {
         
-        QGauss<dim> quadrature_formula(2); // 2 nodes, 2d -> 4 quadrature points per cell
+        QGauss<dim> quadrature_formula(4); // 2 nodes, 2d -> 4 quadrature points per cell
         
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
                                  update_JxW_values);
@@ -244,6 +269,7 @@ void Opzione<dim>::assemble_system() {
 	FullMatrix<double> cell_dd(dofs_per_cell);
 	FullMatrix<double> cell_fd(dofs_per_cell);
 	FullMatrix<double> cell_ff(dofs_per_cell);
+        FullMatrix<double> cell_system(dofs_per_cell);
         
 	typename DoFHandler<dim>::active_cell_iterator
 	cell=dof_handler.begin_active(),
@@ -261,12 +287,17 @@ void Opzione<dim>::assemble_system() {
 	for (unsigned i=0;i<dim;++i)
                 ones[i]=1;
         
+        Tensor< 1, dim, double > trasp;
+        trasp[0]=par.r-par.sigma1*par.sigma1/2;
+        trasp[1]=par.r-par.sigma2*par.sigma2/2;
+        
         // cell loop
         for (; cell !=endc;++cell) {
                 fe_values.reinit(cell);
                 cell_dd=0;
                 cell_fd=0;
                 cell_ff=0;
+                cell_system=0;
                 for (unsigned q_point=0;q_point<n_q_points;++q_point)
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
@@ -274,6 +305,11 @@ void Opzione<dim>::assemble_system() {
                                         cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
                                         cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
+                                        cell_system(i, j)+=fe_values.JxW(q_point)*
+                                        (-0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
+                                         fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
+                                         (1/time_step+par.r)*
+                                         fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
                 
@@ -285,24 +321,124 @@ void Opzione<dim>::assemble_system() {
                                 dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
                                 fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
                                 ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
+                                system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_system(i, j));
                                 
                         }
                 
         }
-        
+        /*
         cout<<"dd_matrix\n";
         dd_matrix.print(cout);
         cout<<"\nfd_matrix\n";
         fd_matrix.print(cout);
         cout<<"ff_matrix\n";
-        ff_matrix.print(cout);
+        ff_matrix.print(cout);*/
+        
+        system_M2.add(1/time_step, ff_matrix);
+        
+#ifdef __VERBOSE__
+        cout<<"system_matrix\n";
+        system_matrix.print_formatted(cout);
+        cout<<"system_M2\n";
+        system_M2.print_formatted(cout);
+#endif
 }
 
+template<int dim>
+void Opzione<dim>::solve() {
+	
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S01, par.S02), solution);
+	
+	unsigned int Step=Nsteps;
+        
+        // Printing beginning solution
+        {
+        DataOut<2> data_out;
+        
+        data_out.attach_dof_handler (dof_handler);
+        data_out.add_data_vector (solution, "begin");
+        
+        data_out.build_patches ();
+        
+        std::ofstream output ("begin.gpl");
+        data_out.write_gnuplot (output);
+        }
+        //
+        
+        Boundary_Condition<dim> bc(par.S01, par.S02, par.K, par.T, par.r);
+	cout<< "time step is"<< time_step<< endl;
+	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
+                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+                
+                system_M2.vmult(system_rhs, solution);
+
+#ifdef __VERBOSE__
+                cout<<"rhs ";
+                system_rhs.print(cout);
+                cout<<"\n";
+#endif
+                
+                bc.set_time(time);
+                
+                {
+                        
+                        std::map<types::global_dof_index,double> boundary_values;
+                        
+                        VectorTools::interpolate_boundary_values (dof_handler,
+                                                                  0,
+                                                                  bc,
+                                                                  boundary_values);
+                        VectorTools::interpolate_boundary_values (dof_handler,
+                                                                  1,
+                                                                  bc,
+                                                                  boundary_values);
+                        VectorTools::interpolate_boundary_values (dof_handler,
+                                                                  2,
+                                                                  bc,
+                                                                  boundary_values);
+                        VectorTools::interpolate_boundary_values (dof_handler,
+                                                                  3,
+                                                                  bc,
+                                                                  boundary_values);
+                        
+                        MatrixTools::apply_boundary_values (boundary_values,
+                                                            system_matrix,
+                                                            solution,
+                                                            system_rhs, false);
+                        
+                }
+                
+                SparseDirectUMFPACK solver;
+                solver.initialize(sparsity_pattern);
+                solver.factorize(system_matrix);
+                solver.solve(system_rhs);
+                
+                solution=system_rhs;
+                
+	}
+        
+        // Printing final solution
+        {
+        DataOut<2> data_out;
+        
+        data_out.attach_dof_handler (dof_handler);
+        data_out.add_data_vector (solution, "end");
+        
+        data_out.build_patches ();
+        
+        std::ofstream output ("end.gpl");
+        data_out.write_gnuplot (output);
+        }
+        //
+        
+        ran=true;
+        
+}
 
 int main() {
 	Parametri2d par;
 	par.T=1.;
-	par.K=100;
+	par.K=200;
 	par.S01=100;
         par.S02=100;
 	par.r=0.0367;
@@ -317,7 +453,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 2, 1);
+	Opzione<2> Call(par, 10, 5);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
