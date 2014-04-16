@@ -306,9 +306,9 @@ void Opzione<dim>::assemble_system() {
                                         cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
-                                        (-0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
+                                        (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
                                          fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                         (1/time_step+par.r)*
+                                         (1/time_step-par.r)*
                                          fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
@@ -444,7 +444,7 @@ int main() {
 	par.r=0.0367;
 	par.sigma1=0.120381;
         par.sigma2=0.09;
-        par.ro=0.1;
+        par.ro=0.;
         
         // Parametri della parte salto
         par.p=0.20761;           // Parametro 1 Kou
@@ -453,7 +453,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 10, 5);
+	Opzione<2> Call(par, 100, 6);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
