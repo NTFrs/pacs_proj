@@ -43,6 +43,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <climits>
+
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf.h>
@@ -53,8 +55,10 @@
 using namespace std;
 using namespace dealii;
 
+const double eps=std::numeric_limits<double>::epsilon();
 const double toll=1e-8;
 
+#define __CALL__
 // max(s1+s2-k,0)
 
 class Parametri2d{
@@ -101,8 +105,11 @@ template<int dim>
 double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
+#ifdef __CALL__
         return max(_S01*exp(p[0])+_S02*exp(p[1])-_K*exp(-_r*(_T-this->get_time())),0.);
-        
+#else
+        return max(_K*exp(-_r*(_T-this->get_time()))-(_S01*exp(p[0])+_S02*exp(p[1])),0.);
+#endif
 }
 
 template<int dim>
@@ -124,7 +131,11 @@ double PayOff<dim>::value (const Point<dim>  &p,
                            const unsigned int component) const
 {
         Assert (component == 0, ExcInternalError());
+#ifdef __CALL__
         return max(S01*exp(p(0))+S02*exp(p(1))-K,0.);
+#else
+        return max(K-(S01*exp(p(0))+S02*exp(p(1))),0.);
+#endif
 }
 
 template<int dim>
@@ -152,6 +163,8 @@ private:
 	SparseMatrix<double>            fd_matrix;
 	SparseMatrix<double>            ff_matrix;
         
+        std::vector< Point<dim> >       grid_points;
+        
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
         
@@ -173,7 +186,7 @@ public:
         ran(false)
 	{};
         
-        double get_price(){ return 0; };
+        double get_price() ;
         
 	double run(){
                 make_grid();
@@ -198,6 +211,23 @@ void Opzione<dim>::make_grid() {
 	Smax2=par.S02*exp((par.r-par.sigma2*par.sigma2/2)*par.T
                          +par.sigma2*sqrt(par.T)*6);
         
+        dx1=(log(Smax1/par.S01)-log(Smin1/par.S01))/pow(2., refs);
+        dx2=(log(Smax2/par.S02)-log(Smin2/par.S02))/pow(2., refs);
+        
+        while (xmin1>log(Smin1/par.S01))
+                xmin1-=dx1;
+        while (xmax1<log(Smax1/par.S01))
+                xmax1+=dx1;
+        xmin1-=dx1;
+        xmax1+=dx1;
+        
+        while (xmin2>log(Smin2/par.S02))
+                xmin2-=dx2;
+        while (xmax2<log(Smax2/par.S02))
+                xmax2+=dx2;
+        xmin2-=dx2;
+        xmax2+=dx2;
+        /*
 	xmin1=log(Smin1/par.S01);
         xmax1=log(Smax1/par.S01);
         xmin2=log(Smin2/par.S02);
@@ -210,14 +240,22 @@ void Opzione<dim>::make_grid() {
         
         dx1=(xmax1-xmin1)/pow(2., refs);
         dx2=(xmax2-xmin2)/pow(2., refs);
-        
+        */
         Point<dim> p1(xmin1,xmin2);
         Point<dim> p2(xmax1,xmax2);
         
-        std::vector<unsigned> refinement={pow(2,refs), pow(2,refs)};
+        std::vector<unsigned> refinement={pow(2,refs)+3, pow(2,refs)+3};
         
         GridGenerator::subdivided_hyper_rectangle(triangulation, refinement, p1, p2);
         
+        grid_points=triangulation.get_vertices();
+        /*
+        cout<<"grid points \n";
+        for (int i=0; i<grid_points.size(); ++i) {
+                cout<<grid_points[i]<<"\n";
+        }
+        cout<<"\n";
+        */
         std::ofstream out ("grid.eps");
         GridOut grid_out;
         grid_out.write_eps (triangulation, out);
@@ -433,6 +471,38 @@ void Opzione<dim>::solve() {
         
         ran=true;
         
+}
+
+template<int dim>
+double Opzione<dim>::get_price() {
+        
+        if (ran==false) {
+                this->run();
+        }
+        
+        // find 0 in grid
+        unsigned position=grid_points.size();
+        
+        double errore=100*eps;//max(dx1, dx2);
+        
+        for (unsigned i=0; i<grid_points.size(); ++i) {
+                if (grid_points[i][0]<=errore &&
+                    grid_points[i][0]>=0 && 
+                    grid_points[i][1]<=errore &&
+                    grid_points[i][1]>=0 ) {
+                        position=i;                     // if (0,0) found, set the position
+                        i=grid_points.size();           // quit the loop
+                }
+        }
+        
+        // if position has not been set, exit
+        if (position==grid_points.size()) {
+                cerr<<"An error occurred.\n";
+                std::exit(-1);
+        }
+        
+        // return price
+        return solution(position);
 }
 
 int main() {
