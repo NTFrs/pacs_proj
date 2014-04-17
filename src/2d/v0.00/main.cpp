@@ -444,7 +444,7 @@ int main() {
 	par.r=0.0367;
 	par.sigma1=0.120381;
         par.sigma2=0.09;
-        par.ro=0.;
+        par.ro=0.2;
         
         // Parametri della parte salto
         par.p=0.20761;           // Parametro 1 Kou
