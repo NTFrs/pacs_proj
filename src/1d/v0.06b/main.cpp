@@ -320,30 +320,25 @@ void Opzione<dim>::integrale2_Levy2(Vector<double> &J, Vector<double> const &x) 
 	int count=0;
 	J(i)=0;
 	double z(Bmin+x[i]);
-	while (z<xmin & count<tot) {
-	J(i)+=dx*0*k(z-x[i]);
-	z+=dx;
-	count++;	
+	
+	for(;z<xmin && count<tot;z+=dx, count++) {
+	J(i)+=dx*0*k(z-x[i]);	
 	}
 	
 	int j=0;
 	
-	if (Bmin+x(i)>xmin) {
-	 cout<< "Starting into!\n";
-	 j=round((Bmin+x[i]-xmin)/dx);
-	}
-	
-	while (z>=xmin & z<=xmax & count<tot) {
+// 	if (Bmin+x(i)>xmin) {
+// 	 cout<< "Starting into!\n";
+// 	 j=round((Bmin+x[i]-xmin)/dx);
+// 	}
+// 	
+	 for (;z>=xmin && z<=xmax & count<tot;z+=dx, j++, count++) {
 	J(i)+=dx*solution[j]*k(z-x[i]);
-	z+=dx;
-	j++;
-	count++;
+	
 	}
 	
-	while (z>xmax & count <tot) {
+	 for (;z>xmax && count <tot;z+=dx, count++) {
 	J(i)+=dx*k(z-x[i])*(par.S0*exp(xmax)-par.K);
-	z+=dx;
-	count++;
 	}
 	
 	}
@@ -609,9 +604,9 @@ void Opzione<dim>::solve() {
                 cout<<"x ";
                 x.print(cout);
                 cout<<"\n";*/
-                Vector<double> J, J2;
+                Vector<double> J;
                 J.reinit(solution.size());
-                J2.reinit(solution.size());
+//                 J2.reinit(solution.size());
 //                 integrale2_Levy(J, x, 2*solution.size());
                 integrale2_Levy2(J, x);
                 /*cout<<"J ";
@@ -710,7 +705,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
                         // tempo // spazio
-	Opzione<1> Call(par, 50, 10);
+	Opzione<1> Call(par, 100, 10);
 	Call.run();
 	
 	return 0;
