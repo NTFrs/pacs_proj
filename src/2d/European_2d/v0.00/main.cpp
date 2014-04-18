@@ -507,6 +507,7 @@ double Opzione<dim>::get_price() {
 
 int main() {
 	Parametri2d par;
+        /*
 	par.T=1.;
 	par.K=200;
 	par.S01=100;
@@ -515,6 +516,16 @@ int main() {
 	par.sigma1=0.120381;
         par.sigma2=0.09;
         par.ro=0.2;
+        */
+        
+        par.T=1.;
+	par.K=250;
+	par.S01=100;
+        par.S02=50;
+	par.r=0.05;
+	par.sigma1=0.4;
+        par.sigma2=0.35;
+        par.ro=-0.3;
         
         // Parametri della parte salto
         par.p=0.20761;           // Parametro 1 Kou
