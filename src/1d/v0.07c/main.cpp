@@ -172,7 +172,7 @@ private:
 	FE_Q<dim>                       fe;
 	DoFHandler<dim>                 dof_handler;
         
-        Triangulation<dim>              integral_triangulation;
+    Triangulation<dim>              integral_triangulation;
         
 	SparsityPattern                 sparsity_pattern;
 	SparseMatrix<double>            system_matrix;
@@ -336,14 +336,60 @@ template<int dim>
 void Opzione<dim>::make_J_matrix() {
 	
 	A=FullMatrix<double>(grid_points.size());
-	A=0;
-	int t=round(xmin/dx);
-	for (unsigned i=0;i<grid_points.size();++i)
-	 for (unsigned j=0;j<grid_points.size();++j)
-	  if ((j-i+dist-t)<integral_grid_points.size())
-	  A(i, j)=weights[i]*integral_weights[j-i+dist-t]*
-	  k(integral_grid_points[j-i+dist-t][0]-grid_points[i][0]);
+// 	unsigned int N=grid_points.size();
+	QGauss<dim> quadrature_formula(2);
+	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_JxW_values);
+	FEValues<dim> fe_values2 (fe, quadrature_formula, update_values   | update_JxW_values);
+
 	
+	FE_Q<dim> fe_outer(1);
+	DoFHandler<dim> dof_outer(integral_triangulation);
+	FEValues<dim> outer_fe_values(fe_outer, quadrature_formula, update_JxW_values);
+	
+	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
+	const unsigned int   n_q_points    = quadrature_formula.size();
+	
+	typename DoFHandler<dim>::active_cell_iterator
+	cell=dof_handler.begin_active(),
+	endc=dof_handler.end();
+	
+	std::vector<types::global_dof_index> index_i(dofs_per_cell), index_j(dofs_per_cell), 
+	index_l(dofs_per_cell);
+	
+	
+	for (; cell != endc;++cell) {
+	 cell->get_dof_indices(index_i);
+	 fe_values.reinit(cell);
+	 //ciclo sui dof in una cella in x
+	 for (unsigned int i=0;i<dofs_per_cell;++i)
+	  //ciclo sui pesi di quadratura per ogni df in x
+	  for (unsigned int q_pt=0;q_pt<n_q_points;++q_pt) {
+	   
+	  
+		typename DoFHandler<dim>::active_cell_iterator
+		cell2=dof_handler.begin_active();
+			//ciclo su tutte le celle per avere fe_values_j
+			for (; cell2 != endc;++cell2) {
+			cell2->get_dof_indices(index_j);
+// 				fe_values2.reinit(cell2);
+				//ciclo sui due gradi di liberta della cella in j
+				for (unsigned int j=0;j<dofs_per_cell;++j) {
+					//ciclo integrazione su tutto Bmin Bmax
+					typename DoFHandler<dim>::active_cell_iterator
+					cell3=dof_outer.begin_active(),  endc3=dof_outer.end();
+					for (;cell3 !=endc3;++cell3) {
+						fe_values2.reinit(cell3);
+						cell3->get_dof_indices(index_l);
+						for (unsigned int l=0;l<n_q_points;++l)
+						A(index_i[i], index_j[j])+=
+						fe_values.shape_value(i, q_pt)*fe_values2.shape_value(j, l)*
+						k(integral_grid_points[index_l[l]][0])*fe_values.JxW(q_pt)*fe_values2.JxW(l);
+			}
+		}
+		}
+	}
+	
+ }
 // 	A.print_formatted(cout);
 	
 }
@@ -602,7 +648,7 @@ void Opzione<dim>::solve() {
 //                 ff_matrix.vmult(system_rhs, J);
 //                 Vector<double> temp;
 //                 temp.reinit(dof_handler.n_dofs());
-                A.Tvmult(J, solution);
+                A.vmult(J, solution);
                 system_M2.vmult(system_rhs,solution);
                 system_rhs+=J;
 #else

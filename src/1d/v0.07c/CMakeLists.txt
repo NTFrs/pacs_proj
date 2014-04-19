@@ -13,6 +13,11 @@ SET(TARGET_SRC
 
 # Usually, you will not need to modify anything beyond this point...
 
+ADD_DEFINITIONS(
+    -std=c++11 # Or -std=c++0x
+    # Other flags
+)
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 FIND_PACKAGE(deal.II 8.0 QUIET
