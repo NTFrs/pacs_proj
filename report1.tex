@@ -1,0 +1,41 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+%opening
+\title{Riassunto Progetto Pacs}
+\author{Nahuel Foresta, Giorgio Re}
+
+\newcommand{\der}[2]{\frac{\delta #1}{\delta #2}}
+\newcommand{\dder}[2]{\frac{\delta^2 #1}{\delta #2^2}}
+\newcommand{\dmix}[3]{\frac{\delta^2 #1}{\delta #2 \delta #3}}
+\begin{document}
+
+\maketitle
+
+\section{Riassunto Obiettivi}
+
+L'obiettivo del progetto è di creare un programma per prezzare una serie di opzioni utilizzando dei metodi basati a elementi finiti. Il valore di un opzione al variare del sottostante (che supponiamo evolvere secondo un modello Jump-Diffusion) può essere quasi sempre trovato come soluzione di un equazione integro differenziale del tipo
+
+\begin{multline}
+ \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0
+\end{multline}
+
+su $[0,T]\times[0,+\infty]$ con opportune condizioni al bordo e condizione finale $C(T,S)=g(S)$ payoff dell'opzione. $k$ è un nucleo con una forte massa nell'intorno dello zero e code esponenziali.
+In due dimensioni tale equazione diventa:
+
+
+\begin{multline}
+ \der{C}{t}+\frac{\sigma_1^2}{2}S_1^2\dder{C}{S_1}+\frac{\sigma_2^2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2 S_1 S_2 \dmix{C}{S_1}{S_2}+
+ r\der{C}{S_1}+r\der{C}{S_2}-rC+ \\
+ + \int_\mathbb{R^2}\left(C(t,S_1e^{y_1},S_2e^{y_2})-C(t,S_1,S_2)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0 
+\end{multline}
+su $[0,T]\times[0,+\infty]^2$ con opportune B.C. e valore finale.
+
+
+\section{}
+
+\end{document}
