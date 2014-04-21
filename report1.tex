@@ -57,7 +57,7 @@ In questa prima parte del progetto, abbiamo iniziato a fare i primi esperimenti 
 \begin{itemize}
  \item Costruito un programma che risolve l'equazione PDE  (senza parte integrale) in una dimensione in un caso semplice utilizzando unicamente gli strumenti forniti dalla libreria.
  \item Abbiamo risolto lo stesso problema nel caso bi-dimensionale. Sebbene il comportamento qualitativo della soluzione è quello aspettato, i valori esatti non sono ancora giusti (confrontati con dei risultati dati da tool che risolvono l'equazione con metodi alle differenze finite).
- \item Abbiamo provato a risolvere l'equazione Integrodifferenziale in una dimensione in diversi modi (per il dettaglio vedere sotto). In due casi siamo riusciti ad ottenere un risultato corretto, ma non soddisfacenti.
+ \item Abbiamo provato a risolvere l'equazione Integrodifferenziale in una dimensione in diversi modi (per il dettaglio vedere sotto). In due casi siamo riusciti ad ottenere un risultato corretto, ma non pienamente soddisfacenti.
 \end{itemize}
 
 \subsection{Metodologia}
@@ -85,7 +85,7 @@ L'equazione \eqref{eq:costcoeff} diventa:
 \end{equation}
 }
 
-Per la parte temporale abbiamo utilizzato una discretizzazione differenze finite con schema di eulero implicito, eccetto per la parte integrale che viene trattata esplicitamente e messa nel \emph{rhs}.Tale schema è stabile purché $\Delta t < \sfrac{1}{\hat{\lambda}}$. Gli elementi finiti scelti sono Q1, polinomi lineari sui quadrati, offerti gentilmente dalla libreria deal II. Il dominio su $S$ viene troncato all'intervallo $(S_{min},S_{max})$, opportunamente scelto. 
+Per la parte temporale abbiamo utilizzato una discretizzazione differenze finite con schema di eulero implicito o Crank Nicolson, eccetto per la parte integrale che viene trattata esplicitamente e messa nel \emph{rhs}. Tale schema è stabile purché $\Delta t < \sfrac{1}{\hat{\lambda}}$. Gli elementi finiti scelti sono Q1, polinomi lineari sui quadrati, offerti gentilmente dalla libreria deal II. Il dominio su $S$ viene troncato all'intervallo $(S_{min},S_{max})$, opportunamente scelto. 
 \\
 La difficoltà si riduce dunque a integrare $u(t,x+y)k(y)$.
 \\
@@ -102,17 +102,17 @@ Dove $M_1$ è la somma delle matrici date dagli elementi finiti (stiffnes, etc, 
 $k(y)$ è un nucleo che decresce rapidamente, è quindi possibile troncare il dominio d'integrazione ottenendo una soluzione di poco diversa (esistono stime a riguardo, qua non citate). L'integrale è allora da fare sull'intervallo $(B_l,B_u)$, con $B_l$ e $B_u$ opportunamente scelti. Si presentano due problemi con questo termine:
 
 \begin{itemize}
- \item Nel caso generale $(S_{min},S_{max}) \subset (B_l,B_u)$, quindi il termine integrale è non locale. Si sceglie di estendere il valore di $u$ utilizzando la condizione al bordo, pratica comune in questi casi.
+ \item Nel caso generale $(S_{min},S_{max}) \subset (B_l,B_u)$, quindi il termine integrale oltre a essere non locale necessita dei valori di $u$ fuori dal dominio. Si sceglie di estendere il valore di $u$ utilizzando la condizione al bordo, pratica comune in questi casi.
  \item Il termine $u(t,x+y)$ non è facilmente trattabile in quanto il fatto di sommare $x+y$ introduce un possibile shift al di fuori dai nodi di griglia al quale bisogna stare attenti
 \end{itemize}
 
 \subsubsection{Possibili approcci}
 
-Una prima differenza negli approcci ahl'ultim termine integrale è la scelta di scrivere l'incognita $u$ subito come appartenente allo spazio $V_h$ dove sono ambientati gli elementi finiti, o prima integrare ottenendo una funzione $J(x)$ e scrivere quest'ultima come oggetto di $V_h$. Partiamo dal secondo approccio.
+Una prima differenza negli approcci all'ultimo termine integrale è la scelta di scrivere l'incognita $u$ subito come appartenente allo spazio $V_h$ dove sono ambientati gli elementi finiti, o prima integrare ottenendo una funzione $J(x)$ e scrivere quest'ultima come oggetto di $V_h$. Partiamo dal secondo approccio.
 
 \subsubsection{Integrazione prima di discretizzazione}
 
-Questa è una tecnica a quanto pare più diffusa (nell'approccio a differenze finite)
+Questa è una tecnica a quanto pare più diffusa (poiché utilizzato nelle differenze finite)
 In questo caso, si tratta di calcolare: 
 
 \begin{equation*}
@@ -176,11 +176,12 @@ In tal caso, si potrebbe scrivere come una matrice densa $A$ e l'equazione da ri
 \end{equation*}
 
 Sebbene si abbia una moltiplicazione matrice densa per vettore a ogni passo, la matrice va costruita un unica volta.\\
-Per ora non siamo riusciti a ottenere risultati corretti con questa tecnica, ne con cambio di variabili, ne con quadrature ne cercando di calcolare esattamente. Questo approccio sembra prestarsi a una costruzione della matrice ffacendo un ciclo sui quadrati, che sarebbe estensibile più facilmente al 2D.
+Per ora non siamo riusciti a ottenere risultati corretti con questa tecnica, ne con cambio di variabili, ne con quadrature ne cercando di calcolare esattamente. Questo approccio sembra prestarsi a una costruzione della matrice facendo un ciclo sui quadrati, che sarebbe estensibile più facilmente al 2D.
 
-\subsubsection{Conclusioni parziali e futuri sviluppi}
+\subsubsection{Conclusioni parziali e futuri passi}
 
 Riassumendo, dei due approcci per calcolare l'integrale, il primo ha dato riultati corretti ma sembra più difficile da estendere a due dimensioni in modo efficente. Il secondo fin'ora non ha dato risultati, probabilmente per errore negli algoritmi.\\ \\
 Un terzo approccio da esplorare è il cambio di variabili $Se^y=z$ a livello equazione. In tal caso si ottiene un equazione a coefficienti non costanti, ma la parte integrale potrebbe essere più semplice.
-
+\\ \\
+L'altro grande filone su cui concentrarsi è l'estensione in modo che sia dimension-independent.
 \end{document}
