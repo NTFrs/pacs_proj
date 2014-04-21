@@ -4,7 +4,7 @@
 \usepackage[italian]{babel}
 \usepackage{amsmath}
 \usepackage{amsfonts}
-
+\usepackage{xfrac}
 %opening
 \title{Riassunto Progetto Pacs}
 \author{Nahuel Foresta, Giorgio Re}
@@ -25,17 +25,87 @@ L'obiettivo del progetto è di creare un programma per prezzare una serie di opz
 \end{multline}
 
 su $[0,T]\times[0,+\infty]$ con opportune condizioni al bordo e condizione finale $C(T,S)=g(S)$ payoff dell'opzione. $k$ è un nucleo con una forte massa nell'intorno dello zero e code esponenziali.
-In due dimensioni tale equazione diventa:
+In due dimensioni, supponendo l'indipendenza delle componenti di salto dei due sottostanti, tale equazione diventa:
 
 
 \begin{multline}
  \der{C}{t}+\frac{\sigma_1^2}{2}S_1^2\dder{C}{S_1}+\frac{\sigma_2^2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2 S_1 S_2 \dmix{C}{S_1}{S_2}+
  r\der{C}{S_1}+r\der{C}{S_2}-rC+ \\
- + \int_\mathbb{R^2}\left(C(t,S_1e^{y_1},S_2e^{y_2})-C(t,S_1,S_2)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0 
+ + \int_\mathbb{R}\left(C(t,S_1e^{y},S_2)-C(t,S_1,S_2)-S_1(e^y-1)\der{C}{S}(t,S_1,S_2)\right)k_1(y)dy\\
+ + \int_\mathbb{R}\left(C(t,S_1,S_2e^{y})-C(t,S_1,S_2)-S_2(e^y-1)\der{C}{S}(t,S_1,S_2)\right)k_2(y)dy=0 
 \end{multline}
 su $[0,T]\times[0,+\infty]^2$ con opportune B.C. e valore finale.
+\\
+Al variare delle condizioni finali e delle condizioni al contorno si possono descrivere altri tipi di opzioni. Un esempio interessante è il caso dell'opzione asiatica, che dipende dalla media del sottostante nel tempo. Infatti se consideriamo la media come seconda variabile, si ottiene un equazione simile a quella precedente.
+
+\section{Strumenti}
+
+\subsection{La libreria deal II}
+
+Per realizzare questo progetto, l'idea è la libreria deal II per gli elementi finiti. Tale libreria permette un approccio pulito alle diverse parti necessarie alla costruzione di un programma ad elementi finiti. Sono presenti classi per le griglie, le matrici, le funzioni di base, la quadratura, i solutori e quant'altro necessario alla soluzione di un problema EF classico. Il punto principale sarà di aggiungere il termine integrale.
+
+\subsection{Altri strumenti}
+
+Abbiamo per ora incluso la libreria gsl per l'interpolazione del valore soluzione in punti non appartententi alla mesh. Siccome è una parte piuttosto pesante, si cercano modi di evitare l'interpolazione (vedere in seguito). La libreria deal II utilizza CMake di default per generare i makefile, e quindi abbiamo adottato tale metodo, adattandolo alle nostre necessità.
+
+\section{Cosa è stato fatto}
+
+In questa prima parte del progetto, abbiamo iniziato a fare i primi esperimenti con la libreria deal II. In particolare abbiamo:
+
+\begin{itemize}
+ \item Costruito un programma che risolve l'equazione PDE  (senza parte integrale) in una dimensione in un caso semplice utilizzando unicamente gli strumenti forniti dalla libreria.
+ \item Abbiamo risolto lo stesso problema nel caso bi-dimensionale. Sebbene il comportamento qualitativo della soluzione è quello aspettato, i valori esatti non sono ancora giusti (confrontati con dei risultati dati da tool che risolvono l'equazione con metodi alle differenze finite).
+ \item Abbiamo provato a risolvere l'equazione Integrodifferenziale in una dimensione in diversi modi (per il dettaglio vedere sotto). In due casi siamo riusciti ad ottenere un risultato corretto, ma non soddisfacenti.
+\end{itemize}
+
+\subsection{Metodologia}
+
+La PDE (e la PIDE) in questione è trasformabile in un equazione a coefficienti costanti con la trasformazione $x=\ln{S} \; (\text{ o } x=\ln{\sfrac{S}{S_0}})$ e $C(t,S)=u(t,x)$. In tal caso diventa (1D):
+{
+\small
+\begin{equation}
+ \der{u}{t}+\frac{\sigma^2}{2}\dder{u}{x}+\left(r-\frac{\sigma^2}{2}\right)\der{u}{x}-ru+\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)k(y)dy=0
+\label{eq:costcoeff}
+ \end{equation}
+\normalsize
+}
+In molti casi, è possibile separare i tre pezzi dell'integrale, e trattare gli ultimi due addendi separatamente. Definendo 
+
+\begin{equation*}
+ \hat{\lambda}=\int_\mathbb{R}u(t,x)k(y)dy \qquad \hat{\alpha}=\int_\mathbb{R}(e^y-1)\der{u}{x}k(y)dy
+\end{equation*}
+L'equazione \eqref{eq:costcoeff} diventa: 
+
+{
+
+\begin{equation}
+ \der{u}{t}+\frac{\sigma^2}{2}\dder{u}{x}+\left(r-\frac{\sigma^2}{2}-\hat{\alpha}\right)\der{u}{x}-r\hat{\lambda}u+\int_\mathbb{R}u(t,x+y)k(y)dy=0
+\end{equation}
+}
+
+Per la parte temporale abbiamo utilizzato una discretizzazione differenze finite con schema di eulero implicito, eccetto per la parte integrale che viene trattata esplicitamente e messa nel \emph{rhs}.Tale schema è stabile purché $\Delta t < \sfrac{1}{\hat{\lambda}}$. Gli elementi finiti scelti sono Q1, polinomi lineari sui quadrati, offerti gentilmente dalla libreria deal II. Il dominio su $S$ viene troncato all'intervallo $(S_{min},S_{max})$, opportunamente scelto. 
+\\
+La difficoltà si riduce dunque a integrare $u(t,x+y)k(y)$.
+\\
+Senza entrare nei dettagli, otteniamo una discretizzazione del tipo :
+
+\begin{equation}
+ M_1u^k=M_2u^{k+1}+J^{k+1} \qquad \text{ con } u^{M}(S)=g(S) 
+\end{equation}
+
+Dove $M_1$ è la somma delle matrici date dagli elementi finiti (stiffnes, etc, etc) e $M_2$ è la matrice di massa divisa per il passo temporale. Il termine esplicito $J$ può essere calcolato in principio in diversi modi.
+
+\subsection{La parte integrale $J$}
+
+$k(y)$ è un nucleo che decresce rapidamente, è quindi possibile troncare il dominio d'integrazione ottenendo una soluzione di poco diversa (esistono stime a riguardo, qua non citate). L'integrale è allora da fare sull'intervallo $(B_l,B_u)$, con $B_l$ e $B_u$ opportunamente scelti. Si presentano due problemi con questo termine:
+
+\begin{itemize}
+ \item Nel caso generale $(S_{min},S_{max}) \subset (B_l,B_u)$, quindi il termine integrale è non locale. Si sceglie di estendere il valore di $u$ utilizzando la condizione al bordo, pratica comune in questi casi.
+ \item Il termine $u(t,x+y)$ non è facilmente trattabile in quanto il fatto di sommare $x+y$ introduce un possibile shift al di fuori dai nodi di griglia al quale bisogna stare attenti
+\end{itemize}
+
+\subsubsection{Possibili approcci}
 
 
-\section{}
 
 \end{document}
