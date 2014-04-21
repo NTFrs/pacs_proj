@@ -6,8 +6,10 @@
 \usepackage{amsfonts}
 \usepackage{xfrac}
 %opening
-\title{Riassunto Progetto Pacs}
+\title{Riassunto Iniziale Progetto Pacs}
 \author{Nahuel Foresta, Giorgio Re}
+
+\setlength{\parindent}{0pt}
 
 \newcommand{\der}[2]{\frac{\delta #1}{\delta #2}}
 \newcommand{\dder}[2]{\frac{\delta^2 #1}{\delta #2^2}}
@@ -90,7 +92,7 @@ La difficoltà si riduce dunque a integrare $u(t,x+y)k(y)$.
 Senza entrare nei dettagli, otteniamo una discretizzazione del tipo :
 
 \begin{equation}
- M_1u^k=M_2u^{k+1}+J^{k+1} \qquad \text{ con } u^{M}(S)=g(S) 
+ M_1u^k=M_2u^{k+1}+J^{k+1}  \qquad \text{ per } k=M\dots1 \qquad \text{ e } \qquad u^{M}(S)=g(S) 
 \end{equation}
 
 Dove $M_1$ è la somma delle matrici date dagli elementi finiti (stiffnes, etc, etc) e $M_2$ è la matrice di massa divisa per il passo temporale. Il termine esplicito $J$ può essere calcolato in principio in diversi modi.
@@ -106,6 +108,79 @@ $k(y)$ è un nucleo che decresce rapidamente, è quindi possibile troncare il do
 
 \subsubsection{Possibili approcci}
 
+Una prima differenza negli approcci ahl'ultim termine integrale è la scelta di scrivere l'incognita $u$ subito come appartenente allo spazio $V_h$ dove sono ambientati gli elementi finiti, o prima integrare ottenendo una funzione $J(x)$ e scrivere quest'ultima come oggetto di $V_h$. Partiamo dal secondo approccio.
 
+\subsubsection{Integrazione prima di discretizzazione}
+
+Questa è una tecnica a quanto pare più diffusa (nell'approccio a differenze finite)
+In questo caso, si tratta di calcolare: 
+
+\begin{equation*}
+ J_i=J(x_i)=\int_{B_l}^{B_u}u(t,x_i+y)k(y)dy
+\end{equation*}
+nei diversi nodi $x_i$ della griglia. In seguito si potra scrivere dunque 
+
+\begin{equation*}
+ \sum_{j=1}^N J_j\int_{x_{min}}^{x_{max}} \phi_i(x)\phi_j(x)dx
+\end{equation*}
+
+scrivibile come $M\underline{J}$, con $M$ matrice di massa, e aggiungere tale termine all'\emph{rhs}.
+
+L'eq da risolvere a ogni passo temporale è dunque:
+
+\begin{equation*}
+ M_1u^k=M_2u^{k+1}+M\underline{J}^{k+1}  \qquad \text{ per } k=M\dots1
+\end{equation*}
+
+
+% \begin{equation*}
+% \end{equation}
+In tal caso ci sono due modi di calcolare il vettore $\underline{J}:$
+
+\begin{itemize}
+ \item Utilizzare una griglia qualunque d'integrazione, interpolando il valore di $u$ in $x_i+y$ se $x_i+y$ cade all'interno del dominio, o imponendo le condizioni al bordo se fuori dal dominio. Tale operazione, abbastanza semplice, è molto lenta. Per l'interpolazione abbiamo usato le funzioni della \emph{gsl}, utilizzando un metodo a spline.
+ \item Allineare le griglie d'integrazione e del dominio in modo che $x_i+y$ coincida sempre con un nodo quando dentro il dominio. Questa procedura è semplice in 1D se il passo della griglia è costante. Questa procedura è più veloce, ma suppone che i nodi siano ordinati. 
+\end{itemize}
+
+In questi due casi abbiamo ottenuto risultati corretti in 1D, ma stiamo cercando di capire come si può fare in più dimensioni.
+
+Una strada che abbiamo provato in questo caso è di usare il cambio di variabili $x+y=z$, e il termine da integrare diventa
+
+\begin{equation*}
+ J_i=J(x_i)=\int_{B_l}^{B_u}u(t,x_i+y)k(y)dy=\int_{B_l+x_i}^{B_u+x_i}u(t,z)k(z-x_i)dz
+\end{equation*}
+
+La griglia d'integrazione cambia passo a passo, ma anche in questo caso deve essere allineata con la griglia del dominio ed è necessario sfruttare l'ordinamento.
+
+\subsubsection{Discretizzazione e in seguito integrazione}
+
+Un altra strada più naturale è di scrivere prima la funzione $u$ come appartente allo spazio $V_h$. In tal caso si ha al passo k:
+
+
+
+\begin{align*}
+ & \int_{x_{min}}^{x_{max}}\phi_i(x)\left( \int_{B_l}^{B_u} \sum_{j=1}^N u_j^k \phi_i(x+y)k(y)dy \right)dx=\\ 
+ &\sum_{j=1}^N  \int_{x_{min}}^{x_{max}}\int_{B_l}^{B_u} \phi_i(x)\phi_i(x+y)k(y)dxdy
+\end{align*}
+
+che si potrebbe anche scrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come
+
+\begin{equation*}
+ \sum_{j=1}^N  \int_{x_{min}}^{x_{max}}\int_{B_l+x}^{B_u+x} \phi_i(x)\phi_i(z)k(z-x)dzdx
+\end{equation*}
+
+In tal caso, si potrebbe scrivere come una matrice densa $A$ e l'equazione da risolvere a ogni passo temporale sarebbe:
+
+\begin{equation*}
+ M_1u^k=M_2u^{k+1}+Au^{k+1}  \qquad \text{ per } k=M\dots1
+\end{equation*}
+
+Sebbene si abbia una moltiplicazione matrice densa per vettore a ogni passo, la matrice va costruita un unica volta.\\
+Per ora non siamo riusciti a ottenere risultati corretti con questa tecnica, ne con cambio di variabili, ne con quadrature ne cercando di calcolare esattamente. Questo approccio sembra prestarsi a una costruzione della matrice ffacendo un ciclo sui quadrati, che sarebbe estensibile più facilmente al 2D.
+
+\subsubsection{Conclusioni parziali e futuri sviluppi}
+
+Riassumendo, dei due approcci per calcolare l'integrale, il primo ha dato riultati corretti ma sembra più difficile da estendere a due dimensioni in modo efficente. Il secondo fin'ora non ha dato risultati, probabilmente per errore negli algoritmi.\\ \\
+Un terzo approccio da esplorare è il cambio di variabili $Se^y=z$ a livello equazione. In tal caso si ottiene un equazione a coefficienti non costanti, ma la parte integrale potrebbe essere più semplice.
 
 \end{document}
