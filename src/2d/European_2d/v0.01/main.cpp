@@ -246,7 +246,7 @@ void Opzione<dim>::setup_system() {
 	
 	dof_handler.distribute_dofs(fe);
         
-	std::cout << "   Number of degrees of freedom: "
+	std::cout << " Number of degrees of freedom: "
 	<< dof_handler.n_dofs()
 	<< std::endl;
         
@@ -326,7 +326,7 @@ void Opzione<dim>::assemble_system() {
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
                                         (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
                                         fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                        (1/time_step-par.r)*
+                                        (1/time_step+par.r)*
                                         fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
@@ -461,7 +461,7 @@ double Opzione<dim>::get_price() {
 
 int main() {
 	Parametri2d par;
-        
+        /*
 	par.T=1.;
 	par.K=200;
 	par.S01=100;
@@ -470,17 +470,17 @@ int main() {
 	par.sigma1=0.120381;
         par.sigma2=0.09;
         par.ro=0.2;
+        */
         
-        /*
         par.T=1.;
-	par.K=250;
+	par.K=200;
 	par.S01=100;
         par.S02=100;
-	par.r=0.05;
-	par.sigma1=0.4;
-        par.sigma2=0.35;
-        par.ro=0.3;
-        */
+	par.r=0.1;
+	par.sigma1=0.2;
+        par.sigma2=0.5;
+        par.ro=-0.2;
+        
         // Parametri della parte salto
         par.p=0.20761;           // Parametro 1 Kou
         par.lambda=0.330966;     // Parametro 2 Kou
