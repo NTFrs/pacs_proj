@@ -23,6 +23,8 @@
 
 #include <deal.II/numerics/data_out.h>
 
+#include <deal.II/numerics/fe_field_function.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -211,24 +213,6 @@ void Opzione<dim>::make_grid() {
 	Smax2=par.S02*exp((par.r-par.sigma2*par.sigma2/2)*par.T
                          +par.sigma2*sqrt(par.T)*6);
         
-        dx1=(log(Smax1/par.S01)-log(Smin1/par.S01))/pow(2., refs);
-        dx2=(log(Smax2/par.S02)-log(Smin2/par.S02))/pow(2., refs);
-        
-        while (xmin1>log(Smin1/par.S01))
-                xmin1-=dx1;
-        while (xmax1<log(Smax1/par.S01))
-                xmax1+=dx1;
-        xmin1-=dx1;
-        xmax1+=dx1;
-        
-        while (xmin2>log(Smin2/par.S02))
-                xmin2-=dx2;
-        while (xmax2<log(Smax2/par.S02))
-                xmax2+=dx2;
-        xmin2-=dx2;
-        xmax2+=dx2;
-         
-        /*
 	xmin1=log(Smin1/par.S01);
         xmax1=log(Smax1/par.S01);
         xmin2=log(Smin2/par.S02);
@@ -241,7 +225,7 @@ void Opzione<dim>::make_grid() {
         
         dx1=(xmax1-xmin1)/pow(2., refs);
         dx2=(xmax2-xmin2)/pow(2., refs);
-        */
+        
         Point<dim> p1(xmin1,xmin2);
         Point<dim> p2(xmax1,xmax2);
         
@@ -250,13 +234,7 @@ void Opzione<dim>::make_grid() {
         GridGenerator::subdivided_hyper_rectangle(triangulation, refinement, p1, p2);
         
         grid_points=triangulation.get_vertices();
-        /*
-        cout<<"grid points \n";
-        for (int i=0; i<grid_points.size(); ++i) {
-                cout<<grid_points[i]<<"\n";
-        }
-        cout<<"\n";
-        */
+        
         std::ofstream out ("grid.eps");
         GridOut grid_out;
         grid_out.write_eps (triangulation, out);
@@ -461,29 +439,24 @@ double Opzione<dim>::get_price() {
                 this->run();
         }
         
-        // find 0 in grid
-        unsigned position=grid_points.size();
-        
-        double errore=100*eps;//max(dx1, dx2);
-        
-        for (unsigned i=0; i<grid_points.size(); ++i) {
-                if (grid_points[i][0]<=errore &&
-                    grid_points[i][0]>=0 && 
-                    grid_points[i][1]<=errore &&
-                    grid_points[i][1]>=0 ) {
-                        position=i;                     // if (0,0) found, set the position
-                        i=grid_points.size();           // quit the loop
-                }
-        }
-        
-        // if position has not been set, exit
-        if (position==grid_points.size()) {
-                cerr<<"An error occurred.\n";
-                std::exit(-1);
-        }
-        
-        // return price
-        return solution(position);
+        // Creo nuova grigla ( che passi da (0,0) )
+        Triangulation<dim> price;
+        // Creo degli fe
+        FE_Q<dim> fe2 (1);
+        // Creo un DoFHandler e lo attacco a price
+        DoFHandler<dim> dof_handler_2 (price);
+        // Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
+        GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), Point<dim> (xmax1,xmax2));
+        // Assegno a dof_handler_2 gli elementi finit fe2 appena creati
+        dof_handler_2.distribute_dofs(fe2);
+        // Definisco questa fantomatica funzione FEFieldFunction
+        Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
+        // Creo il vettore che conterrà i valori interpolati
+        Vector<double> solution_vector(4);
+        // Interpolo
+        VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
+        // Ritorno il valore interpolato della soluzione in (0,0)
+        return solution_vector[0];
 }
 
 int main() {
@@ -515,11 +488,11 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 100, 6);
+	Opzione<2> Call(par, 100, 7);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
-        cout<<"2d v000\n";
+        cout<<"2d v001\n";
 	
 	return 0;
 }
