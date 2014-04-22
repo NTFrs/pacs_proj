@@ -227,6 +227,7 @@ void Opzione<dim>::make_grid() {
                 xmax2+=dx2;
         xmin2-=dx2;
         xmax2+=dx2;
+         
         /*
 	xmin1=log(Smin1/par.S01);
         xmax1=log(Smax1/par.S01);
@@ -244,7 +245,7 @@ void Opzione<dim>::make_grid() {
         Point<dim> p1(xmin1,xmin2);
         Point<dim> p2(xmax1,xmax2);
         
-        std::vector<unsigned> refinement={pow(2,refs)+3, pow(2,refs)+3};
+        std::vector<unsigned> refinement={static_cast<unsigned>(pow(2,refs))+3, static_cast<unsigned>(pow(2,refs))+3};
         
         GridGenerator::subdivided_hyper_rectangle(triangulation, refinement, p1, p2);
         
@@ -290,7 +291,7 @@ void Opzione<dim>::setup_system() {
 template<int dim>
 void Opzione<dim>::assemble_system() {
         
-        QGauss<dim> quadrature_formula(4); // 2 nodes, 2d -> 4 quadrature points per cell
+        QGauss<dim> quadrature_formula(2); // 2 nodes, 2d -> 4 quadrature points per cell
         
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
                                  update_JxW_values);
@@ -340,14 +341,15 @@ void Opzione<dim>::assemble_system() {
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
-                                        cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
-                                        cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
+                                        // mass matrix
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
+                                        
+                                        // system matrix
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
                                         (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
-                                         fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                         (1/time_step-par.r)*
-                                         fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
+                                        fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
+                                        (1/time_step-par.r)*
+                                        fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
                 
@@ -356,21 +358,12 @@ void Opzione<dim>::assemble_system() {
                 for (unsigned int i=0; i<dofs_per_cell;++i)
                         for (unsigned int j=0; j< dofs_per_cell; ++j) {
                                 
-                                dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
-                                fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
                                 ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
                                 system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_system(i, j));
                                 
                         }
                 
         }
-        /*
-        cout<<"dd_matrix\n";
-        dd_matrix.print(cout);
-        cout<<"\nfd_matrix\n";
-        fd_matrix.print(cout);
-        cout<<"ff_matrix\n";
-        ff_matrix.print(cout);*/
         
         system_M2.add(1/time_step, ff_matrix);
         
@@ -424,18 +417,6 @@ void Opzione<dim>::solve() {
                         
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   0,
-                                                                  bc,
-                                                                  boundary_values);
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  1,
-                                                                  bc,
-                                                                  boundary_values);
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  2,
-                                                                  bc,
-                                                                  boundary_values);
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  3,
                                                                   bc,
                                                                   boundary_values);
                         
@@ -507,7 +488,7 @@ double Opzione<dim>::get_price() {
 
 int main() {
 	Parametri2d par;
-        /*
+        
 	par.T=1.;
 	par.K=200;
 	par.S01=100;
@@ -516,17 +497,17 @@ int main() {
 	par.sigma1=0.120381;
         par.sigma2=0.09;
         par.ro=0.2;
-        */
         
+        /*
         par.T=1.;
 	par.K=250;
 	par.S01=100;
-        par.S02=50;
+        par.S02=100;
 	par.r=0.05;
 	par.sigma1=0.4;
         par.sigma2=0.35;
-        par.ro=-0.3;
-        
+        par.ro=0.3;
+        */
         // Parametri della parte salto
         par.p=0.20761;           // Parametro 1 Kou
         par.lambda=0.330966;     // Parametro 2 Kou
