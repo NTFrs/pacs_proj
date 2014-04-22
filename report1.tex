@@ -159,14 +159,14 @@ Un altra strada più naturale è di scrivere prima la funzione $u$ come apparten
 
 
 \begin{align*}
- & \int_{x_{min}}^{x_{max}}\phi_i(x)\left( \int_{B_l}^{B_u} \sum_{j=1}^N u_j^k \phi_i(x+y)k(y)dy \right)dx=\\ 
- &\sum_{j=1}^N  \int_{x_{min}}^{x_{max}}\int_{B_l}^{B_u} \phi_i(x)\phi_i(x+y)k(y)dxdy
+ & \int_{x_{min}}^{x_{max}}\phi_i(x)\left( \int_{B_l}^{B_u} \sum_{j=1}^N u_j^k \phi_j(x+y)k(y)dy \right)dx=\\ 
+ &\sum_{j=1}^N  \int_{x_{min}}^{x_{max}}\int_{B_l}^{B_u} \phi_i(x)\phi_j(x+y)k(y)dxdy
 \end{align*}
 
 che si potrebbe anche scrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come
 
 \begin{equation*}
- \sum_{j=1}^N  \int_{x_{min}}^{x_{max}}\int_{B_l+x}^{B_u+x} \phi_i(x)\phi_i(z)k(z-x)dzdx
+ \sum_{j=1}^N  \int_{x_{min}}^{x_{max}}\int_{B_l+x}^{B_u+x} \phi_i(x)\phi_j(z)k(z-x)dzdx
 \end{equation*}
 
 In tal caso, si potrebbe scrivere come una matrice densa $A$ e l'equazione da risolvere a ogni passo temporale sarebbe:
