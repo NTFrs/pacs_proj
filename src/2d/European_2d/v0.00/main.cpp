@@ -316,8 +316,8 @@ void Opzione<dim>::assemble_system() {
         // building tensors
         Tensor< dim , dim, double > sigma_matrix;
         
-        sigma_matrix[0][0]=par.sigma1;
-        sigma_matrix[1][1]=par.sigma2;
+        sigma_matrix[0][0]=par.sigma1*par.sigma1;
+        sigma_matrix[1][1]=par.sigma2*par.sigma2;
         sigma_matrix[0][1]=par.sigma1*par.sigma2*par.ro;
         sigma_matrix[1][0]=par.sigma1*par.sigma2*par.ro;
         
