@@ -377,6 +377,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
         
         std::vector<Point<dim> > z(integral_grid_points);
         
+#pragma omp parallel for
         for (int i=1; i<J.size()-1; ++i) {
                 
                 // One way
@@ -400,6 +401,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 // or another...
                 {
                         // left
+                        if (Bmin+grid_points[i][0]<xmin)
                         {
                                 Triangulation<dim> left_tri;
                                 FE_Q<dim> fe_left (1);
@@ -408,13 +410,13 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                                 
                                 dof_handler_left.distribute_dofs(fe_left);
                                 
-                                QGauss<dim> quadrature_formula_left(2);
+                                QGauss<dim> quadrature_formula_left(round((xmin-Bmin-grid_points[i][0])/dx));
                                 FEValues<dim> fe_values_left (fe_left, quadrature_formula_left, update_values |
                                                               update_quadrature_points | update_JxW_values);
                                 
                                 typename DoFHandler<dim>::active_cell_iterator
-                                cell=dof_handler_2.begin_active(),
-                                endc=dof_handler_2.end();
+                                cell=dof_handler_left.begin_active(),
+                                endc=dof_handler_left.end();
                                 
                                 const unsigned int   dofs_per_cell = fe_left.dofs_per_cell;
                                 const unsigned int   n_q_points    = quadrature_formula_left.size();
@@ -461,19 +463,57 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                                         fe_values.reinit(cell);
                                         
                                         coefficient.value_list (fe_values.get_quadrature_points(),
-                                                                coefficient_values);
-//                                       
+                                                                coefficient_values);               
                                         
                                         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
-										vector< Point<dim> > quad_points(fe_values.get_quadrature_points());
+                                        //vector< Point<dim> > quad_points(fe_values.get_quadrature_points());
                                         vector<double> interpolated_points(n_q_points);
-                                        cerr<<"ora vado in segmentation fault\n";
-//                                         VectorTools::interpolate(dof_handler, fe_function, interpolated_points);
-
-										fe_function.value_list(quad_points, interpolated_points);
-                                        cerr<<"sono andato in sf\n";
+                                        
+                                        fe_function.value_list(fe_values.get_quadrature_points(), interpolated_points);
+                                        
                                         for (unsigned q_point=0;q_point<n_q_points;++q_point)
                                                 J2(i)+=fe_values.JxW(q_point)*interpolated_points[q_point]
+                                                *k(coefficient_values[q_point]);
+                                }
+                                
+                        }
+                        
+                        // right
+                        if (xmax+grid_points[i][0]<Bmax)
+                        {
+                                Triangulation<dim> right_tri;
+                                FE_Q<dim> fe_right (1);
+                                DoFHandler<dim> dof_handler_right (right_tri);
+                                GridGenerator::hyper_cube(right_tri, xmax+grid_points[i][0], Bmax);
+                                
+                                dof_handler_right.distribute_dofs(fe_right);
+                                
+                                QGauss<dim> quadrature_formula_right(round((Bmax-xmax-grid_points[i][0])/dx));
+                                FEValues<dim> fe_values_right (fe_right, quadrature_formula_right, update_values |
+                                                              update_quadrature_points | update_JxW_values);
+                                
+                                typename DoFHandler<dim>::active_cell_iterator
+                                cell=dof_handler_right.begin_active(),
+                                endc=dof_handler_right.end();
+                                
+                                const unsigned int   dofs_per_cell = fe_right.dofs_per_cell;
+                                const unsigned int   n_q_points    = quadrature_formula_right.size();
+                                
+                                const Coefficient<dim> coefficient;
+                                std::vector<double>    coefficient_values (n_q_points);
+                                
+                                const PayOff<dim>       payoff(par.K, par.S0);
+                                std::vector<double>     payoff_values (n_q_points);
+                                
+                                for (; cell !=endc;++cell) {
+                                        
+                                        fe_values_right.reinit(cell);
+                                        
+                                        coefficient.value_list (fe_values_right.get_quadrature_points(),
+                                                                coefficient_values);
+                                        
+                                        for (unsigned q_point=0;q_point<n_q_points;++q_point)
+                                                J2(i)+=fe_values_right.JxW(q_point)*payoff_values[q_point]
                                                 *k(coefficient_values[q_point]);
                                 }
                                 
@@ -482,6 +522,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 }
                 
         }
+        
+        J=J2;
 }
 
 template<int dim>
@@ -878,7 +920,7 @@ int main() {
         cout<<"eps "<<eps<<"\n";
         
         // tempo // spazio
-	Opzione<1> Call(par, 100, 10);
+	Opzione<1> Call(par, 10, 10);
 	Call.run();
         
         cout<<"Prezzo "<<Call.get_price()<<"\n";

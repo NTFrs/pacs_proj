@@ -14,6 +14,7 @@ SET(TARGET_SRC
 # Usually, you will not need to modify anything beyond this point...
 
 ADD_DEFINITIONS(
+    -fopenmp
     -std=c++11 # Or -std=c++0x
     # Other flags
 )
