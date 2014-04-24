@@ -66,6 +66,8 @@ using namespace dealii;
 //#define __MATLAB__
 //#define __INTERPOLATION__
 
+//#define __DEALINTEGRATION__
+
 const double toll=1e-8;
 const double eps=std::numeric_limits<double>::epsilon();
 /*
@@ -397,7 +399,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                         
                 }
                 
-                
+#ifdef __DEALINTEGRATION__
                 // or another...
                 {
                         // left
@@ -518,12 +520,13 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                                 }
                                 
                         }
-                        
+
                 }
-                
+#endif     
         }
-        
+#ifdef __DEALINTEGRATION__
         J=J2;
+#endif
 }
 
 template<int dim>
@@ -920,7 +923,7 @@ int main() {
         cout<<"eps "<<eps<<"\n";
         
         // tempo // spazio
-	Opzione<1> Call(par, 10, 10);
+	Opzione<1> Call(par, 100, 10);
 	Call.run();
         
         cout<<"Prezzo "<<Call.get_price()<<"\n";
