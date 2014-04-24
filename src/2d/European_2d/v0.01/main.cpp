@@ -299,11 +299,11 @@ void Opzione<dim>::assemble_system() {
         sigma_matrix[1][1]=par.sigma2*par.sigma2;
         sigma_matrix[0][1]=par.sigma1*par.sigma2*par.ro;
         sigma_matrix[1][0]=par.sigma1*par.sigma2*par.ro;
-        
+        /*
         Tensor< 1 , dim, double > ones;
 	for (unsigned i=0;i<dim;++i)
                 ones[i]=1;
-        
+        */
         Tensor< 1, dim, double > trasp;
         trasp[0]=par.r-par.sigma1*par.sigma1/2;
         trasp[1]=par.r-par.sigma2*par.sigma2/2;
