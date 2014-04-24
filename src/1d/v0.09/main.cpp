@@ -462,15 +462,18 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                                         
                                         coefficient.value_list (fe_values.get_quadrature_points(),
                                                                 coefficient_values);
+//                                       
                                         
                                         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
-                                        
-                                        Vector<double> interpolated_points(n_q_points);
-                                        cout<<"ora vado in segmentation fault\n";
-                                        VectorTools::interpolate(dof_handler, fe_function, interpolated_points);
-                                        cout<<"sono andato in sf\n";
+										vector< Point<dim> > quad_points(fe_values.get_quadrature_points());
+                                        vector<double> interpolated_points(n_q_points);
+                                        cerr<<"ora vado in segmentation fault\n";
+//                                         VectorTools::interpolate(dof_handler, fe_function, interpolated_points);
+
+										fe_function.value_list(quad_points, interpolated_points);
+                                        cerr<<"sono andato in sf\n";
                                         for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                                J2(i)+=fe_values.JxW(q_point)*interpolated_points(q_point)
+                                                J2(i)+=fe_values.JxW(q_point)*interpolated_points[q_point]
                                                 *k(coefficient_values[q_point]);
                                 }
                                 

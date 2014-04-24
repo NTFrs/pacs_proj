@@ -379,11 +379,12 @@ void Opzione<dim>::make_J_matrix() {
 	
 	for (unsigned int i=0;i<N;++i)
 	 for (unsigned int j=0;j<N;++j)
-	  for (unsigned int ind_int=0;ind_int<N;++ind_int)
+// 	  for (unsigned int ind_int=0;ind_int<N;++ind_int)
 	   for (unsigned int ind_out=0;ind_out<integral_grid_points.size();++ind_out)
-		A(i, j)+=base.value(i, grid_points[ind_int])*weights[ind_int]*
-// 		base.value(i, grid_points[i])*weights[i]*
-				base.value(j, grid_points[ind_int]+integral_grid_points[ind_out])*
+		A(i, j)+=
+// 	  base.value(i, grid_points[ind_int])*weights[ind_int]*
+		base.value(i, grid_points[i])*weights[i]*
+				base.value(j, grid_points[i]+integral_grid_points[ind_out])*
 				integral_weights[ind_out]*k(integral_grid_points[ind_out][0]);
 // 	A.print_formatted(cout);
 	
