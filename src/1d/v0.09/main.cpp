@@ -97,7 +97,7 @@ public:
 	Parametri(const Parametri &)=default;
 };
 
-auto grid_order = [] (Point<1> p1, Point<1> p2) {return p1[0]<p2[0];};
+// auto grid_order = [] (Point<1> p1, Point<1> p2) {return p1[0]<p2[0];};
 
 template<int dim>
 class PayOff : public Function<dim>
@@ -160,6 +160,10 @@ double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int c
         
 }
 
+
+  
+
+
 template<int dim>
 class Opzione{
 private:
@@ -170,17 +174,17 @@ private:
 	void solve ();
 	void output_results () const {};
         
-        double                          price;
+    double                          price;
         
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
 	DoFHandler<dim>                 dof_handler;
         
-        Triangulation<dim>              integral_triangulation;
-        Triangulation<dim>              integral_triangulation2;
+    Triangulation<dim>              integral_triangulation;
+//     Triangulation<dim>              integral_triangulation2;
         
-        FE_Q<dim>                       fe2;
-        DoFHandler<dim>                 dof_handler_2;
+    FE_Q<dim>                       fe2;
+    DoFHandler<dim>                 dof_handler_2;
         
 	SparsityPattern                 sparsity_pattern;
 	SparseMatrix<double>            system_matrix;
@@ -209,7 +213,23 @@ private:
         
         double alpha, Bmin, Bmax;
         
-        double k(double y);
+	class Kou_Density: public Function<dim>
+	{
+
+	public:
+		Kou_Density(double p,  double lam, double lam_u,  double lam_d) : Function<dim>(),  _p(p),  _lam(lam), 
+		_lam_u(lam_u),  _lam_d(lam_d) {};
+
+		virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
+
+	private:
+		double _p;
+		double _lam;
+		double _lam_u,  _lam_d;
+	};
+		
+		
+		
         void Levy_integral_part1();
         void Levy_integral_part2(Vector<double> &J);
         void f_u(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y);
@@ -223,8 +243,8 @@ public:
 	par(par_),
 	fe (1),
 	dof_handler (triangulation),
-        fe2 (1),
-        dof_handler_2 (integral_triangulation),
+    fe2 (1),
+    dof_handler_2 (integral_triangulation),
 	refs(refinement), 
 	Nsteps(Nsteps_), 
 	time_step (par.T/double(Nsteps_)),
@@ -243,56 +263,61 @@ public:
         };
 };
 
-template<int dim>
-double Opzione<dim>::k(double y){
-        if (y>0)
-                return par.p*par.lambda*par.lambda_piu*exp(-par.lambda_piu*y);
-        else
-                return (1-par.p)*par.lambda*par.lambda_meno*exp(par.lambda_meno*y);
-}
 
 template<int dim>
-void Opzione<dim>::calculate_weights(){
-        integral_weights=std::vector<double>(integral_grid_points.size(), dx);
-        integral_weights[0]=dx/2;
-        integral_weights[integral_weights.size()-1]=dx/2;
+double Opzione<dim>::Kou_Density::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	if (p[0]>0)
+		return _p*_lam*_lam_u*exp(-_lam_u*p[0]);
+	else
+		return (1-_p)*_lam*_lam_d*exp(_lam_d*p[0]);
+	
 }
 
 
-template <int dim>
-class Coefficient : public Function<dim>
-{
-public:
-        Coefficient ()  : Function<dim>() {}
-        virtual double value (const Point<dim>   &p,
-                              const unsigned int  component = 0) const;
-        virtual void value_list (const std::vector<Point<dim> > &points,
-                                 std::vector<double>            &values,
-                                 const unsigned int              component = 0) const;
-};
+// template<int dim>
+// void Opzione<dim>::calculate_weights(){
+//         integral_weights=std::vector<double>(integral_grid_points.size(), dx);
+//         integral_weights[0]=dx/2;
+//         integral_weights[integral_weights.size()-1]=dx/2;
+// }
 
-template <int dim>
-double Coefficient<dim>::value (const Point<dim> &p,
-                                const unsigned int /* component */) const
-{
-        return p(0);
-}
 
-template <int dim>
-void Coefficient<dim>::value_list (const std::vector<Point<dim> > &points,
-                                   std::vector<double>            &values,
-                                   const unsigned int              component) const
-{
-        Assert (values.size() == points.size(),
-                ExcDimensionMismatch (values.size(), points.size()));
-        Assert (component == 0,
-                ExcIndexRange (component, 0, 1));
-        const unsigned int n_points = points.size();
-        for (unsigned int i=0; i<n_points; ++i)
-        {
-                values[i]=points[i][0];
-        }
-}
+// template <int dim>
+// class Coefficient : public Function<dim>
+// {
+// public:
+//         Coefficient ()  : Function<dim>() {}
+//         virtual double value (const Point<dim>   &p,
+//                               const unsigned int  component = 0) const;
+//         virtual void value_list (const std::vector<Point<dim> > &points,
+//                                  std::vector<double>            &values,
+//                                  const unsigned int              component = 0) const;
+// };
+// 
+// template <int dim>
+// double Coefficient<dim>::value (const Point<dim> &p,
+//                                 const unsigned int /* component */) const
+// {
+//         return p(0);
+// }
+// 
+// template <int dim>
+// void Coefficient<dim>::value_list (const std::vector<Point<dim> > &points,
+//                                    std::vector<double>            &values,
+//                                    const unsigned int              component) const
+// {
+//         Assert (values.size() == points.size(),
+//                 ExcDimensionMismatch (values.size(), points.size()));
+//         Assert (component == 0,
+//                 ExcIndexRange (component, 0, 1));
+//         const unsigned int n_points = points.size();
+//         for (unsigned int i=0; i<n_points; ++i)
+//         {
+//                 values[i]=points[i][0];
+//         }
+// }
 
 template <int dim>
 class Zero : public Function<dim>
@@ -337,16 +362,16 @@ void Opzione<dim>::Levy_integral_part1(){
         //GridGenerator::subdivided_hyper_cube(integral_triangulation2, pow(2, refs), Bmin, Bmax);
         
         QGauss<dim> quadrature_formula2(2);
-	FEValues<dim> fe_values2 (fe2, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
+		FEValues<dim> fe_values2 (fe2, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
         
         typename DoFHandler<dim>::active_cell_iterator
-	cell=dof_handler_2.begin_active(),
-	endc=dof_handler_2.end();
+		cell=dof_handler_2.begin_active(),
+		endc=dof_handler_2.end();
         
         const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
-	const unsigned int   n_q_points    = quadrature_formula2.size();
+		const unsigned int   n_q_points    = quadrature_formula2.size();
         
-        const Coefficient<dim> coefficient;
+//      const Coefficient<dim> coefficient;
         std::vector<double>    coefficient_values (n_q_points);
         
         for (; cell !=endc;++cell) {
@@ -390,8 +415,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                         std::vector<Point<dim> > val(z.size());
                         f_u(val, x_i);
                         
-                        for (int j=0; j<integral_grid_points.size(); ++j) {
-                                J(i)+=integral_weights[j]*k(integral_grid_points[j][0])*val[j][0];
+//                         for (int j=0; j<integral_grid_points.size(); ++j) {
+//                                 J(i)+=integral_weights[j]*k(integral_grid_points[j][0])*val[j][0];
                         }
                         
                 }
@@ -419,7 +444,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                                 const unsigned int   dofs_per_cell = fe_left.dofs_per_cell;
                                 const unsigned int   n_q_points    = quadrature_formula_left.size();
                                 
-                                const Coefficient<dim> coefficient;
+//                                 const Coefficient<dim> coefficient;
                                 std::vector<double>    coefficient_values (n_q_points);
                                 
                                 const Zero<dim>         zero;
@@ -432,9 +457,9 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                                         coefficient.value_list (fe_values_left.get_quadrature_points(),
                                                                 coefficient_values);
                                         
-                                        for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                                J2(i)+=fe_values_left.JxW(q_point)*zero_values[q_point]
-                                                *k(coefficient_values[q_point]);
+//                                         for (unsigned q_point=0;q_point<n_q_points;++q_point)
+//                                                 J2(i)+=fe_values_left.JxW(q_point)*zero_values[q_point]
+//                                                 *k(coefficient_values[q_point]);
                                 }
                                 
                         }
@@ -472,9 +497,9 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 
 										fe_function.value_list(quad_points, interpolated_points);
                                         cerr<<"sono andato in sf\n";
-                                        for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                                J2(i)+=fe_values.JxW(q_point)*interpolated_points[q_point]
-                                                *k(coefficient_values[q_point]);
+//                                         for (unsigned q_point=0;q_point<n_q_points;++q_point)
+//                                                 J2(i)+=fe_values.JxW(q_point)*interpolated_points[q_point]
+//                                                 *k(coefficient_values[q_point]);
                                 }
                                 
                         }
@@ -549,11 +574,11 @@ void Opzione<dim>::make_grid() {
         Bmin=xmin;
         Bmax=xmax;
         
-        while(k(Bmin)>toll)
-                Bmin-=dx;
+//         while(k(Bmin)>toll)
+//                 Bmin-=dx;
         
-        while(k(Bmax)>toll)
-                Bmax+=dx;
+//         while(k(Bmax)>toll)
+//                 Bmax+=dx;
         
         cout<<"Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
         
@@ -567,7 +592,7 @@ void Opzione<dim>::make_grid() {
                 
                 integral_grid_points=integral_triangulation.get_vertices();
                 
-                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+//                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
         }
         else if (Bmin==xmin && Bmax>=xmax) {
@@ -580,7 +605,7 @@ void Opzione<dim>::make_grid() {
                 
                 integral_grid_points=integral_triangulation.get_vertices();
                 
-                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+//                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
         }
         else if (Bmin<=xmin && Bmax==xmax) {
@@ -593,7 +618,7 @@ void Opzione<dim>::make_grid() {
                 
                 integral_grid_points=integral_triangulation.get_vertices();
                 
-                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+//                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
         }
         else {
@@ -612,7 +637,7 @@ void Opzione<dim>::make_grid() {
                 
                 integral_grid_points=integral_triangulation.get_vertices();
                 
-                sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
+//                 sort(integral_grid_points.begin(), integral_grid_points.end(), grid_order);
                 
         }
         
