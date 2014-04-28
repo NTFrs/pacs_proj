@@ -16,7 +16,6 @@ SET(TARGET_SRC
 ADD_DEFINITIONS(
     -std=c++11 # Or -std=c++0x
     # Other flags
-    -fopenmp
 )
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)

@@ -48,15 +48,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_integration.h>
-#include <gsl/gsl_sf.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_spline.h>
-
-// #define __VERBOSE__
-
+#include <omp.h>
 
 using namespace std;
 using namespace dealii;
@@ -375,7 +367,7 @@ void Opzione<dim>::Levy_integral_part1(){
         
 	//      const Coefficient<dim> coefficient;
 	
-        
+
 	for (; cell !=endc;++cell) {
                 
                 fe_values2.reinit(cell);
@@ -407,6 +399,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
 
+//#pragma omp parallel for
 	for (unsigned int it=0;it<N;++it)
 	{
                 
@@ -417,18 +410,19 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 for (; cell !=endc;++cell) {
                         
                         fe_values2.reinit(cell);
-                        std::vector< Point<dim> >    quad_points (fe_values2.get_quadrature_points());
-                        std::vector<double> kern(n_q_points),  f_u(n_q_points);
+                        std::vector< Point<dim> >       quad_points (fe_values2.get_quadrature_points());
+                        std::vector<double>             kern(n_q_points),  f_u(n_q_points);
                         
                         k.value_list(quad_points, kern);
+                        
                         for (unsigned int q_point=0;q_point<n_q_points;++q_point)
                                 quad_points[q_point]+=grid_points[it];
 			
                         func.value_list(quad_points, f_u);
-                        //add solution term
+
                         for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                // 		J(it)+=fe_values2.JxW(q_point)*k.value(quad_points[q_point])*func.value(grid_points[it]+quad_points[q_point]);
                                 J(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
+                        
                 }
 	}
         
@@ -731,11 +725,11 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 100, 8);
+	Opzione<1> Call(par, 10, 8);
 	Call.run();
         
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
-	cout<<"v009b\n";
+	cout<<"v010b\n";
         
 	return 0;
 }
