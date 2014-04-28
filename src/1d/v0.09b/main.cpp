@@ -210,7 +210,7 @@ template<int dim>
 class Solution_Trimmer: public Function<dim>
 {
 private:
-	//check that this causes no memory leaks
+	//check that this causes no memory leaks while keeping hereditariety
 	Function<dim> * _left;  
 	Function<dim> * _right;
 	DoFHandler<dim> const & _dof;
@@ -271,7 +271,7 @@ private:
 	void solve ();
 	void output_results () const {};
 
-	double                          price;
+	
 
 	Kou_Density<dim>				k;    
 
@@ -309,7 +309,7 @@ private:
 	double time_step;
 	double dx;
 	double Smin, Smax;
-
+	double                          price;
 	Point<dim> xmin, xmax, Bmin, Bmax;
 
 	double alpha;
@@ -327,6 +327,7 @@ private:
 public:
 	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
 	par(par_),
+	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
 	fe (1),
 	dof_handler (triangulation),
 	fe2 (1),
@@ -334,9 +335,8 @@ public:
 	refs(refinement), 
 	Nsteps(Nsteps_), 
 	time_step (par.T/double(Nsteps_)),
-	ran(false), 
-	price(0), 
-	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno)
+	price(0),  
+	ran(false)
 	{};
 
 	double get_price();
@@ -370,7 +370,7 @@ void Opzione<dim>::Levy_integral_part1(){
 	cell=dof_handler_2.begin_active(),
 	endc=dof_handler_2.end();
 
-	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
+// 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
 	const unsigned int   n_q_points    = quadrature_formula2.size();
 
 	//      const Coefficient<dim> coefficient;
@@ -396,17 +396,17 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 
 	unsigned int N(grid_points.size());
 	
-	QGauss<dim> quadrature_formula2(5);
+	QGauss<dim> quadrature_formula2(7);
 	FEValues<dim> fe_values2 (fe2, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
-	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
+// 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
 	const unsigned int   n_q_points    = quadrature_formula2.size();
 	
 	Boundary_Left_Side<dim> leftie;
 	Boundary_Right_Side<dim> rightie(par.S0, par.K, par.T, par.r);
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
-	
+
 	for (unsigned int it=0;it<N;++it)
 	{
 	 
@@ -419,9 +419,11 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 		fe_values2.reinit(cell);
 		std::vector< Point<dim> >    quad_points (fe_values2.get_quadrature_points());
 		std::vector<double> kern(n_q_points),  f_u(n_q_points);
+		
 		k.value_list(quad_points, kern);
 		for (unsigned int q_point=0;q_point<n_q_points;++q_point)
 			quad_points[q_point]+=grid_points[it];
+			
 		func.value_list(quad_points, f_u);
 		//add solution term
 	  for (unsigned q_point=0;q_point<n_q_points;++q_point)
@@ -473,7 +475,7 @@ void Opzione<dim>::make_grid() {
 
 	grid_points=triangulation.get_vertices();
 	
-	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, refs-3)+3, Bmin[0], Bmax[0]);
+	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, refs-3), Bmin[0], Bmax[0]);
 	
 
   }
@@ -729,7 +731,7 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
 
 	// tempo // spazio
-	Opzione<1> Call(par, 50, 7);
+	Opzione<1> Call(par, 50, 8);
 	Call.run();
 
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
