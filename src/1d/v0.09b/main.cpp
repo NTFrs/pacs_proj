@@ -169,7 +169,9 @@ public:
 	_lam_u(lam_u),  _lam_d(lam_d) {};
 
 	virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
-
+	virtual void value_list(const std::vector<Point<dim> > &points,
+								std::vector<double> &values,
+								const unsigned int component = 0) const;
 private:
 	double _p;
 	double _lam;
@@ -187,6 +189,52 @@ double Kou_Density<dim>::value(const Point<dim> &p,  const unsigned int componen
 
 }
 
+template<int dim>
+void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+{
+	Assert (values.size() == points.size(),
+	 ExcDimensionMismatch (values.size(), points.size()));
+	Assert (component == 0, ExcInternalError());
+	
+	const unsigned int n_points=points.size();
+	
+	for (unsigned int i=0;i<n_points;++i)
+	if (points[i][0]>0)
+	values[i]=_p*_lam*_lam_u*exp(-_lam_u*points[i][0]);
+	else
+	values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][0]);
+}
+
+
+template<int dim>
+class Solution_Trimmer: public Function<dim>
+{
+private:
+	//check that this causes no memory leaks
+	Function<dim> * _left,  _right;
+	DoFHandler<dim> const & _dof;
+	Vector<double> const & _sol;
+	Point<dim> _l_lim, _r_lim;
+	Functions::FEFieldFunction<dim> _fe_func;
+	
+public:
+	Solution_Trimmer(Function<dim> * left,  Function<dim> * right, DoFHandler<dim> const & dof, Vector<double> const & sol,  Point<dim> const & xmin, Point<dim> const & xmax): _left(left),  _right(right),  _dof(dof), _sol(sol), _l_lim(xmin), _r_lim(xmax) , _fe_func(_dof, _sol){};
+	
+	virtual double value(const Point<dim> &p,  const unsigned int component=0) const;
+};
+
+template<int dim>
+double Solution_Trimmer<dim>::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	
+	if (p[0]<_l_lim[0])
+	 return _left->value(p);
+	if (p[0]>_r_lim[0])
+	 return _right->value(p);
+	return _fe_func.value(p);  
+	
+}
 
 
 template<int dim>
