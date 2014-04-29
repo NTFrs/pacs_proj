@@ -1,4 +1,4 @@
-##
+#
 #  CMake script for the step-26 tutorial program:
 ##
 
