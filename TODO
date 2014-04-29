@@ -1,15 +1,8 @@
 Things to do go here
 
 Giorgio:
--)Velocizzare integrale in v0.07 usando gli strumenti della libreria dealii
-
+-) Studiare pesi di Laguerre
+-) Far funzionare asiatica
 
 Nahuel:
-Partendo da v0.06
--)Provare a implementare cambio di variabili nell'integrale
--)Provare a pensare/implementare metodo con matrice prima (piena)
-
-Entrambi:
--)PDE bidimensionale con payoff max(S1+S2-K,0)
-
-
+-) Aggiungere parte integrale a equazione 2d
