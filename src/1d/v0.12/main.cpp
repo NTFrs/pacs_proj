@@ -29,6 +29,7 @@
 #include <iostream>
 
 #include <vector>
+#include <ctime>
 #include <algorithm>
 
 #include <climits>
@@ -459,7 +460,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
 
-#pragma omp parallel for
+//#pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
                 std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
@@ -803,10 +804,36 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 10, 9);
-	Call.run();
+        // 4 a 9 *100 time_step
+        const int top=10-4+1;
+        double T[top], ratio[top], result[top], real_T[top];
+	
+	clock_t inizio,fine;
+        struct timeval start, end;
+        	
+        for (int i=0; i<top; i++) {
+                
+                Opzione<1> Call(par, 100, i+4);
+                
+                gettimeofday(&start, NULL);
+                inizio=clock();
+                Call.run();
+                gettimeofday(&end, NULL);
+                fine=clock();
+                
+                result[i]=Call.get_price();
+                
+                T[i]=static_cast<double> (((fine-inizio)*1.e6)/CLOCKS_PER_SEC);
+                real_T[i]=((end.tv_sec  - start.tv_sec) * 1000000u + 
+                           end.tv_usec - start.tv_usec);
+                
+        }
         
-	cout<<"Prezzo "<<Call.get_price()<<"\n";
+        cout<<"Results for 100 time iterations:\n";
+	for (int i=0; i<top; ++i) {
+                cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
+                T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
+        }
 	cout<<"v012\n";
         
 	return 0;
