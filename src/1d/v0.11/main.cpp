@@ -299,6 +299,29 @@ void Solution_Trimmer<dim>::value_list(const std::vector<Point<dim> > &points, s
         }
 }
 
+class Quadrature_Laguerre{
+public:
+        std::vector<double> nodes;
+        std::vector<double> weights;
+        unsigned order;
+        
+        Quadrature_Laguerre()=default;
+        
+        Quadrature_Laguerre(unsigned n, double lambda){
+                
+                order=n;
+                
+                nodes=std::vector<double> (order);
+                weights=std::vector<double> (order);
+                
+                unsigned kind = 5; // kind=5, Generalized Laguerre, (a,+oo) (x-a)^alpha*exp(-b*(x-a))
+                
+                //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
+                cgqf ( order, kind, 0., 0., 0., lambda, nodes.data(), weights.data() );
+        }
+};
+
+
 template<int dim>
 class Opzione{
 private:
@@ -342,6 +365,9 @@ private:
         
         // 	std::vector< double >           integral_weights;
         // 	std::vector< Point<dim> >       integral_points;
+        
+        Quadrature_Laguerre right_quad;
+        Quadrature_Laguerre left_quad;
         
 	unsigned int refs, Nsteps;
 	double time_step;
@@ -389,63 +415,11 @@ public:
         };
 };
 
-class Quadrature_Laguerre{
-public:
-        std::vector<double> nodes;
-        std::vector<double> weights;
-        unsigned order;
-        
-        Quadrature_Laguerre(unsigned n, double lambda){
-                
-                order=n;
-                
-                nodes=std::vector<double> (order);
-                weights=std::vector<double> (order);
-                
-                unsigned kind = 5; // kind=5, Generalized Laguerre, (a,+oo) (x-a)^alpha*exp(-b*(x-a))
-                
-                //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
-                cgqf ( order, kind, 0., 0., 0., lambda, nodes.data(), weights.data() );
-        }
-};
 
 template<int dim>
 void Opzione<dim>::Levy_integral_part1(){
         
 	alpha=0;
-        
-        /*
-        double alpha2=0;
-        
-	//GridGenerator::subdivided_hyper_cube(integral_triangulation2, pow(2, refs), Bmin, Bmax);
-        
-	QGauss<dim> quadrature_formula2(2);
-	FEValues<dim> fe_values2 (fe2, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
-        
-	typename DoFHandler<dim>::active_cell_iterator
-	cell=dof_handler_2.begin_active(),
-	endc=dof_handler_2.end();
-        
-        // 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
-	const unsigned int   n_q_points    = quadrature_formula2.size();
-        
-	//      const Coefficient<dim> coefficient;
-	
-
-	for (; cell !=endc;++cell) {
-                
-                fe_values2.reinit(cell);
-                std::vector< Point<dim> >    quad_points (fe_values2.get_quadrature_points());
-                for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                        // 	  cerr<< "At point" << 
-                        alpha+=fe_values2.JxW(q_point)*(exp(quad_points[q_point][0])-1)*k.value(quad_points[q_point]);
-                }
-        }
-        */
-        //cout<<static_cast<unsigned>(round(Bmax[0]/dx)/10)<<" "<<static_cast<unsigned>(round(-Bmin[0]/dx)/10)<<"\n";
-        
-        Quadrature_Laguerre right_quad(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
-        Quadrature_Laguerre left_quad(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
         
         //cout<<"Right part\n";
         for (int i=0; i<right_quad.order; ++i) {
@@ -470,129 +444,35 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
         
 	unsigned int N(grid_points.size());
 	
-	QGauss<dim> quadrature_formula2(7);
-	FEValues<dim> fe_values2 (fe2, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
-        
-        // 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
-	const unsigned int   n_q_points    = quadrature_formula2.size();
-	
 	Boundary_Left_Side<dim>         leftie;
 	Boundary_Right_Side<dim>        rightie(par.S0, par.K, par.T, par.r);
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
         
-//#pragma omp parallel for
-        cout<<"Right\n";
-	for (unsigned int it=0;it<N;++it)
-	{
+        for (int it=0; it<N; ++it) {
                 
-                typename DoFHandler<dim>::active_cell_iterator
-                cell=dof_handler_2.begin_active(),
-                endc=dof_handler_2.end();
+                std::vector< Point<dim> > quad_points(left_quad.order+right_quad.order);
                 
-                for (; cell !=endc;++cell) {
-                        
-                        fe_values2.reinit(cell);
-                        std::vector< Point<dim> >       quad_points (fe_values2.get_quadrature_points());
-                        std::vector<double>             kern(n_q_points),  f_u(n_q_points);
-                        
-                        k.value_list(quad_points, kern);
-                        
-                        for (unsigned int q_point=0;q_point<n_q_points;++q_point)
-                                quad_points[q_point]+=grid_points[it];
-			
-                        func.value_list(quad_points, f_u);
-                        
-                        cout<<"quad_points ";
-                        for (int i=0; i<f_u.size(); ++i) {
-                                cout<<quad_points[i]<<"\t";
-                        }
-                        cout<<"\n";
-                        
-                        cout<<"f_u ";
-                        for (int i=0; i<f_u.size(); ++i) {
-                                cout<<f_u[i]<<"\t";
-                        }
-                        cout<<"\n";
-
-                        for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                J(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
-                        
-                }
-	}
-        
-        Vector<double> J2(solution.size());
-        
-        Quadrature_Laguerre right_quad  (static_cast<unsigned>  (round(Bmax[0]/dx)),    par.lambda_piu);
-        Quadrature_Laguerre left_quad   (static_cast<unsigned>  (round(-Bmin[0]/dx)),   par.lambda_meno);
-        
-        std::vector< Point<dim> > left_points(left_quad.order);
-        std::vector< Point<dim> > right_points(right_quad.order);
-        
-        cout<<"Wrong: left\n";
-        for (int it=0; it<round(-xmin[0]/dx); ++it) {
-                
-                std::vector<double>             f_u             (left_quad.order);
-                std::vector< Point<dim> >       quad_points     (left_quad.order);
-                
-                for (unsigned i=0; i<left_quad.order; ++i)
-                        quad_points[i]=static_cast<Point<dim> >(-left_quad.nodes[i])+grid_points[it];
-                
-                func.value_list(quad_points, f_u);
-                
-                cout<<"quad_points ";
-                for (int i=0; i<quad_points.size(); ++i) {
-                        cout<<quad_points[i]<<"\t";
-                }
-                cout<<"\n";
-                
-                cout<<"f_u ";
-                for (int i=0; i<f_u.size(); ++i) {
-                        cout<<f_u[i]<<"\t";
-                }
-                cout<<"\n";
+                std::vector<double> f_u(left_quad.order+right_quad.order);
                 
                 for (int i=0; i<left_quad.order; ++i) {
-                        J2(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*quad_points[i][0];
+                        quad_points[i]=static_cast< Point<dim> > (-left_quad.nodes[i]) + grid_points[it];
                 }
-        }
-        
-        cout<<"Wrong: right\n";
-        for (int it=round(-xmin[0]/dx); it<N; ++it) {
-                
-                std::vector<double>             f_u             (right_quad.order);
-                std::vector< Point<dim> >       quad_points     (right_quad.order);
-                
-                for (unsigned i=0; i<right_quad.order; ++i)
-                        quad_points[i]=static_cast<Point<dim> >(right_quad.nodes[i])+grid_points[it];
+                for (int i=0; i<right_quad.order; ++i) {
+                        quad_points[i+left_quad.order]=static_cast< Point<dim> > (right_quad.nodes[i]) + grid_points[it];
+                }
                 
                 func.value_list(quad_points, f_u);
                 
-                cout<<"quad_points ";
-                for (int i=0; i<quad_points.size(); ++i) {
-                        cout<<quad_points[i]<<"\t";
+                for (int i=0; i<left_quad.order; ++i) {
+                        J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad.weights[i];
                 }
-                cout<<"\n";
-                
-                cout<<"f_u ";
-                for (int i=0; i<f_u.size(); ++i) {
-                        cout<<f_u[i]<<"\t";
-                }
-                cout<<"\n";
-                
                 for (int i=0; i<right_quad.order; ++i) {
-                        J2(it)+=f_u[i]*par.p*par.lambda*par.lambda_piu*quad_points[i][0];
+                        J(it)+=f_u[i+left_quad.order]*par.p*par.lambda*par.lambda_piu*right_quad.weights[i];
                 }
+
         }
-        
-        //J=J2;
-        
-        cout<<"J\n";
-        J.print(cout);
-        cout<<"\nJ2\n";
-        J2.print(cout);
-        cout<<"\n";
-        
+
 }
 
 
@@ -684,7 +564,9 @@ void Opzione<dim>::setup_system() {
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
-        // 	calculate_weights();
+        right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
+        left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
+
 }
 
 template<int dim>
@@ -893,7 +775,7 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 10, 3);
+	Opzione<1> Call(par, 10, 8);
 	Call.run();
         
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
