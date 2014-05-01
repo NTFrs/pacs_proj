@@ -458,7 +458,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	Boundary_Right_Side<dim>        rightie(par.S0, par.K, par.T, par.r);
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
-        
+
+#pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
                 std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
@@ -802,7 +803,7 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 10, 8);
+	Opzione<1> Call(par, 10, 9);
 	Call.run();
         
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
