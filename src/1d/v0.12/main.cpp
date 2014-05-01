@@ -300,10 +300,13 @@ void Solution_Trimmer<dim>::value_list(const std::vector<Point<dim> > &points, s
 }
 
 class Quadrature_Laguerre{
-public:
+private:
+        
         std::vector<double> nodes;
         std::vector<double> weights;
-        unsigned order;
+        unsigned order; 
+        
+public:
         
         Quadrature_Laguerre()=default;
         
@@ -320,6 +323,10 @@ public:
                 //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
                 cgqf ( order, kind, 0., 0., 0., lambda, nodes.data(), weights.data() );
         }
+        
+        inline unsigned get_order () {return order;}
+        inline std::vector<double> const & get_nodes () {return nodes;}
+        inline std::vector<double> const & get_weights () {return weights;}
 };
 
 
@@ -370,6 +377,13 @@ private:
         // quadrature di laguerre
         Quadrature_Laguerre right_quad;
         Quadrature_Laguerre left_quad;
+        
+        std::vector<double> right_quad_nodes;
+        std::vector<double> left_quad_nodes;
+        std::vector<double> right_quad_weights;
+        std::vector<double> left_quad_weights;
+        
+        std::vector<Point<dim> > quadrature_points;
         
 	unsigned int refs, Nsteps;
 	double time_step;
@@ -423,13 +437,13 @@ void Opzione<dim>::Levy_integral_part1(){
         
 	alpha=0;
         
-        for (int i=0; i<right_quad.order; ++i) {
-                alpha+=(exp(right_quad.nodes[i])-1)*par.p*par.lambda*par.lambda_piu*right_quad.weights[i];
+        for (int i=0; i<right_quad.get_order(); ++i) {
+                alpha+=(exp(right_quad_nodes[i])-1)*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
         }
 
-        for (int i=0; i<left_quad.order; ++i) {
+        for (int i=0; i<left_quad.get_order(); ++i) {
                         // il - è perché i nodi sono positivi (Quadrature_Laguerre integra da 0 a \infty)
-                alpha+=(exp(-left_quad.nodes[i])-1)*(1-par.p)*par.lambda*par.lambda_meno*left_quad.weights[i];
+                alpha+=(exp(-left_quad_nodes[i])-1)*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
         }
         
 	return;
@@ -440,36 +454,31 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
         
 	J.reinit(solution.size());// If fast is false, the vector is filled by zeros
         
-	unsigned int N(grid_points.size());
-	
 	Boundary_Left_Side<dim>         leftie;
 	Boundary_Right_Side<dim>        rightie(par.S0, par.K, par.T, par.r);
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
         
-        for (int it=0; it<N; ++it) {
+        for (int it=0; it<J.size(); ++it) {
                 
-                std::vector< Point<dim> > quad_points(left_quad.order+right_quad.order);
+                std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
                 
-                std::vector<double> f_u(left_quad.order+right_quad.order);
+                std::vector<double> f_u(left_quad.get_order()+right_quad.get_order());
                 
                 // Inserisco in quad_points tutti i punti di quadrature shiftati
-                for (int i=0; i<left_quad.order; ++i) {
-                        quad_points[i]=static_cast< Point<dim> > (-left_quad.nodes[i]) + grid_points[it];
-                }
-                for (int i=0; i<right_quad.order; ++i) {
-                        quad_points[i+left_quad.order]=static_cast< Point<dim> > (right_quad.nodes[i]) + grid_points[it];
+                for (int i=0; i<quad_points.size(); ++i) {
+                        quad_points[i]=quadrature_points[i] + grid_points[it];
                 }
                 
                 // valuto f_u in quad_points
                 func.value_list(quad_points, f_u);
                 
                 // Integro dividendo fra parte sinistra e parte destra dell'integrale
-                for (int i=0; i<left_quad.order; ++i) {
-                        J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad.weights[i];
+                for (int i=0; i<left_quad.get_order(); ++i) {
+                        J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
                 }
-                for (int i=0; i<right_quad.order; ++i) {
-                        J(it)+=f_u[i+left_quad.order]*par.p*par.lambda*par.lambda_piu*right_quad.weights[i];
+                for (int i=0; i<right_quad.get_order(); ++i) {
+                        J(it)+=f_u[i+left_quad.get_order()]*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
                 }
 
         }
@@ -568,7 +577,23 @@ void Opzione<dim>::setup_system() {
         // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
         right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
         left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
-
+        
+        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
+        right_quad_nodes=right_quad.get_nodes();
+        right_quad_weights=right_quad.get_weights();
+        
+        left_quad_nodes=left_quad.get_nodes();
+        left_quad_weights=left_quad.get_weights();
+        
+        quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
+        
+        // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
+        for (int i=0; i<left_quad.get_order(); ++i) {
+                quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
+        }
+        for (int i=0; i<right_quad.get_order(); ++i) {
+                quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
+        }
 }
 
 template<int dim>
@@ -777,7 +802,7 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 10, 8);
+	Opzione<1> Call(par, 100, 8);
 	Call.run();
         
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
