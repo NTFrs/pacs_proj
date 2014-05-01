@@ -802,11 +802,11 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 100, 8);
+	Opzione<1> Call(par, 10, 8);
 	Call.run();
         
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
-	cout<<"v011\n";
+	cout<<"v012\n";
         
 	return 0;
 }
