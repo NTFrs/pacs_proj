@@ -805,7 +805,7 @@ int main() {
         
 	// tempo // spazio
         // 4 a 9 *100 time_step
-        const int top=10-4+1;
+        const int top=9-4+1;
         double T[top], ratio[top], result[top], real_T[top];
 	
 	clock_t inizio,fine;
@@ -813,7 +813,7 @@ int main() {
         	
         for (int i=0; i<top; i++) {
                 
-                Opzione<1> Call(par, 100, i+4);
+                Opzione<1> Call(par, 10, i+4);
                 
                 gettimeofday(&start, NULL);
                 inizio=clock();
