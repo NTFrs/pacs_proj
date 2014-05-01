@@ -23,6 +23,8 @@
 
 #include <deal.II/numerics/data_out.h>
 
+#include <deal.II/numerics/fe_field_function.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -209,7 +211,7 @@ public:
         ran(false)
 	{};
         
-        double get_price(){ return 0; };
+        double get_price();
         
 	double run(){
                 make_grid();
@@ -314,7 +316,7 @@ void Opzione<dim>::assemble_system() {
         // building tensors
         Tensor< dim , dim, double > sigma_matrix;
         
-        sigma_matrix[0][0]=par.sigma;
+        sigma_matrix[0][0]=par.sigma*par.sigma;
         sigma_matrix[1][1]=0.;
         sigma_matrix[0][1]=0.;
         sigma_matrix[1][0]=0.;
@@ -357,7 +359,7 @@ void Opzione<dim>::assemble_system() {
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
                                         (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
                                          fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                         (1/time_step-par.r)*
+                                         (1/time_step+par.r)*
                                          fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
@@ -484,9 +486,36 @@ void Opzione<dim>::solve() {
         
 }
 
+template<int dim>
+double Opzione<dim>::get_price() {
+        
+        if (ran==false) {
+                this->run();
+        }
+        
+        // Creo nuova grigla ( che passi da (0,0) )
+        Triangulation<dim> price;
+        // Creo degli fe
+        FE_Q<dim> fe2 (1);
+        // Creo un DoFHandler e lo attacco a price
+        DoFHandler<dim> dof_handler_2 (price);
+        // Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
+        GridGenerator::hyper_rectangle(price, Point<dim> (0.,par.S0), Point<dim> (xmax,Amax));
+        // Assegno a dof_handler_2 gli elementi finit fe2 appena creati
+        dof_handler_2.distribute_dofs(fe2);
+        // Definisco questa fantomatica funzione FEFieldFunction
+        Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
+        // Creo il vettore che conterrà i valori interpolati
+        Vector<double> solution_vector(4);
+        // Interpolo
+        VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
+        // Ritorno il valore interpolato della soluzione in (0,0)
+        return solution_vector[0];
+}
+
 int main() {
 	Parametri par;
-	par.T=5.;
+	par.T=1.;
 	par.K=100;
 	par.S0=100;
 	par.r=0.0367;
@@ -499,11 +528,11 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 100, 5);
+	Opzione<2> Call(par, 100, 7);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
-        cout<<"2d v000\n";
+        cout<<"Asian 2d v000\n";
 	
 	return 0;
 }
