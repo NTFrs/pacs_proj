@@ -307,6 +307,7 @@ public:
         
         Quadrature_Laguerre()=default;
         
+        // il costruttore costruisce nodi e pesi
         Quadrature_Laguerre(unsigned n, double lambda){
                 
                 order=n;
@@ -366,6 +367,7 @@ private:
         // 	std::vector< double >           integral_weights;
         // 	std::vector< Point<dim> >       integral_points;
         
+        // quadrature di laguerre
         Quadrature_Laguerre right_quad;
         Quadrature_Laguerre left_quad;
         
@@ -421,18 +423,14 @@ void Opzione<dim>::Levy_integral_part1(){
         
 	alpha=0;
         
-        //cout<<"Right part\n";
         for (int i=0; i<right_quad.order; ++i) {
-                //cout<<"node "<<right_quad.nodes[i]<<" weight "<<right_quad.weights[i]<<"\n";
                 alpha+=(exp(right_quad.nodes[i])-1)*par.p*par.lambda*par.lambda_piu*right_quad.weights[i];
         }
-        //cout<<"Left part\n";
+
         for (int i=0; i<left_quad.order; ++i) {
-                //cout<<"node "<<left_quad.nodes[i]<<" weight "<<left_quad.weights[i]<<"\n";
+                        // il - è perché i nodi sono positivi (Quadrature_Laguerre integra da 0 a \infty)
                 alpha+=(exp(-left_quad.nodes[i])-1)*(1-par.p)*par.lambda*par.lambda_meno*left_quad.weights[i];
         }
-        
-        //cout<<"alpha2 "<<alpha2<<"\n";
         
 	return;
 }
@@ -455,6 +453,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 
                 std::vector<double> f_u(left_quad.order+right_quad.order);
                 
+                // Inserisco in quad_points tutti i punti di quadrature shiftati
                 for (int i=0; i<left_quad.order; ++i) {
                         quad_points[i]=static_cast< Point<dim> > (-left_quad.nodes[i]) + grid_points[it];
                 }
@@ -462,8 +461,10 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                         quad_points[i+left_quad.order]=static_cast< Point<dim> > (right_quad.nodes[i]) + grid_points[it];
                 }
                 
+                // valuto f_u in quad_points
                 func.value_list(quad_points, f_u);
                 
+                // Integro dividendo fra parte sinistra e parte destra dell'integrale
                 for (int i=0; i<left_quad.order; ++i) {
                         J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad.weights[i];
                 }
@@ -564,6 +565,7 @@ void Opzione<dim>::setup_system() {
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
+        // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
         right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
         left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
 
