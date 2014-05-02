@@ -41,6 +41,7 @@
 #include <deal.II/lac/sparse_direct.h>
 #include <deal.II/lac/solver_richardson.h>
 #include <deal.II/lac/precondition.h>
+#include <boost/graph/buffer_concepts.hpp>
 
 #include <cmath>
 #include <algorithm>
@@ -302,13 +303,13 @@ private:
 	bool ran;
 	
 	void Levy_integral_part1();
-	void Levy_integral_part2(Vector<double> &J);
+	void Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y );
 	
 public:
 	Opzione(Parametri2d const &par_, int Nsteps_,  int refinement):
 	par(par_),
 	k_x(0, par_.p1, par_.lambda1,  par_.lambda_piu_1,  par_.lambda_meno_1),
-	k_x(1, par_.p2, par_.lambda2,  par_.lambda_piu_2,  par_.lambda_meno_2),
+	k_y(1, par_.p2, par_.lambda2,  par_.lambda_piu_2,  par_.lambda_meno_2),
 	fe (1),
 	dof_handler (triangulation),
 	fe_integral_x(1), 
@@ -335,7 +336,7 @@ public:
    };
   };
 
-  
+
   
 template<int dim>
 void Opzione<dim>::Levy_integral_part1(){
@@ -344,10 +345,10 @@ void Opzione<dim>::Levy_integral_part1(){
 	alpha2=0;
 	
 	{
-	 QGauss<dim> quadrature_formula2(7);
-	 FEValues<dim> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
+	 QGauss<1> quadrature_formula2(5);
+	 FEValues<1> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
-	 typename DoFHandler<dim>::active_cell_iterator
+	 typename DoFHandler<1>::active_cell_iterator
 	 cell=dof_handler_integral_x .begin_active(),
 	 endc=dof_handler_integral_x.end();
 
@@ -360,20 +361,27 @@ void Opzione<dim>::Levy_integral_part1(){
 	 for (; cell !=endc;++cell) {
 
 	  fe_values2.reinit(cell);
-	  std::vector< Point<dim> >    quad_points (fe_values2.get_quadrature_points());
-	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-	   // 	  cerr<< "At point" << 
-	   alpha1+=fe_values2.JxW(q_point)*(exp(quad_points[q_point][0])-1)*k_x.value(quad_points[q_point]);
+	  std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
+	  std::vector< Point<dim> >    quad_points(n_q_points);
+	  
+	  
+	for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+	   Point<dim> temp(quad_points_1D[q_point][0], 0);
+	   quad_points[q_point]=temp;
+	   }
+
+	for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+	  alpha1+=fe_values2.JxW(q_point)*(exp(quad_points[q_point][0])-1)*k_x.value(quad_points[q_point]);
 	 }
 	}
 	}
 	
 	{
-	 QGauss<dim> quadrature_formula2(7);
-	 FEValues<dim> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
+	 QGauss<1> quadrature_formula2(7);
+	 FEValues<1> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
-	 typename DoFHandler<dim>::active_cell_iterator
-	 cell=dof_handler_integral_y .begin_active(),
+	 typename DoFHandler<1>::active_cell_iterator
+	 cell=dof_handler_integral_y.begin_active(),
 	 endc=dof_handler_integral_y.end();
 
 	 // 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
@@ -385,9 +393,15 @@ void Opzione<dim>::Levy_integral_part1(){
 	 for (; cell !=endc;++cell) {
 
 	  fe_values2.reinit(cell);
-	  std::vector< Point<dim> >    quad_points (fe_values2.get_quadrature_points());
+	  std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
+	  std::vector< Point<dim> >    quad_points(n_q_points);
+
 	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-	   // 	  cerr<< "At point" << 
+	   Point<dim> temp(0, quad_points_1D[q_point][0]);
+	   quad_points[q_point]=temp;
+	 }
+
+	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 	   alpha2+=fe_values2.JxW(q_point)*(exp(quad_points[q_point][1])-1)*k_y.value(quad_points[q_point]);
 	 }
 	}
@@ -403,8 +417,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 	unsigned int N(grid_points.size());
 	{
-	QGauss<dim> quadrature_formula2(7);
-	FEValues<dim> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
+	QGauss<1> quadrature_formula2(7);
+	FEValues<1> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
 	 const unsigned int   n_q_points    = quadrature_formula2.size();
 	
@@ -414,7 +428,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
  
 	 for (unsigned int it=0;it<N;++it)
 	 {
-	  typename DoFHandler<dim>::active_cell_iterator
+	  typename DoFHandler<1>::active_cell_iterator
 	  cell=dof_handler_integral_x.begin_active(),
 	  endc=dof_handler_integral_x.end();
  
@@ -422,10 +436,20 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
  
 		fe_values2.reinit(cell);
 	   
-		std::vector< Point<dim> > quad_points(fe_values2.get_quadrature_points());
+		//ATTENTION
+		//quadrature points are in 1D,  our functions take dimD
+		//Need to create a vector of dimD points
+		std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
 	   
+	    std::vector< Point<dim> >
+	   quad_points(n_q_points);
+	    
+		for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
+		quad_points[q_point][0]=quad_points_1D[q_point][0];
+		quad_points[q_point][1]=0;}
+		
 		std::vector<double> kern(n_q_points),  f_u(n_q_points);
- 
+		 
 		k_x.value_list(quad_points, kern);
 		
 	   for (unsigned int q_point=0;q_point<n_q_points;++q_point)
@@ -433,15 +457,16 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	   
 	   func.value_list(quad_points, f_u);
 	   
-	   for (unsigned q_point=0;q_point<n_q_points;++q_point)  J_x(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
+	   for (unsigned q_point=0;q_point<n_q_points;++q_point)
+		J_x(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
 	   
 	 }
 	}
 	}
 
 	{
-	 QGauss<dim> quadrature_formula2(7);
-	 FEValues<dim> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
+	 QGauss<1> quadrature_formula2(7);
+	 FEValues<1> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
 	 const unsigned int   n_q_points    = quadrature_formula2.size();
 
@@ -451,7 +476,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 	 for (unsigned int it=0;it<N;++it)
 	 {
-	  typename DoFHandler<dim>::active_cell_iterator
+	  typename DoFHandler<1>::active_cell_iterator
 	  cell=dof_handler_integral_y.begin_active(),
 	  endc=dof_handler_integral_y.end();
 
@@ -459,7 +484,16 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 	   fe_values2.reinit(cell);
 
-	   std::vector< Point<dim> > quad_points(fe_values2.get_quadrature_points());
+	   //ATTENTION
+	   //quadrature points are in 1D,  our functions take dimD
+	   //Need to create a vector of dimD points
+	   std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
+
+	   std::vector< Point<dim> > quad_points(n_q_points);
+
+	   for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
+		quad_points[q_point][0]=0;
+		quad_points[q_point][1]=quad_points_1D[q_point][0];}
 
 	   std::vector<double> kern(n_q_points),  f_u(n_q_points);
 
@@ -470,7 +504,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 	   func.value_list(quad_points, f_u);
 
-	   for (unsigned q_point=0;q_point<n_q_points;++q_point)  J_y(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
+	   for (unsigned q_point=0;q_point<n_q_points;++q_point)
+		J_y(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
 
 	 }
   }
@@ -590,9 +625,9 @@ void Opzione<dim>::setup_system() {
 
 template<int dim>
 void Opzione<dim>::assemble_system() {
-	
+
 	Levy_integral_part1();
-	
+
 	QGauss<dim> quadrature_formula(2);                  // 2 nodes, 2d -> 4 quadrature points per cell
 
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
@@ -701,10 +736,24 @@ void Opzione<dim>::solve() {
 	Boundary_Condition<dim> bc(par.S01, par.S02, par.K, par.T, par.r);
 	cout<< "time step is"<< time_step<< endl;
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-
+	 cout<< "Step "<< Step<<"\t at time \t"<< time << endl;
+	 
+	 Vector<double> J_x, J_y;
+	 Levy_integral_part2(J_x, J_y);
+	 
 	 system_M2.vmult(system_rhs, solution);
-
+	 {
+	 Vector<double> temp;
+	 temp.reinit(dof_handler.n_dofs());
+	 ff_matrix.vmult(temp, J_x);
+	 
+	 system_rhs+=temp;
+	 
+	 temp.reinit(dof_handler.n_dofs());
+	 ff_matrix.vmult(temp, J_y);
+	 
+	 system_rhs+=temp;
+     }
 #ifdef __VERBOSE__
 	 cout<<"rhs ";
 	 system_rhs.print(cout);
@@ -774,7 +823,7 @@ double Opzione<dim>::get_price() {
 	// Creo un DoFHandler e lo attacco a price
 	DoFHandler<dim> dof_handler_2 (price);
 	// Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
-	GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), Point<dim> (xmax1,xmax2));
+	GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), xmax);
 	// Assegno a dof_handler_2 gli elementi finit fe2 appena creati
 	dof_handler_2.distribute_dofs(fe2);
 	// Definisco questa fantomatica funzione FEFieldFunction
@@ -806,17 +855,24 @@ int main() {
 	par.S02=100;
 	par.r=0.1;
 	par.sigma1=0.2;
-	par.sigma2=0.5;
+	par.sigma2=0.2;
 	par.ro=-0.2;
 
 	// Parametri della parte salto
-	par.p=0.20761;                                      // Parametro 1 Kou
-	par.lambda=0.330966;                                // Parametro 2 Kou
-	par.lambda_piu=9.65997;                             // Parametro 3 Kou
-	par.lambda_meno=3.13868;                            // Parametro 4 Kou
+	par.p1=0.20761;                                      // Parametro 1 Kou
+	par.lambda1=0.330966;                                // Parametro 2 Kou
+	par.lambda_piu_1=9.65997;                             // Parametro 3 Kou
+	par.lambda_meno_1=3.13868;                            // Parametro 4 Kou
 
+	// Parametri della parte salto
+	par.p2=0.20761;                                            // Parametro 1 Kou
+	par.lambda2=0.330966;                                      // Parametro 2 Kou
+	par.lambda_piu_2=9.65997;                                  // Parametro 3 Kou
+	par.lambda_meno_2=3.13868;                                 // Parametro 4 Kou
+
+	
 	// tempo // spazio
-	Opzione<2> Call(par, 100, 0);
+	Opzione<2> Call(par, 50, 5);
 	double prezzo=Call.run();
 
 	cout<<"Prezzo "<<prezzo<<"\n";
