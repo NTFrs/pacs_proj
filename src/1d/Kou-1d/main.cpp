@@ -803,7 +803,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 8);
+        Opzione<1> Call(par, 100, 7);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
@@ -839,7 +839,7 @@ int main() {
                 cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
                 T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
         }*/
-	cout<<"v012\n";
+	cout<<"Kou-1d\n";
         
 	return 0;
 }
