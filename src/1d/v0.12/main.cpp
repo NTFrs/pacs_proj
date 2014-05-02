@@ -803,6 +803,11 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
+        Opzione<1> Call(par, 100, 8);
+        double Prezzo=Call.run();
+        cout<<"Prezzo "<<Prezzo<<"\n";
+        
+        /*
 	// tempo // spazio
         // 4 a 9 *100 time_step
         const int top=9-4+1;
@@ -833,7 +838,7 @@ int main() {
 	for (int i=0; i<top; ++i) {
                 cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
                 T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
-        }
+        }*/
 	cout<<"v012\n";
         
 	return 0;
