@@ -405,10 +405,6 @@ void Opzione<dim>::solve() {
                         
                 }
                 
-                if (time==par.T-time_step) {
-                        system_matrix.print(cout);
-                }
-                
                 SparseDirectUMFPACK solver;
                 solver.initialize(sparsity_pattern);
                 solver.factorize(system_matrix);
@@ -492,7 +488,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 100, 0);
+	Opzione<2> Call(par, 100, 7);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
