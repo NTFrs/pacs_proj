@@ -64,6 +64,7 @@ const double toll=1e-8;
 #define __CALL__
 // max(s1+s2-k,0)
 
+//selfexplanatory,  just extended it
 class Parametri2d{
 public:
 	//Dati
@@ -148,6 +149,7 @@ double PayOff<dim>::value (const Point<dim>  &p,
 }
 
 
+//added a new private variable,  that indicates with ax the density uses
 template<int dim>
 class Kou_Density: public Function<dim>
 {
@@ -156,11 +158,14 @@ public:
 	Kou_Density(unsigned int ax,  double p,  double lam, double lam_u,  double lam_d) : Function<dim>(),  _ax(ax),  _p(p),  _lam(lam), 
 	_lam_u(lam_u),  _lam_d(lam_d) {};
 
+	//value in the point p
 	virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
+	//same but vector of points
 	virtual void value_list(const std::vector<Point<dim> > &points,
 	 std::vector<double> &values,
 	 const unsigned int component = 0) const;
 private:
+	//indicates wich ax
 	unsigned int _ax;
 	double _p;
 	double _lam;
@@ -194,12 +199,14 @@ void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::v
 	values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][_ax]);
 }
 
+//same,  added a private variable indicating wih ax
+//TODO delete default constructor
 template<int dim>
 class Solution_Trimmer: public Function<dim>
 {
 private:
-	//check that this causes no memory leaks while keeping hereditariety
 	unsigned int _ax;
+	//check that this causes no memory leaks while keeping hereditariety
 	Function<dim> * _left;  
 	Function<dim> * _right;
 	DoFHandler<dim> const & _dof;
@@ -261,13 +268,16 @@ private:
 	void solve () ;
 	void output_results () const {};
 
+	//two densities that work on 2D points
 	Kou_Density<dim>				k_x;
 	Kou_Density<dim>				k_y;
 
+	//domain triangulation 2D
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
 	DoFHandler<dim>                 dof_handler;
 
+	//integral triangulations 1D,  and relatives FE and DoF_handlers
 	Triangulation<1>				integral_triangulation_x;
 	FE_Q<1>							fe_integral_x;
 	DoFHandler<1>					dof_handler_integral_x;
@@ -295,6 +305,7 @@ private:
 	double dx1, dx2;
 	double Smin1, Smax1, Smin2, Smax2;
 	double price;
+	//using as points
 	Point<dim> xmin, xmax;
 	Point<dim> Bmin, Bmax;
 	
@@ -302,10 +313,12 @@ private:
 	
 	bool ran;
 	
+	//redefined these parts
 	void Levy_integral_part1();
 	void Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y );
 	
 public:
+	//standard initialization.
 	Opzione(Parametri2d const &par_, int Nsteps_,  int refinement):
 	par(par_),
 	k_x(0, par_.p1, par_.lambda1,  par_.lambda_piu_1,  par_.lambda_meno_1),
@@ -337,6 +350,9 @@ public:
   };
 
 
+//we calculate both alpha 1 and 2 in two separate cycles. Since the integral
+//grid is 1 dimensional,  we need to transform the 1D points of quadrature
+//q_i in 2D points (q_i, 0),  or (0, q_i) since all functions work on points.
   
 template<int dim>
 void Opzione<dim>::Levy_integral_part1(){
@@ -344,38 +360,48 @@ void Opzione<dim>::Levy_integral_part1(){
 	alpha1=0;
 	alpha2=0;
 	
+	
+	//ATTENTION
+	//quadrature points are in 1D,  our functions take 2D
+	//Need to create a vector of 2D points
 	{
+	 //FEVALUES construction
 	 QGauss<1> quadrature_formula2(5);
 	 FEValues<1> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
+	 //we iteate on the 1D grid
 	 typename DoFHandler<1>::active_cell_iterator
 	 cell=dof_handler_integral_x .begin_active(),
 	 endc=dof_handler_integral_x.end();
 
-	 // 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
 	 const unsigned int   n_q_points    = quadrature_formula2.size();
 
-	 //      const Coefficient<dim> coefficient;
-
-
+	//here we start itetating
 	 for (; cell !=endc;++cell) {
 
 	  fe_values2.reinit(cell);
+	  
+	  //we get the 1D points here
 	  std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
+	  
+	  //we create a 2D vector to get the point
 	  std::vector< Point<dim> >    quad_points(n_q_points);
 	  
-	  
+// 	  and we transfer here
 	for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 	   Point<dim> temp(quad_points_1D[q_point][0], 0);
 	   quad_points[q_point]=temp;
 	   }
 
+// 	   then we can calculate alpha
 	for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 	  alpha1+=fe_values2.JxW(q_point)*(exp(quad_points[q_point][0])-1)*k_x.value(quad_points[q_point]);
 	 }
 	}
 	}
+
 	
+// 	In the next we do the same but for alpha2	
 	{
 	 QGauss<1> quadrature_formula2(7);
 	 FEValues<1> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
@@ -384,11 +410,8 @@ void Opzione<dim>::Levy_integral_part1(){
 	 cell=dof_handler_integral_y.begin_active(),
 	 endc=dof_handler_integral_y.end();
 
-	 // 	const unsigned int   dofs_per_cell = fe2.dofs_per_cell;
+
 	 const unsigned int   n_q_points    = quadrature_formula2.size();
-
-	 //      const Coefficient<dim> coefficient;
-
 
 	 for (; cell !=endc;++cell) {
 
@@ -412,58 +435,79 @@ void Opzione<dim>::Levy_integral_part1(){
 template<int dim>
 void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y) {
 	
+	//initialize
 	J_x.reinit(solution.size());                                 // If fast is false, the vector is filled by zeros
 	J_y.reinit(solution.size());                                 
 
+	
 	unsigned int N(grid_points.size());
+	
+	//we start the integration here
 	{
+	 
+	//we create the fevalues here,  in 1D
 	QGauss<1> quadrature_formula2(7);
 	FEValues<1> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
 
 	 const unsigned int   n_q_points    = quadrature_formula2.size();
 	
+	 //we need a BC in 2d
 	 Boundary_Condition<dim> bc(par.S01, par.S02, par.K, par.T, par.r);
 	 
+	 //and a solution trimmer
 	 Solution_Trimmer<dim> func(0, &bc, &bc, dof_handler, solution, xmin, xmax);
  
+	 //we then cycle on all nodes
 	 for (unsigned int it=0;it<N;++it)
 	 {
+	  
+	  //for all nodes we cycle on the integral triangulation
 	  typename DoFHandler<1>::active_cell_iterator
 	  cell=dof_handler_integral_x.begin_active(),
 	  endc=dof_handler_integral_x.end();
  
 	  for (; cell !=endc;++cell) {
  
+		 //reinit this 1D fevalues
 		fe_values2.reinit(cell);
 	   
 		//ATTENTION
 		//quadrature points are in 1D,  our functions take dimD
-		//Need to create a vector of dimD points
+		//Need to create a vector of 2D points
+		
+		//thus we get the 1D points
 		std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
 	   
+	   //and we create a vector to hold 2D points
 	    std::vector< Point<dim> >
 	   quad_points(n_q_points);
 	    
+	    // This way,  the 1_i point of integration becomes (q_i, 0)
 		for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
 		quad_points[q_point][0]=quad_points_1D[q_point][0];
 		quad_points[q_point][1]=0;}
 		
 		std::vector<double> kern(n_q_points),  f_u(n_q_points);
 		 
+	   //and we compute the value of the density on that point (note the y coordinate is useless here) 
 		k_x.value_list(quad_points, kern);
 		
+		//here we add the actual where we are,  in order to obtain u(t, x_it+q_i, y_it)
+		//we have thus a vector of (q_i+x_it, y_it)
 	   for (unsigned int q_point=0;q_point<n_q_points;++q_point)
 	   quad_points[q_point]+=grid_points[it];
 	   
+	   //and we thus calculate the values of traslated u
 	   func.value_list(quad_points, f_u);
 	   
+	   //and we can finally calculate the contribution to J_x(it)
 	   for (unsigned q_point=0;q_point<n_q_points;++q_point)
 		J_x(it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
 	   
 	 }
 	}
 	}
-
+// here we do the same but inverting x and y
 	{
 	 QGauss<1> quadrature_formula2(7);
 	 FEValues<1> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
@@ -486,17 +530,23 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 	   //ATTENTION
 	   //quadrature points are in 1D,  our functions take dimD
-	   //Need to create a vector of dimD points
+	   //Need to create a vector of 2D points
+	   
+// 	   So we get the points through this
 	   std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
 
+// 	   We create a vector of 2D points
 	   std::vector< Point<dim> > quad_points(n_q_points);
 
+// 	   And we transfer them
 	   for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
 		quad_points[q_point][0]=0;
 		quad_points[q_point][1]=quad_points_1D[q_point][0];}
 
+		
 	   std::vector<double> kern(n_q_points),  f_u(n_q_points);
 
+// 	   This way we can use quad points in k_y
 	   k_y.value_list(quad_points, kern);
 
 	   for (unsigned int q_point=0;q_point<n_q_points;++q_point)
@@ -514,7 +564,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 }
   
   
-  
+//   here I've changed double to points,  makes it easier in some parts
 template<int dim>
 void Opzione<dim>::make_grid() {
 
@@ -579,6 +629,7 @@ void Opzione<dim>::make_grid() {
 // 	Point<dim> p1(xmin1,xmin2);
 // 	Point<dim> p2(xmax1,xmax2);
 
+// we can then create all triangulations
 	std::vector<unsigned> refinement={static_cast<unsigned>(pow(2,refs))+3, static_cast<unsigned>(pow(2,refs))+3};
 
 	GridGenerator::subdivided_hyper_rectangle(triangulation, refinement, xmin, xmax);
@@ -738,9 +789,12 @@ void Opzione<dim>::solve() {
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
 	 cout<< "Step "<< Step<<"\t at time \t"<< time << endl;
 	 
+// 	 pretty muh the same: we calculate J_x and J_y
 	 Vector<double> J_x, J_y;
 	 Levy_integral_part2(J_x, J_y);
 	 
+// 	 And we use the same old way
+//   M2*old_solution+FF*J_x+FF*J_y to calculate rhs
 	 system_M2.vmult(system_rhs, solution);
 	 {
 	 Vector<double> temp;
@@ -816,6 +870,8 @@ double Opzione<dim>::get_price() {
 	 this->run();
    }
 
+//    No need to create more poits since xmin and xmax are already points
+	
 	// Creo nuova grigla ( che passi da (0,0) )
 	Triangulation<dim> price;
 	// Creo degli fe
