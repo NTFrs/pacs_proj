@@ -139,7 +139,7 @@ template<int dim>
 double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-        return max(_S0*exp(p[0])-p[1],0.);
+        return max(_S0*exp(p[0])-p[1]/_T,0.);
         
 }
 
@@ -147,13 +147,14 @@ template<int dim>
 class PayOff : public Function<dim>
 {
 public:
-        PayOff (double K_, double S0_) : Function<dim>(), K(K_), S0(S0_) {};
+        PayOff (double K_, double S0_, double T_) : Function<dim>(), K(K_), S0(S0_), T(T_) {};
         
         virtual double value (const Point<dim>   &p,
                               const unsigned int  component = 0) const;
 private:
         double K;
         double S0;
+        double T;
 };
 
 template<int dim>
@@ -161,7 +162,7 @@ double PayOff<dim>::value (const Point<dim>  &p,
                            const unsigned int component) const
 {
         Assert (component == 0, ExcInternalError());
-        return max(S0*exp(p[0])-p[1],0.);
+        return max(S0*exp(p[0])-p[1]/T,0.);
 }
 
 template<int dim>
@@ -398,7 +399,7 @@ void Opzione<dim>::assemble_system() {
 template<int dim>
 void Opzione<dim>::solve() {
 	
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0, par.T), solution);
 	
 	unsigned int Step=Nsteps;
         
