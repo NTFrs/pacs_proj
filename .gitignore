@@ -36,3 +36,4 @@ makefile
 #generic trash file
 *.trash
 .DS_Store
+*~

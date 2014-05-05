@@ -1,8 +1,19 @@
 Things to do go here
 
 Giorgio:
--) Studiare pesi di Laguerre
--) Far funzionare asiatica
+-) Studiare pesi di Laguerre: check!
+-) Far funzionare asiatica: dont know if it's right.
 
 Nahuel:
--) Aggiungere parte integrale a equazione 2d
+-) Aggiungere parte integrale a equazione 2d: check!
+
+Quello che resta da fare:
+
+-> controllare l'asiatica
+-> aggiungere all'asiatica la parte di salto
+-> implementare modello di Merton (con integrazione di Hermite, exp(-b*x^2)) 1d e 2d
+-> implementare modello di Kou in 2d
+-> scrivere solver Americana 1d
+-> scrivere solver Americana 2d
+-> parallelizzare calcolo integrali (con openMP facile, con MPI?)
+-> mesh adaptivity, domanda: quale stima di errore usare? Esiste una stima per PIDE?
