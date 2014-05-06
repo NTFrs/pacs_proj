@@ -739,7 +739,7 @@ void Opzione<dim>::solve() {
 #define __USA__
 #ifdef __USA__
                 double omega=1.5;
-                unsigned maxiter=100;
+                unsigned maxiter=1000;
                 double tollerance=1.e-12;
                 
                 unsigned N=solution.size();
@@ -771,6 +771,9 @@ void Opzione<dim>::solve() {
                         
                         else
                                 solution_old=solution;
+                        if (k==maxiter-1) {
+                                cout<<"Warning: maxiter reached.\n";
+                        }
                         
                 }
 #else
