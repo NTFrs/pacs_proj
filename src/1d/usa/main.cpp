@@ -736,10 +736,10 @@ void Opzione<dim>::solve() {
                                                             system_rhs, false);
                         
                 }
-//#define __USA__
+#define __USA__
 #ifdef __USA__
                 double omega=1.5;
-                unsigned maxiter=1000;
+                unsigned maxiter=100;
                 double tollerance=1.e-12;
                 
                 unsigned N=solution.size();
@@ -756,6 +756,9 @@ void Opzione<dim>::solve() {
                         for (unsigned i=1; i<N-1; ++i) {
                                 z=(system_rhs(i)-system_matrix(i,i-1)*solution(i-1)
                                    -system_matrix(i,i+1)*solution_old(i+1))/system_matrix(i,i);
+                                // per la put
+                                // solution(i)=max(par.K-par.S0*exp(grid_points[i][0]),
+                                //                solution_old(i)+omega*(z-solution_old(i)));
                                 solution(i)=solution_old(i)+omega*(z-solution_old(i));
                         }
                         
@@ -764,7 +767,6 @@ void Opzione<dim>::solve() {
                         
                         if (temp.linfty_norm()<tollerance){
                                 converged=true;
-                                cout<<k<<"\n";
                         }
                         
                         else
