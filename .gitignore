@@ -37,3 +37,8 @@ makefile
 *.trash
 .DS_Store
 *~
+
+#latex temp files
+*.aux
+*.log
+*.synctex.gz
