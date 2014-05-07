@@ -20,10 +20,10 @@
 
 \section{Riassunto Obiettivi}
 
-Come gia indicato nel primo report, l'obiettivo del progetto è di creare un programma per prezzare una serie di opzioni utilizzando dei metodi basati a elementi finiti. Il valore di un opzione al variare del sottostante (che supponiamo evolvere secondo un modello Jump-Diffusion) può essere in generale trovato come soluzione di un equazione integro differenziale del tipo
+Come gi\`a indicato nel primo report, l'obiettivo del progetto è di creare un programma per prezzare una serie di opzioni utilizzando dei metodi basati a elementi finiti. Il valore di un opzione al variare del sottostante (che supponiamo evolvere secondo un modello Jump-Diffusion) può essere in generale trovato come soluzione di un equazione integro differenziale del tipo
 
 \begin{multline}
- \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0
 \end{multline}
 
 su $[0,T]\times[0,+\infty]$ con opportune condizioni al bordo e condizione finale $C(T,S)=g(S)$ payoff dell'opzione. $k$ è un nucleo con una forte massa nell'intorno dello zero e code esponenziali o gaussiane.
@@ -40,7 +40,8 @@ su $[0,T]\times[0,+\infty]^2$ con opportune B.C. e valore finale.
 
 \section{Strumenti Aggiunti rispetto a report 1}
 
-\subsection{Libreria laguerre}
+\subsection{Libreria di Integrazione}
+Poich\'e le densit\`a all'interno dell'integrale sono del tipo: $$k(y)=p\lambda\lambda_+e^{-\lambda_+x}\mathcal{I}_\{x>0\}+(1-p)\lambda\lambda_-e^{-\lambda_-x}\mathcal{I}_\{x<0\},$$ per il modello di Kou e $$k(y)=\frac{\lambda}{\delta\sqrt{2\pi}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\}$$ per il modello di Merton, abbiamo usato dei nodi di quadratura che inglobassero gi\`a il peso esponenziale. Sfruttando quindi le funzioni offerte dalla libreria \textsf{legendre\_rule.hpp} utilizzata in uno dei laboratori, abbiamo utilizzato i nodi di Laguerre per calcolare l'integrale con il metodo di Kou (ottenendo risultati pi\`u precisi rispetto a quelli di Gauss), e pensiamo di utilizzare i nodi di Hermite per il modello di Merton.
 
 \section{Cosa è stato fatto}
 
@@ -50,7 +51,7 @@ Al momento dell'ultimo report lo stato era:
 \begin{itemize}
  \item Costruito un programma che risolve l'equazione PDE  (senza parte integrale) in una dimensione in un caso semplice utilizzando unicamente gli strumenti forniti dalla libreria.
  \item Abbiamo risolto lo stesso problema nel caso bi-dimensionale. Sebbene il comportamento qualitativo della soluzione è quello aspettato, i valori esatti non sono ancora giusti (confrontati con dei risultati dati da tool che risolvono l'equazione con metodi alle differenze finite).
- \item Abbiamo provato a risolvere l'equazione Integrodifferenziale in una dimensione in diversi modi (per il dettaglio vedere sotto). In due casi siamo riusciti ad ottenere un risultato corretto, ma non pienamente soddisfacenti.
+ \item Abbiamo provato a risolvere l'equazione integro differenziale in una dimensione in diversi modi. In due casi siamo riusciti ad ottenere un risultato corretto, ma non pienamente soddisfacenti.
 \end{itemize}
 
 \subsection{Fino ad ora}
@@ -58,15 +59,15 @@ Al momento dell'ultimo report lo stato era:
 Dopo l'ultimo incontro, abbiamo deciso di esplorare sia l'utilizzo di formule di quadrature più adatte per trattare il termine integrale con nucleo esponenziale, sia di utilizzare funzioni della libreria deal II che permettono di valutare la funzione in un punto qualsiasi. In particolare
 
 \begin{itemize}
- \item Sistemato la PDE in 2D ottenendo il risultato atteso.
- \item Implementato la quadratura diretta del termine integrale utilizzando l'equazione nella forma \eqref{eq:costcoeff}, sia in 1D che in 2D. Vedere la sezione \ref{sec:metod} Metodologia per i dettagli.
- \item Implementazione dei nodi di laguerre per la quadratura del termine integrale con nucleo esponenziale.
+ \item Abbiamo corretto la PDE in 2D ottenendo il risultato atteso.
+ \item Abbiamo implementato la quadratura diretta del termine integrale utilizzando l'equazione nella forma \eqref{eq:costcoeff}, sia in 1D che in 2D. Vedere la sezione \ref{sec:metod} Metodologia per i dettagli.
+ \item Abbiamo implementato il calcolo dell'integrale con i nodi di Laguerre per la quadratura del termine integrale con nucleo esponenziale (modello di Kou).
 \end{itemize}
 
 
 \subsection{Metodologia}
 \label{sec:metod}
-La PDE (e la PIDE) in questione è trasformabile in un equazione a coefficienti costanti con la trasformazione $x_i=\ln{S_i} \; (\text{ o } x_i=\ln{\sfrac{S_i}{S_i^0}})$ e $C(t,S_1,S_2)=u(t,x_1,x_2)$. In tal caso diventa (2D):
+La PDE (e la PIDE) in questione è trasformabile in un equazione a coefficienti costanti con la trasformazione $x_i=\ln{S_i} \; (\text{oppure } x_i=\ln{\sfrac{S_i}{S_i^0}})$ e $C(t,S_1,S_2)=u(t,x_1,x_2)$. In tal caso diventa (2D):
 {
 \begin{multline}
  \der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
@@ -90,8 +91,8 @@ L'equazione \eqref{eq:costcoeff} diventa:
  \der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
  \left(r-\sigma_1^2-\hat{\alpha_1}\right)\der{u}{x_1}
  \left(r-\sigma_2^2-\hat{\alpha_2}\right)\der{u}{x_2}+\\-(r+\lambda_1+\lambda_2)u+
- +\int_\mathbb{R}\left( u(t,x_1+y,x_2)\right)k_1(y)dy+
- +\int_\mathbb{R}\left( u(t,x_1,x_2+y)\right)k_2(y)dy=0
+ \int_\mathbb{R}u(t,x_1+y,x_2)k_1(y)dy+
+ \int_\mathbb{R}u(t,x_1,x_2+y)k_2(y)dy=0
  \label{eq:costcoeff2}
 \end{multline}
 }
