@@ -845,6 +845,19 @@ void Opzione<dim>::solve() {
                 
                 solution=system_rhs;
                 
+				 DataOut<2> data_out;
+
+				 data_out.attach_dof_handler (dof_handler);
+				 data_out.add_data_vector (solution, "end");
+
+				 data_out.build_patches ();
+
+				 std::string name("step-");
+				 name.append(to_string(Step));
+				 name.append(".gpl");
+				 std::ofstream output (name);
+				 data_out.write_gnuplot (output);
+                
         }
         
 	// Printing final solution
