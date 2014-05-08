@@ -124,7 +124,7 @@ Riassumendo, si tratta di calcolare in ogni nodo $x^i=(x_1^i,x_2^i)$ della grigl
 nei diversi nodi $x^i$ della griglia. In seguito si potrà scrivere dunque 
 
 \begin{equation*}
- \sum_{j=1}^N J_j\int_{x_{min}}^{x_{max}} \phi_i(x)\phi_j(x)dx
+ \sum_{j=1}^N J_i^j\int_{x_{min}}^{x_{max}} \phi_i(x)\phi_j(x)dx
 \end{equation*}
 
 scrivibile come $M\underline{J}$, con $M$ matrice di massa, e aggiungere tale termine all'\emph{rhs}.
@@ -132,7 +132,7 @@ scrivibile come $M\underline{J}$, con $M$ matrice di massa, e aggiungere tale te
 L'eq da risolvere a ogni passo temporale è dunque:
 
 \begin{equation*}
- M_1u^k=M_2u^{k+1}+M\underline{J}^{k+1}  \qquad \text{ per } k=M\dots1
+ M_1u^k=M_2u^{k+1}+M\underline{J_1}^{k+1}+M\underline{J_2}^{k+1}  \qquad \text{ per } k=M\dots1
 \end{equation*}
 
 
