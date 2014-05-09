@@ -1,19 +1,22 @@
 Things to do go here
 
 Giorgio:
--) Studiare pesi di Laguerre: check!
--) Far funzionare asiatica: dont know if it's right.
+-) Implementare modello di merton
+-) Vedere come fare le quadrature omogeneamente (chiedere ai capi)
+-) Studiare quanto sarebbe difficile usare mpi
 
 Nahuel:
--) Aggiungere parte integrale a equazione 2d: check!
+-) Studiare asiatica
+-) Prove barriera 1D e se funziona bene 2D
+-) Pensare struttura codice
+-) Dare un occhio alle stime adattatività
+-) Risultati di esistenza e unicità
 
 Quello che resta da fare:
 
--> controllare l'asiatica
 -> aggiungere all'asiatica la parte di salto
--> implementare modello di Merton (con integrazione di Hermite, exp(-b*x^2)) 1d e 2d
+-> implementare modello di Merton (con integrazione di Hermite, exp(-b*x^2)) 2d
 -> implementare modello di Kou in 2d
--> scrivere solver Americana 1d
--> scrivere solver Americana 2d
+-> scrivere solver Americana
 -> parallelizzare calcolo integrali (con openMP facile, con MPI?)
 -> mesh adaptivity, domanda: quale stima di errore usare? Esiste una stima per PIDE?
