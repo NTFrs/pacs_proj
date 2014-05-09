@@ -910,7 +910,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 8);
+        Opzione<1> Call(par, 100, 9);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
