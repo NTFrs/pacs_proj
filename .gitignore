@@ -42,3 +42,6 @@ makefile
 *.aux
 *.log
 *.synctex.gz
+
+#matlab generated files
+*.m
