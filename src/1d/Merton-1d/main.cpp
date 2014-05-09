@@ -670,28 +670,6 @@ void Opzione<dim>::setup_system() {
                 quadrature_points[i]=static_cast< Point<dim> > (quad_nodes[i]);
         }
         
-        /*
-        // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
-        right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
-        left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
-        
-        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
-        right_quad_nodes=right_quad.get_nodes();
-        right_quad_weights=right_quad.get_weights();
-        
-        left_quad_nodes=left_quad.get_nodes();
-        left_quad_weights=left_quad.get_weights();
-        
-        quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
-        
-        // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
-        for (int i=0; i<left_quad.get_order(); ++i) {
-                quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
-        }
-        for (int i=0; i<right_quad.get_order(); ++i) {
-                quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
-        }
-         */
 }
 
 template<int dim>
