@@ -139,7 +139,7 @@ template<int dim>
 double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-        return max(_S0*exp(p[0])-p[1]/_T,0.);
+        return max(_S0*exp(p[0])-p[1]/this->get_time(),0.);
         
 }
 
@@ -529,7 +529,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 100, 7);
+	Opzione<2> Call(par, 100, 5);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
