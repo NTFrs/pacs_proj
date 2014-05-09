@@ -101,7 +101,7 @@ template <int dim>
 double Coefficient<dim>::value (const Point<dim> &p,
                                 const unsigned int /*component*/) const
 {
-        return r*S0*exp(p(0));
+        return S0*exp(p(0));
 }
 
 template <int dim>
@@ -116,7 +116,7 @@ void Coefficient<dim>::value_list (const std::vector<Point<dim> > &points,
         const unsigned int n_points = points.size();
         for (unsigned int i=0; i<n_points; ++i)
         {
-                values[i]=r*S0*exp(points[i][0]);
+                values[i]=S0*exp(points[i][0]);
         }
 }
 
