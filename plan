@@ -81,7 +81,7 @@ public:						// in più dimensioni, le barriere per ogni dimensione
 	
 };
 
-class Asian: public Option<1> {
+class Asian: public Option<2> {
 	// qui si riscrivono tutte le funzioni di Option perché è tutto diverso
 }
 
