@@ -95,6 +95,7 @@ void timestamp ( );
 
 const double toll=1e-8;
 const double eps=std::numeric_limits<double>::epsilon();
+const double pi=4.*std::atan(1.);
 /*
  auto greater = [] (Point<dim> p1, Point<dim> p2) {
  return p1[0]<p2[0];
@@ -106,19 +107,24 @@ const double eps=std::numeric_limits<double>::epsilon();
 class Parametri{
 public:
 	//Dati
-	double T;                                                  // Scadenza
-	double K;                                                  // Strike price
-	double S0;                                                 // Spot price
-	double r;                                                  // Tasso risk free
+	double T;                               // Scadenza
+	double K;                               // Strike price
+	double S0;                              // Spot price
+	double r;                               // Tasso risk free
         
 	// Parametri della parte continua
-	double sigma;                                              // Volatilità
+	double sigma;                           // Volatilità
         
 	// Parametri della parte salto
-	double p;                                                  // Parametro 1 Kou
-	double lambda;                                             // Parametro 2 Kou
-	double lambda_piu;                                         // Parametro 3 Kou
-	double lambda_meno;                                        // Parametro 4 Kou
+	double p;                               // Parametro 1 Kou
+	double lambda;                          // Parametro 2 Kou
+	double lambda_piu;                      // Parametro 3 Kou
+	double lambda_meno;                     // Parametro 4 Kou
+        
+        // Parametri della parte salto
+        double C;                               // Parametro 1 Merton                      
+        double mu;                              // Parametro 2 Merton
+        double delta;                           // Parametro 3 Merton
         
 	Parametri()=default;
 	Parametri(const Parametri &)=default;
@@ -186,6 +192,7 @@ double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int c
 	return _S0*exp(p[0])-_K*exp(-_r*(_T-this->get_time()));
         
 }
+
 template<int dim>
 class Kou_Density: public Function<dim>
 {
@@ -229,6 +236,46 @@ void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::v
                         values[i]=_p*_lam*_lam_u*exp(-_lam_u*points[i][0]);
                 else
                         values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][0]);
+}
+
+template<int dim>
+class Merton_Density: public Function<dim>
+{
+        
+public:
+	Merton_Density(double C,  double mu, double delta) : Function<dim>(),  _C(C),  _mu(mu), 
+	_delta(delta) {};
+        
+	virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
+	virtual void value_list(const std::vector<Point<dim> > &points,
+                                std::vector<double> &values,
+                                const unsigned int component = 0) const;
+private:
+	double _C;
+	double _mu;
+	double _delta;
+};
+
+template<int dim>
+double Merton_Density<dim>::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	return _C*exp(-(p[0]-_mu)*(p[0]-_mu)/(2*_delta*_delta))/sqrt(2*pi*_delta*_delta);
+        
+}
+
+template<int dim>
+void Merton_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+{
+	Assert (values.size() == points.size(),
+                ExcDimensionMismatch (values.size(), points.size()));
+	Assert (component == 0, ExcInternalError());
+	
+	const unsigned int n_points=points.size();
+	
+	for (unsigned int i=0;i<n_points; ++i)
+                values[i]=_C*exp(-(points[i][0]-_mu)*(points[i][0]-_mu)/(2*_delta*_delta))/sqrt(2*pi*_delta*_delta);
+        
 }
 
 
@@ -300,6 +347,7 @@ void Solution_Trimmer<dim>::value_list(const std::vector<Point<dim> > &points, s
         }
 }
 
+// Kou
 class Quadrature_Laguerre{
 private:
         
@@ -330,6 +378,39 @@ public:
         inline std::vector<double> const & get_weights () {return weights;}
 };
 
+// Merton
+class Quadrature_Hermite{
+private:
+        
+        std::vector<double> nodes;
+        std::vector<double> weights;
+        unsigned order; 
+        
+public:
+        
+        Quadrature_Hermite()=default;
+        
+        // il costruttore costruisce nodi e pesi
+        Quadrature_Hermite(unsigned n, double mu, double delta){
+                
+                cout<<"pi "<<pi<<"\n";
+                
+                order=n;
+                
+                nodes=std::vector<double> (order);
+                weights=std::vector<double> (order);
+                
+                unsigned kind = 6; // kind=6, Generalized Hermite, (-inf,inf)  |x-a|^alpha*exp(-b*(x-a)^2)
+                
+                //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
+                cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
+        }
+        
+        inline unsigned get_order () {return order;}
+        inline std::vector<double> const & get_nodes () {return nodes;}
+        inline std::vector<double> const & get_weights () {return weights;}
+};
+
 
 template<int dim>
 class Opzione{
@@ -343,7 +424,7 @@ private:
         
 	
         
-	Kou_Density<dim>				k;    
+	Merton_Density<dim>		k;
         
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
@@ -384,6 +465,11 @@ private:
         std::vector<double> right_quad_weights;
         std::vector<double> left_quad_weights;
         
+        // quadrature di hermite
+        Quadrature_Hermite quad;
+        std::vector<double> quad_nodes;
+        std::vector<double> quad_weights;
+        
         std::vector<Point<dim> > quadrature_points;
         
 	unsigned int refs, Nsteps;
@@ -408,7 +494,7 @@ private:
 public:
 	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
 	par(par_),
-	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
+	k(par.C, par.mu, par.delta),
 	fe (1),
 	dof_handler (triangulation),
 	fe2 (1),
@@ -437,14 +523,11 @@ template<int dim>
 void Opzione<dim>::Levy_integral_part1(){
         
 	alpha=0;
+        par.lambda=0;
         
-        for (int i=0; i<right_quad.get_order(); ++i) {
-                alpha+=(exp(right_quad_nodes[i])-1)*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
-        }
-
-        for (int i=0; i<left_quad.get_order(); ++i) {
-                        // il - è perché i nodi sono positivi (Quadrature_Laguerre integra da 0 a \infty)
-                alpha+=(exp(-left_quad_nodes[i])-1)*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
+        for (int i=0; i<quad.get_order(); ++i) {
+                alpha+=(exp(quad_nodes[i])-1)*par.C*quad_weights[i]/sqrt(2*pi*par.delta*par.delta);
+                par.lambda+=par.C*quad_weights[i]/sqrt(2*pi*par.delta*par.delta);
         }
         
 	return;
@@ -463,9 +546,9 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 //#pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
-                std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
+                std::vector< Point<dim> > quad_points(quad.get_order());
                 
-                std::vector<double> f_u(left_quad.get_order()+right_quad.get_order());
+                std::vector<double> f_u(quad.get_order());
                 
                 // Inserisco in quad_points tutti i punti di quadrature shiftati
                 for (int i=0; i<quad_points.size(); ++i) {
@@ -476,11 +559,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 func.value_list(quad_points, f_u);
                 
                 // Integro dividendo fra parte sinistra e parte destra dell'integrale
-                for (int i=0; i<left_quad.get_order(); ++i) {
-                        J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
-                }
-                for (int i=0; i<right_quad.get_order(); ++i) {
-                        J(it)+=f_u[i+left_quad.get_order()]*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
+                for (int i=0; i<quad.get_order(); ++i) {
+                        J(it)+=f_u[i]*par.C*quad_weights[i]/sqrt(2*pi*par.delta*par.delta);
                 }
 
         }
@@ -576,6 +656,21 @@ void Opzione<dim>::setup_system() {
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
+        // Costruisco punti e nodi di Hermite una volta per tutte (tanto non cambiano)
+        quad=Quadrature_Hermite(static_cast<unsigned>(round((Bmax[0]-Bmin[0])/dx)), par.mu, par.delta);
+        cout<<"Nodi "<<round((Bmax[0]-Bmin[0])/dx)<<"\n";
+        
+        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
+        quad_nodes=quad.get_nodes();
+        quad_weights=quad.get_weights();
+        
+        quadrature_points=std::vector<Point<dim> > (quad.get_order());
+        
+        for (unsigned i=0; i<quadrature_points.size(); ++i) {
+                quadrature_points[i]=static_cast< Point<dim> > (quad_nodes[i]);
+        }
+        
+        /*
         // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
         right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
         left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
@@ -596,6 +691,7 @@ void Opzione<dim>::setup_system() {
         for (int i=0; i<right_quad.get_order(); ++i) {
                 quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
         }
+         */
 }
 
 template<int dim>
@@ -744,7 +840,7 @@ void Opzione<dim>::solve() {
 	ran=true;
         
 #ifdef __MATLAB__
-	ofstream print;
+        ofstream print;
         print.open("solution.m");
         
         if (print.is_open()) {
@@ -808,9 +904,13 @@ int main() {
 	par.lambda_piu=9.65997;                                    // Parametro 3 Kou
 	par.lambda_meno=3.13868;                                   // Parametro 4 Kou
         
+        par.C=0.174814;
+        par.delta=0.338796;
+        par.mu=-0.390078;
+        
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 7);
+        Opzione<1> Call(par, 100, 8);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
@@ -846,7 +946,7 @@ int main() {
                 cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
                 T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
         }*/
-	cout<<"Kou-1d\n";
+	cout<<"Merton-1d\n";
         
 	return 0;
 }
