@@ -144,21 +144,21 @@ double PayOff<dim>::value (const Point<dim>  &p,
                            const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-	return max(S0*exp(p(0))-K,0.);
+	return max(K-S0*exp(p(0)),0.);
 }
 
 template<int dim>
-class Boundary_Left_Side : public Function<dim>
+class Boundary_Right_Side : public Function<dim>
 {
 public:
-	Boundary_Left_Side() : Function< dim>() {};
+	Boundary_Right_Side() : Function< dim>() {};
         
 	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
         
 };
 
 template<int dim>
-double Boundary_Left_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
+double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
 	return 0;
@@ -166,10 +166,10 @@ double Boundary_Left_Side<dim>::value(const Point<dim> &p, const unsigned int co
 }
 
 template<int dim>
-class Boundary_Right_Side: public Function<dim>
+class Boundary_Left_Side: public Function<dim>
 {
 public:
-	Boundary_Right_Side(double S0, double K, double T,  double r) : Function< dim>(), _S0(S0), _K(K), _T(T), _r(r) {};
+	Boundary_Left_Side(double S0, double K, double T,  double r) : Function< dim>(), _S0(S0), _K(K), _T(T), _r(r) {};
         
 	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
 private:
@@ -180,10 +180,10 @@ private:
 };
 
 template<int dim>
-double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
+double Boundary_Left_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-	return _S0*exp(p[0])-_K*exp(-_r*(_T-this->get_time()));
+	return _K*exp(-_r*(_T-this->get_time()))-_S0*exp(p[0]);
         
 }
 template<int dim>
@@ -398,7 +398,7 @@ private:
         
         
 	void Levy_integral_part1();
-	void Levy_integral_part2(Vector<double> &J);
+	void Levy_integral_part2(Vector<double> &J,  double time);
         // 	void f_u(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y);
         // 	inline double payoff(double x, double K, double S0){return max(S0*exp(x)-K, 0.);}
         // 	void calculate_weights();
@@ -451,12 +451,13 @@ void Opzione<dim>::Levy_integral_part1(){
 }
 
 template<int dim>
-void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
+void Opzione<dim>::Levy_integral_part2(Vector<double> &J,  double time) {
         
 	J.reinit(solution.size());// If fast is false, the vector is filled by zeros
         
-	Boundary_Left_Side<dim>         leftie;
-	Boundary_Right_Side<dim>        rightie(par.S0, par.K, par.T, par.r);
+	Boundary_Left_Side<dim>         leftie(par.S0, par.K, par.T, par.r);
+	Boundary_Right_Side<dim>        rightie;
+	leftie.set_time(time);rightie.set_time(time);
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
 
@@ -688,9 +689,22 @@ void Opzione<dim>::solve() {
         
 	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
         
+	{
+	 DataOut<1> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "begin");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("begin.gpl");
+	 data_out.write_gnuplot (output);
+	 }
+        
 	unsigned int Step=Nsteps;
         
-	Boundary_Right_Side<dim> right_bound(par.S0, par.K, par.T, par.r);
+	Boundary_Left_Side<dim> left_bound(par.S0, par.K, par.T, par.r);
+	Boundary_Right_Side<dim> right_bound;
 	cout<< "time step is"<< time_step<< endl;
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
@@ -698,7 +712,7 @@ void Opzione<dim>::solve() {
 #ifdef __PIDE__
                 Vector<double> J;
                 J.reinit(solution.size());
-                Levy_integral_part2(J);
+                Levy_integral_part2(J, time);
                 
                 ff_matrix.vmult(system_rhs, J);
                 Vector<double> temp;
@@ -708,6 +722,7 @@ void Opzione<dim>::solve() {
 #else
                 system_M2.vmult(system_rhs, solution);
 #endif
+                left_bound.set_time(time);
                 right_bound.set_time(time);
                 
                 
@@ -716,7 +731,7 @@ void Opzione<dim>::solve() {
                         std::map<types::global_dof_index,double> boundary_values;
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   0,
-                                                                  Boundary_Left_Side<dim>(),
+                                                                  left_bound,
                                                                   boundary_values);
                         
                         
@@ -738,8 +753,35 @@ void Opzione<dim>::solve() {
                 solver.solve(system_rhs);
                 
                 solution=system_rhs;
+         
+		 {
+		  DataOut<1> data_out;
+		  std::string name("step-");
+		  name.append(to_string(Step));
+		  data_out.attach_dof_handler (dof_handler);
+		  data_out.add_data_vector (solution, "end");
+
+		  data_out.build_patches ();
+		  name.append(".gpl");
+		  std::ofstream output (name);
+		  data_out.write_gnuplot (output);
+		  }
+         
+         
                 
         }
+        
+	{
+	 DataOut<1> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "end");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("end.gpl");
+	 data_out.write_gnuplot (output);
+	 }
         
 	ran=true;
         
@@ -810,7 +852,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 7);
+        Opzione<1> Call(par, 100, 8);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         

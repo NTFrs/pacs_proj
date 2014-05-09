@@ -1,0 +1,12 @@
+#!/bin/sh
+#Argument 1 specifies time steps
+#Argument 2 seconds of pause between steps, -1 if you want it to wait for return
+gnuplot << EOF
+plot 'begin.gpl' title 'Begin'
+pause mouse
+do for [i=0:$1-2]{ plot 'step-'.($1-i).'.gpl' title 'Step '.($1-i)
+pause $2
+}
+plot "end.gpl" title 'End'
+pause mouse
+EOF
