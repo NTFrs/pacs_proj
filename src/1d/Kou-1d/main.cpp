@@ -90,7 +90,7 @@ void timestamp ( );
 //#define dim 1
 
 #define __PIDE__
-//#define __MATLAB__
+#define __MATLAB__
 //#define __INTERPOLATION__
 
 const double toll=1e-8;
@@ -744,17 +744,24 @@ void Opzione<dim>::solve() {
 	ran=true;
         
 #ifdef __MATLAB__
-	cout<<"x=[ ";
-	for (int i=0; i<grid_points.size()-1; ++i) {
-                cout<<grid_points[i][0]<<"; ";
-        }
-	cout<<grid_points[grid_points.size()-1][0]<<" ];\n";
+	ofstream print;
+        print.open("solution.m");
         
-	cout<<"sol=[ ";
-	for (int i=0; i<solution.size()-1; ++i) {
-                cout<<solution(i)<<"; ";
+        if (print.is_open()) {
+                print<<"x=[ ";
+                for (int i=0; i<grid_points.size()-1; ++i) {
+                        print<<par.S0*exp(grid_points[i][0])<<"; ";
+                }
+                print<<par.S0*exp(grid_points[grid_points.size()-1][0])<<" ];\n";
+                
+                print<<"sol=[ ";
+                for (int i=0; i<solution.size()-1; ++i) {
+                        print<<solution(i)<<"; ";
+                }
+                print<<solution(solution.size()-1)<<" ];\n";
         }
-	cout<<solution(solution.size()-1)<<" ];\n";
+        
+        print.close();
 #endif
 }
 
