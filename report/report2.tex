@@ -5,6 +5,21 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{xfrac}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0},
+}
+
+\usepackage{listings}
+\usepackage{lstautogobble}
+
+\lstset{basicstyle=\ttfamily,
+  mathescape=true,
+  escapeinside=||,
+  autogobble}
+  
 %opening
 \title{Riassunto Progetto Pacs}
 \author{Nahuel Foresta, Giorgio Re}
@@ -20,14 +35,14 @@
 
 \section{Riassunto Obiettivi}
 
-Come gi\`a indicato nel primo report, l'obiettivo del progetto è di creare un programma per prezzare una serie di opzioni utilizzando dei metodi basati a elementi finiti. Il valore di un opzione al variare del sottostante (che supponiamo evolvere secondo un modello Jump-Diffusion) può essere in generale trovato come soluzione di un equazione integro differenziale del tipo
+Come gi\`a indicato nel primo report, l'obiettivo del progetto è creare un programma per prezzare una serie di opzioni utilizzando dei metodi basati su elementi finiti. Il valore di un'opzione al variare del sottostante (che supponiamo evolvere secondo un modello Jump-Diffusion) può essere in generale trovato come soluzione di un'equazione integro differenziale del tipo:
 
 \begin{multline}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0
 \label{eq:1d}
 \end{multline}
 
-su $[0,T]\times[0,+\infty]$ con opportune condizioni al bordo e condizione finale $C(T,S)=g(S)$ payoff dell'opzione. $k$ è un nucleo con una forte massa nell'intorno dello zero e code esponenziali o gaussiane.
+su $[0,T]\times[0,+\infty]$ con opportune condizioni al bordo e condizione finale $C(T,S)=g(S)$, payoff dell'opzione. $k$ è un nucleo con una forte massa nell'intorno dello zero e code esponenziali o gaussiane.
 In due dimensioni, supponendo l'indipendenza delle componenti di salto dei due sottostanti, tale equazione diventa:
 
 
@@ -40,10 +55,10 @@ In due dimensioni, supponendo l'indipendenza delle componenti di salto dei due s
 \end{multline}
 su $[0,T]\times[0,+\infty]^2$ con opportune B.C. e valore finale.
 
-\section{Strumenti Aggiunti rispetto al report precedente}
+\section{Strumenti aggiunti rispetto al report precedente}
 
 \subsection{Libreria di Integrazione}
-Poich\'e le densit\`a all'interno dell'integrale sono del tipo: $$k(y)=p\lambda\lambda_+e^{-\lambda_+x}\mathcal{I}_\{x>0\}+(1-p)\lambda\lambda_-e^{-\lambda_-x}\mathcal{I}_\{x<0\},$$ per il modello di Kou e $$k(y)=\frac{\lambda}{\delta\sqrt{2\pi}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\}$$ per il modello di Merton, abbiamo usato dei nodi di quadratura che inglobassero gi\`a il peso esponenziale. Sfruttando quindi le funzioni offerte dalla libreria \textsf{legendre\_rule.hpp} utilizzata in uno dei laboratori, abbiamo utilizzato i nodi di Laguerre per calcolare l'integrale con il metodo di Kou (ottenendo risultati pi\`u precisi rispetto a quelli di Gauss), e pensiamo di utilizzare i nodi di Hermite per il modello di Merton.
+Poich\'e le densit\`a all'interno dell'integrale sono del tipo: $$k(y)=p\lambda\lambda_+e^{-\lambda_+x}\mathcal{I}_\{x>0\}+(1-p)\lambda\lambda_-e^{-\lambda_-x}\mathcal{I}_\{x<0\},$$ per il modello di Kou e $$k(y)=\frac{\lambda}{\delta\sqrt{2\pi}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\}$$ per il modello di Merton, abbiamo usato dei nodi di quadratura che inglobassero gi\`a il peso esponenziale. Sfruttando quindi le funzioni offerte dalla libreria \textsf{legendre\_rule.hpp} utilizzata in uno dei laboratori, abbiamo utilizzato i nodi di Laguerre per calcolare l'integrale con il metodo di Kou e i nodi di Hermite per il modello di Merton (ottenendo risultati pi\`u precisi rispetto a quelli di Gauss).
 
 \section{Cosa è stato fatto in breve}
 
@@ -51,7 +66,7 @@ Poich\'e le densit\`a all'interno dell'integrale sono del tipo: $$k(y)=p\lambda\
 Al momento dell'ultimo report lo stato era:
 
 \begin{itemize}
- \item Costruito un programma che risolve l'equazione PDE  (senza parte integrale) in una dimensione in un caso semplice utilizzando unicamente gli strumenti forniti dalla libreria.
+ \item Abbiamo costruito un programma che risolve l'equazione PDE  (senza parte integrale) in una dimensione in un caso semplice utilizzando unicamente gli strumenti forniti dalla libreria.
  \item Abbiamo risolto lo stesso problema nel caso bi-dimensionale. Sebbene il comportamento qualitativo della soluzione è quello aspettato, i valori esatti non sono ancora giusti (confrontati con dei risultati dati da tool che risolvono l'equazione con metodi alle differenze finite).
  \item Abbiamo provato a risolvere l'equazione integro differenziale in una dimensione in diversi modi. In due casi siamo riusciti ad ottenere un risultato corretto, ma non pienamente soddisfacenti.
 \end{itemize}
@@ -63,14 +78,14 @@ Dopo l'ultimo incontro, abbiamo deciso di esplorare sia l'utilizzo di formule di
 \begin{itemize}
  \item Abbiamo corretto la PDE in 2D ottenendo il risultato atteso.
  \item Abbiamo implementato la quadratura diretta del termine integrale utilizzando l'equazione nella forma \eqref{eq:costcoeff}, sia in 1D che in 2D. Si veda la sezione \ref{sec:metod} Metodologia per i dettagli.
- \item Abbiamo implementato il calcolo dell'integrale con i nodi di Laguerre per la quadratura del termine integrale con nucleo esponenziale (modello di Kou).
+ \item Abbiamo implementato in 1D il calcolo dell'integrale con i nodi di Laguerre e di Hermite per la quadratura del termine integrale con nucleo esponenziale (modello di Kou e modello di Merton).
 \end{itemize}
 
-Abbiamo inoltre uniformato l'uso dei ``funtori''. Deal II utilizza infatti una classe \verb!Function<dim>! (BC, valore iniziale, coefficienti) e dalla quale è possibile far ereditare altre funzioni. In particolare tale classe implementa due metodi \verb!virtual!, \verb!value! e \verb!value_list! che valutati su un punto (o un vettore di punti) restituiscono il valore nel punto (o nei punti). 
+Abbiamo inoltre uniformato l'uso dei ``funtori''. Deal II utilizza infatti una classe \verb!Function<dim>! (BC, valore iniziale, coefficienti) dalla quale è possibile far ereditare altre funzioni. In particolare tale classe implementa due metodi \verb!virtual!, \verb!value! e \verb!value_list! che valutati su un punto (o su un vettore di punti) restituiscono il valore nel punto (o nei punti). 
 
 \section{Metodologia}
 \label{sec:metod}
-La PDE (e la PIDE) in questione è trasformabile in un equazione a coefficienti costanti con la trasformazione $x_i=\ln{S_i} \; (\text{oppure } x_i=\ln{\sfrac{S_i}{S_i^0}})$ e $C(t,S_1,S_2)=u(t,x_1,x_2)$. In tal caso diventa (2D):
+La PDE (e la PIDE) in questione è trasformabile in un'equazione a coefficienti costanti con la trasformazione $x_i=\ln{S_i} \; (\text{oppure } x_i=\ln{\sfrac{S_i}{S_i^0}})$ e $C(t,S_1,S_2)=u(t,x_1,x_2)$. In tal caso diventa (2D):
 {
 \begin{multline}
  \der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
@@ -110,7 +125,7 @@ Senza entrare nei dettagli (vedere il primo report), otteniamo una discretizzazi
  M_1u^k=M_2u^{k+1}+J^{k+1}  \qquad \text{ per } k=M\dots1 \qquad \text{ e } \qquad u^{M}(S)=g(S) 
 \end{equation}
 
-Dove $M_1$ e $M_2$ sono la somma delle matrici date dagli elementi finiti (mass, stiffnes, ...) date da una discretizzazione temporale di tipo theta-metodo. Dall'ultimo report, ci siamo concentrati su un modo di calcolare il termine esplicito $J$.
+Dove $M_1$ e $M_2$ sono la somma delle matrici date dagli elementi finiti (mass, stiffnes, ...) con una discretizzazione temporale di tipo theta-metodo. Dall'ultimo report, ci siamo concentrati su un modo di calcolare il termine esplicito $J$.
 
 \subsection{La parte integrale $J$}
 
@@ -121,7 +136,7 @@ Riassumendo, si tratta di calcolare in ogni nodo $x^i=(x_1^i,x_2^i)$ della grigl
 \begin{equation*}
  J_1^i=J_1(x^i)=\int_\mathbb{R}u(t,x_1^i+y,x_2^i)k_1(y)dy \text{ e } J_2^i=J_2(x^i)=\int_\mathbb{R}u(t,x_1^i,x_2^i+y)k_2(y)dy
 \end{equation*}
-nei diversi nodi $x^i$ della griglia. In seguito si potrà scrivere dunque 
+nei diversi nodi $x^i$ della griglia. In seguito si potrà scrivere dunque:
 
 \begin{equation*}
  \sum_{j=1}^N J_i^j\int_{x_{min}}^{x_{max}} \phi_i(x)\phi_j(x)dx
@@ -148,50 +163,50 @@ In sostanza abbiamo più griglie:
 
 Siccome nella valutazione della soluzione in un punto la ricerca della cella di appartenenza è un operazione lenta, abbiamo notato che è meglio utilizzare una griglia di integrazione con meno celle e più nodi per cella.
 
-\subsubsection{Un integrazione più corretta}
-Come anticipato sopra, abbiamo implementato l'uso di nodi di Gauss-Laguerre per la quadratura dell'integrale. In questo caso l'uso di un troncamento $B_{min}$, $B_{max}$ non è necessario. A livello di tempi c'è un guadagno (circa il 30\%). Per ora \`e stato testato solo in 1D, ma non ci dovrebbero essere problemi a estenderlo al caso 2D siccome gli integrali nell'rhs sono comunque monodimensionali.
+\subsubsection{Un'integrazione più corretta}
+Come anticipato sopra, abbiamo implementato l'uso di nodi di Laguerre e di Hermite per la quadratura dell'integrale. In questo caso l'uso di un troncamento $B_{min}$, $B_{max}$ non è necessario (per costruzione infatti, grazie a quei nodi si integra su tutto l'asse reale). A livello di tempi c'è un guadagno (circa il 30\%). Per ora \`e stato testato solo in 1D, ma non dovrebbero esserci problemi a estenderlo al caso 2D siccome gli integrali nell'rhs sono comunque monodimensionali.
 
 \subsubsection{Possibile parallelizzazione}
-Per come viene eseguito il calcolo del vettore J, una strada che sembrerebbe interessante è la parallelizzazione di tale operazione. Essendo questo il cono di bottiglia del metodo, porterebbe essere un ottimo modo di aumentare le prestazioni. Per il momento abbiamo provato una parallelizzazione con \emph{openmp} semplicemente dividendo il vettore $J$ fra i vari thread. Come si può osservare in Appendice \ref{app:conver}, ciò introduce una buona miglioria.
+Per come viene eseguito il calcolo del vettore J, una strada che sembrerebbe interessante è la parallelizzazione di tale operazione. Essendo questo il collo di bottiglia del metodo, porterebbe essere un ottimo metodo per aumentare le prestazioni. Per il momento abbiamo provato una parallelizzazione con \emph{openmp} semplicemente dividendo il vettore $J$ fra i vari thread. Come si può osservare in Appendice \ref{app:conver}, il guadagno \`e apprezzabile.
 
 \section{Conclusioni parziali e futuri passi}
 
-Riassumendo, il calcolo di $J$ effettuando una quadratura ad ogni iterazione temporale d\`a risultati corretti. Per poter effettuare tale quadratura, è necessario valutare la funzione in punti non della griglia il che introduce un calo nella velocità.
+Riassumendo, il calcolo di $J$ effettuando una quadratura ad ogni iterazione temporale d\`a risultati corretti. Per poter effettuare tale quadratura, è necessario valutare la funzione in punti non della griglia, cosa che introduce un calo nella velocità.
 
 \subsection{Prossimi passi}
 I prossimi passi previsti sono:
 \begin{itemize}
- \item Controllare l'opzione asiatica: Il valore di un opzione monodimensionale di questo tipo può essere trovato con una PDE/PIDE bidimensionale molto simile a quella trattata fin'ora. Un primo tentativo restituisce un valore non corretto, bisogna capire il perché.
- \item Riscrivere l'integrazione nel modello di Kou bidimensionale utilizzando nodi di quadratura di Laguerre.
- \item Implementare il modello di Merton: al posto di un nucleo esponenziale si ha un nucleo gaussiano, da trattare in principio con una quadratura apposita (nodi di Hermite).
+ \item Controllare l'opzione asiatica: il valore di un'opzione di questo tipo può essere trovato con una PDE/PIDE bidimensionale molto simile a quella trattata fin'ora. Un primo tentativo restituisce un valore non corretto, bisogna capire il perché.
+ \item Riscrivere l'integrazione nei modelli di Kou e Merton bidimensionali utilizzando i nodi di quadratura di Laguerre e di Hermite.
  \item Trattare l'opzione di tipo americano: tali opzioni introducono un problema di frontiera libera in cui occorre risolvere la \eqref{eq:1d} e la \eqref{eq:2d} con il segno di disuguaglianza $\leq$ al posto dell'uguaglianza. L'approccio standard è di utilizzare un solver iterativo (tipicamente SOR) ed aggiungervi la condizione che la soluzione stia sopra l'ostacolo (il PayOff). Nel caso matrice tridiagonale (1D) è immediato (ed \`e gi\`a stato implementato), mentre bisogna studiare quale sarebbe il miglior metodo per matrici generate dal problema 2D.
  \item Parallelizzare il calcolo del vettore integrale $J$. Con openmp dovrebbe essere abbastanza facile, è fattibile/migliorabile utilizzando MPI?
- \item Valutare la possibilità di fare adattazione di griglia e in questo caso quale stima dell'errore usare.
+ \item Valutare la possibilit\`a di fare un'integrazione adattiva: per ora i nodi di Hermite e Laguerre vengono calcolati una volta sola all'inizio del programma. Adottare un tipo di integrazione che regola automaticamente il numero di nodi da utilizzare potrebbe portare migliorie nel tempo di calcolo?
+ \item Valutare la possibilità di fare adattazione di griglia e in questo caso quale stima dell'errore usare. La libreria Deal II offre infatti lo stimatore descritto in \url{http://www.dealii.org/developer/doxygen/deal.II/classKellyErrorEstimator.html}, potrebbe andare bene?
 \end{itemize}
 
 Oltre a questo, dare una forma al programma, decidendo il design da utilizzare nei vari punti. 
 
 \subsection{Approcci abbandonati}
-Per il momento abbiamo deciso di non esplorare il cambio di variabili $Se^y=z$ a livello equazione. In tal caso si otterrebbe un equazione a coefficienti non costanti, ma la parte integrale potrebbe essere più semplice. Tuttavia questa trasformazione potrebbe dare luogo a instabilit\`a.\\
-L'altro approccio abbandonato \`e la scrittura della funzione $u$ nella base ad elementi finiti direttamente prima dell'integrazione. Questo darebbe però luogo a una matrice densa, per questo abbiamo deciso di non continuare su quella strada (vedere il primo report).
+Per il momento abbiamo deciso di non esplorare il cambio di variabili $Se^y=z$ a livello equazione. In tal caso si otterrebbe un equazione a coefficienti non costanti, ma la parte integrale potrebbe essere più semplice. Tuttavia questa trasformazione potrebbe generare dell'instabilit\`a.\\
+L'altro approccio abbandonato \`e la scrittura della funzione $u$ nella base ad elementi finiti direttamente prima dell'integrazione. Questo metodo darebbe però luogo a una matrice densa, per questo abbiamo deciso di non continuare su quella strada (vedere il primo report).
 
 
 \clearpage
 \appendix
 \section{Tabella di convergenza}
 \label{app:conver}
-Di seguito i risultati nel caso monodimensionale
+Di seguito i risultati nel caso monodimensionale.
 \begin{verbatim}
  ****** CONVERGENCE TABLE 1D V012
 
 Results for 100 time iterations (serial):
-Grid	16	Price	12.5057		clocktime 0.52997s	realtime 0.53684s
-Grid	32	Price	12.4252		clocktime 1.36887s	realtime 1.37507s
-Grid	64	Price	12.3916		clocktime 3.76746s	realtime 3.78003s
-Grid	128	Price	12.3837		clocktime 10.9453s	realtime 11.1629s
-Grid	256	Price	12.3823		clocktime 36.8916s	realtime 38.1013s
-Grid	512	Price	12.3814		clocktime 119.291s	realtime 119.976s
-Grid	1024	Price	12.3814		clocktime 422.728s	realtime 425.07s
+Grid	16	Price	12.5057	clocktime 0.52997s	realtime 0.53684s
+Grid	32	Price	12.4252	clocktime 1.36887s	realtime 1.37507s
+Grid	64	Price	12.3916	clocktime 3.76746s	realtime 3.78003s
+Grid	128	Price	12.3837	clocktime 10.9453s	realtime 11.1629s
+Grid	256	Price	12.3823	clocktime 36.8916s	realtime 38.1013s
+Grid	512	Price	12.3814	clocktime 119.291s	realtime 119.976s
+Grid	1024	Price	12.3814	clocktime 422.728s	realtime 425.07s
 
 real	10m0.041s
 user	9m55.040s
@@ -199,13 +214,13 @@ sys	0m0.511s
 
 
 Results for 100 time iterations (parallel dual-core):
-Grid	16	Price	12.5057		clocktime 0.63368s	realtime 0.35037s
-Grid	32	Price	12.4252		clocktime 1.63260s	realtime 0.87694s
-Grid	64	Price	12.3916		clocktime 4.38279s	realtime 2.49441s
-Grid	128	Price	12.3837		clocktime 12.6560s	realtime 6.77907s
-Grid	256	Price	12.3823		clocktime 38.2390s	realtime 20.8882s
-Grid	512	Price	12.3814		clocktime 126.062s	realtime 79.3415s
-Grid	1024	Price	12.3814		clocktime 441.518s	realtime 250.999s
+Grid	16	Price	12.5057	clocktime 0.63368s	realtime 0.35037s
+Grid	32	Price	12.4252	clocktime 1.63260s	realtime 0.87694s
+Grid	64	Price	12.3916	clocktime 4.38279s	realtime 2.49441s
+Grid	128	Price	12.3837	clocktime 12.6560s	realtime 6.77907s
+Grid	256	Price	12.3823	clocktime 38.2390s	realtime 20.8882s
+Grid	512	Price	12.3814	clocktime 126.062s	realtime 79.3415s
+Grid	1024	Price	12.3814	clocktime 441.518s	realtime 250.999s
 
 real	6m1.768s
 user	10m17.468s

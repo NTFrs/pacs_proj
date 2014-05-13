@@ -41,6 +41,7 @@ makefile
 #latex temp files
 *.aux
 *.log
+*.out
 *.synctex.gz
 
 #matlab generated files
