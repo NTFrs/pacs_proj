@@ -303,7 +303,7 @@ void Opzione<dim>::assemble_system() {
         QGauss<dim> quadrature_formula(4); // 2 nodes, 2d -> 4 quadrature points per cell
         
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients | update_quadrature_points |
-                                 update_JxW_values); //  update_quadrature_points ?
+                                 update_JxW_values | update_jacobians); //  update_quadrature_points ?
         
 	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
 	const unsigned int   n_q_points    = quadrature_formula.size();
@@ -365,7 +365,8 @@ void Opzione<dim>::assemble_system() {
 // 									cerr<< "got to here\n";
 										sigma_matrix[0][0]=0.5*par.sigma*par.sigma*
 														quad_points[q_point][0]*quad_points[q_point][0];
-										sigma_matrix[1][1]=fabs(trasp[1])*fe_values.gradient(q_point)/2;
+// 									cout<< fe_values.jacobian(q_point)[1][1]<< "\n";
+										sigma_matrix[1][1]=0.5*fabs(trasp[1])/fe_values.jacobian(q_point)[1][1];
 			  
 // 									cerr<< "but not here";
                                         cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
@@ -535,7 +536,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 100, 5);
+	Opzione<2> Call(par, 100, 3);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
