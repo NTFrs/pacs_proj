@@ -518,7 +518,7 @@ double Opzione<dim>::get_price() {
         // Interpolo
 //         VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
         // Ritorno il valore interpolato della soluzione in (0,0)
-        return fe_function.value(Point<dim>(par.S0, 0));
+        return fe_function.value(Point<dim>(par.S0, par.S0));
 }
 
 int main() {
@@ -536,7 +536,7 @@ int main() {
         par.lambda_meno=3.13868; // Parametro 4 Kou
         
         // tempo // spazio
-	Opzione<2> Call(par, 100, 3);
+	Opzione<2> Call(par, 100, 5);
 	double prezzo=Call.run();
         
         cout<<"Prezzo "<<prezzo<<"\n";
