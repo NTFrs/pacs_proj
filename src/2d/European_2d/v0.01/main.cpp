@@ -474,11 +474,11 @@ int main() {
         
         par.T=1.;
 	par.K=200;
-	par.S01=100;
-        par.S02=100;
+	par.S01=80;
+        par.S02=120;
 	par.r=0.1;
-	par.sigma1=0.2;
-        par.sigma2=0.5;
+	par.sigma1=0.1256;
+        par.sigma2=0.2;
         par.ro=-0.2;
         
         // Parametri della parte salto
