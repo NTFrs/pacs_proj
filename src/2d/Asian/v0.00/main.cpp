@@ -82,64 +82,58 @@ public:
 	Parametri(const Parametri &)=default;
 };
 
-template <int dim>
-class Coefficient : public Function<dim>
-{
-public:
-        Coefficient (double _r, double _S0)  : Function<dim>(), r(_r), S0(_S0) {}
-        virtual double value (const Point<dim>   &p,
-                              const unsigned int  component = 0) const;
-        virtual void value_list (const std::vector<Point<dim> > &points,
-                                 std::vector<double>            &values,
-                                 const unsigned int              component = 0) const;
-private:
-        double r;
-        double S0;
-};
-
-template <int dim>
-double Coefficient<dim>::value (const Point<dim> &p,
-                                const unsigned int /*component*/) const
-{
-        return S0*exp(p(0));
-}
-
-template <int dim>
-void Coefficient<dim>::value_list (const std::vector<Point<dim> > &points,
-                                   std::vector<double>            &values,
-                                   const unsigned int              component) const
-{
-        Assert (values.size() == points.size(),
-                ExcDimensionMismatch (values.size(), points.size()));
-        Assert (component == 0,
-                ExcIndexRange (component, 0, 1));
-        const unsigned int n_points = points.size();
-        for (unsigned int i=0; i<n_points; ++i)
-        {
-                values[i]=S0*exp(points[i][0]);
-        }
-}
+// template <int dim>
+// class Coefficient : public Function<dim>
+// {
+// public:
+//         Coefficient (double _r, double _S0)  : Function<dim>(), r(_r), S0(_S0) {}
+//         virtual double value (const Point<dim>   &p,
+//                               const unsigned int  component = 0) const;
+//         virtual void value_list (const std::vector<Point<dim> > &points,
+//                                  std::vector<double>            &values,
+//                                  const unsigned int              component = 0) const;
+// private:
+//         double r;
+//         double S0;
+// };
+// 
+// template <int dim>
+// double Coefficient<dim>::value (const Point<dim> &p,
+//                                 const unsigned int /*component*/) const
+// {
+//         return S0*exp(p(0));
+// }
+// 
+// template <int dim>
+// void Coefficient<dim>::value_list (const std::vector<Point<dim> > &points,
+//                                    std::vector<double>            &values,
+//                                    const unsigned int              component) const
+// {
+//         Assert (values.size() == points.size(),
+//                 ExcDimensionMismatch (values.size(), points.size()));
+//         Assert (component == 0,
+//                 ExcIndexRange (component, 0, 1));
+//         const unsigned int n_points = points.size();
+//         for (unsigned int i=0; i<n_points; ++i)
+//         {
+//                 values[i]=S0*exp(points[i][0]);
+//         }
+// }
 
 template<int dim>
 class Boundary_Condition: public Function<dim>
 {
 public:
-	Boundary_Condition(double S0, double K, double T,  double r) : Function< dim>(),
-        _S0(S0), _K(K), _T(T), _r(r) {};
+	Boundary_Condition() : Function< dim>() {};
         
 	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
-private:
-        double _S0;
-	double _K;
-	double _T;
-	double _r;
 };
 
 template<int dim>
 double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-        return max(_S0*exp(p[0])-p[1]/this->get_time(),0.);
+        return max(p[0]-p[1]/this->get_time(),0.);
         
 }
 
@@ -147,13 +141,11 @@ template<int dim>
 class PayOff : public Function<dim>
 {
 public:
-        PayOff (double K_, double S0_, double T_) : Function<dim>(), K(K_), S0(S0_), T(T_) {};
+        PayOff (double T_) : Function<dim>(), T(T_) {};
         
         virtual double value (const Point<dim>   &p,
                               const unsigned int  component = 0) const;
 private:
-        double K;
-        double S0;
         double T;
 };
 
@@ -162,7 +154,7 @@ double PayOff<dim>::value (const Point<dim>  &p,
                            const unsigned int component) const
 {
         Assert (component == 0, ExcInternalError());
-        return max(S0*exp(p[0])-p[1]/T,0.);
+        return max(p[0]-p[1]/T,0.);
 }
 
 template<int dim>
@@ -181,7 +173,7 @@ private:
 	FE_Q<dim>                       fe;
 	DoFHandler<dim>                 dof_handler;
         
-        Triangulation<dim>              integral_triangulation;
+//         Triangulation<dim>              integral_triangulation;
         
 	SparsityPattern                 sparsity_pattern;
 	SparseMatrix<double>            system_matrix;
@@ -195,9 +187,9 @@ private:
         
         unsigned int refs, Nsteps;
 	double time_step;
-        double dx;
+//         double dx;
 	double Smin, Smax;
-        double xmin, xmax;
+//         double xmin, xmax;
         double Amin, Amax;
         
         bool ran;
@@ -228,30 +220,30 @@ public:
 template<int dim>
 void Opzione<dim>::make_grid() {
 	
-        Smin=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+    Smin=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                             -par.sigma*sqrt(par.T)*6);
 	Smax=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
                             +par.sigma*sqrt(par.T)*6);
         
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
-	xmin=0;
-        xmax=0;
+// 	xmin=0;
+//         xmax=0;
         
-        dx=(log(Smax/par.S0)-log(Smin/par.S0))/pow(2., refs);
-        cout<<"dx "<<dx<<"\n";
+//         dx=(log(Smax/par.S0)-log(Smin/par.S0))/pow(2., refs);
+//         cout<<"dx "<<dx<<"\n";
         
-        while (xmin>log(Smin/par.S0))
-                xmin-=dx;
-        while (xmax<log(Smax/par.S0))
-                xmax+=dx;
-        xmin-=dx;
-        xmax+=dx;
+//         while (xmin>log(Smin/par.S0))
+//                 xmin-=dx;
+//         while (xmax<log(Smax/par.S0))
+//                 xmax+=dx;
+//         xmin-=dx;
+//         xmax+=dx;
         
         Amin=0;
         Amax=Smax*par.T;
         
-        Point<dim> p1(xmin,Amin);
-        Point<dim> p2(xmax,Amax);
+        Point<dim> p1(Smin,Amin);
+        Point<dim> p2(Smax,Amax);
         
         std::vector<unsigned> refinement={pow(2,refs)+3, pow(2,refs)};
         
@@ -283,8 +275,25 @@ void Opzione<dim>::setup_system() {
 	system_matrix.reinit(sparsity_pattern);
 	system_M2.reinit(sparsity_pattern);
 	
-        solution.reinit(dof_handler.n_dofs());
+    solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
+	
+	
+	typename Triangulation<dim>::cell_iterator
+		cell = triangulation.begin (),
+		endc = triangulation.end();
+		
+	for (; cell!=endc; ++cell)
+		for (unsigned int face=0;
+			 face<GeometryInfo<dim>::faces_per_cell;++face)
+				if (cell->face(face)->at_boundary()) {
+					if ((std::fabs(cell->face(face)->center()(0) - Smin) < toll) ||
+						(std::fabs(cell->face(face)->center()(1) - Amax) < toll))
+						cell->face(face)->set_boundary_indicator (0);
+					if ((std::fabs(cell->face(face)->center()(0) - Smax) < toll) ||
+						(std::fabs(cell->face(face)->center()(1) - Amin) < toll))
+						cell->face(face)->set_boundary_indicator (1);
+				}
 
 }
 
@@ -308,7 +317,7 @@ void Opzione<dim>::assemble_system() {
 	FullMatrix<double> cell_dd(dofs_per_cell);
 	FullMatrix<double> cell_fd(dofs_per_cell);
 	FullMatrix<double> cell_ff(dofs_per_cell);
-        FullMatrix<double> cell_system(dofs_per_cell);
+    FullMatrix<double> cell_system(dofs_per_cell);
         
 	typename DoFHandler<dim>::active_cell_iterator
 	cell=dof_handler.begin_active(),
@@ -317,7 +326,7 @@ void Opzione<dim>::assemble_system() {
         // building tensors
         Tensor< dim , dim, double > sigma_matrix;
         
-        sigma_matrix[0][0]=par.sigma*par.sigma;
+        sigma_matrix[0][0]=0.;
         sigma_matrix[1][1]=0.;
         sigma_matrix[0][1]=0.;
         sigma_matrix[1][0]=0.;
@@ -329,11 +338,11 @@ void Opzione<dim>::assemble_system() {
         
         Tensor< 1, dim, double > trasp;
         
-        trasp[0]=par.r-par.sigma*par.sigma/2;
+        trasp[0]=0.;
         trasp[1]=0.;
         
-        const Coefficient<dim> coefficient(par.r, par.S0);
-        std::vector<double>    coefficient_values (n_q_points);
+//         const Coefficient<dim> coefficient(par.r, par.S0);
+	        std::vector<Point<dim> >    quad_points (n_q_points);
         
         // cell loop
         for (; cell !=endc;++cell) {
@@ -345,20 +354,25 @@ void Opzione<dim>::assemble_system() {
                 cell_ff=0;
                 cell_system=0;
                 
-                coefficient.value_list (fe_values.get_quadrature_points(),
-                                        coefficient_values);
+                quad_points=fe_values.get_quadrature_points();
                 
                 for (unsigned q_point=0;q_point<n_q_points;++q_point)
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
-                                        trasp[1]=coefficient_values[q_point];
-                                        
+                                        trasp[0]=par.r*quad_points[q_point][0];
+                                        trasp[1]=quad_points[q_point][0];
+// 									cerr<< "got to here\n";
+										sigma_matrix[0][0]=0.5*par.sigma*par.sigma*
+														quad_points[q_point][0]*quad_points[q_point][0];
+										sigma_matrix[1][1]=fabs(trasp[1])*fe_values.gradient(q_point)/2;
+			  
+// 									cerr<< "but not here";
                                         cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
                                         cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
-                                        (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
+                                        (fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
                                          fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
                                          (1/time_step+par.r)*
                                          fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
@@ -399,7 +413,7 @@ void Opzione<dim>::assemble_system() {
 template<int dim>
 void Opzione<dim>::solve() {
 	
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0, par.T), solution);
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.T), solution);
 	
 	unsigned int Step=Nsteps;
         
@@ -417,7 +431,7 @@ void Opzione<dim>::solve() {
         }
         //
         
-        Boundary_Condition<dim> bc(par.S0, par.K, par.T, par.r);
+        Boundary_Condition<dim> bc;
 	cout<< "time step is"<< time_step<< endl;
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
@@ -438,21 +452,13 @@ void Opzione<dim>::solve() {
                         
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   0,
-                                                                  bc,
+                                                                  ZeroFunction<dim>(),
                                                                   boundary_values);
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   1,
                                                                   bc,
                                                                   boundary_values);
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  2,
-                                                                  bc,
-                                                                  boundary_values);
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  3,
-                                                                  bc,
-                                                                  boundary_values);
-                        
+                                               
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             system_matrix,
                                                             solution,
@@ -495,23 +501,23 @@ double Opzione<dim>::get_price() {
         }
         
         // Creo nuova grigla ( che passi da (0,0) )
-        Triangulation<dim> price;
+//         Triangulation<dim> price;
         // Creo degli fe
-        FE_Q<dim> fe2 (1);
+//         FE_Q<dim> fe2 (1);
         // Creo un DoFHandler e lo attacco a price
-        DoFHandler<dim> dof_handler_2 (price);
+//         DoFHandler<dim> dof_handler_2 (price);
         // Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
-        GridGenerator::hyper_rectangle(price, Point<dim> (0.,par.S0), Point<dim> (xmax,Amax));
+//         GridGenerator::hyper_rectangle(price, Point<dim> (0.,par.S0), Point<dim> (Smax,Amax));
         // Assegno a dof_handler_2 gli elementi finit fe2 appena creati
-        dof_handler_2.distribute_dofs(fe2);
+//         dof_handler_2.distribute_dofs(fe2);
         // Definisco questa fantomatica funzione FEFieldFunction
         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
         // Creo il vettore che conterrà i valori interpolati
-        Vector<double> solution_vector(4);
+//         Vector<double> solution_vector(4);
         // Interpolo
-        VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
+//         VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
         // Ritorno il valore interpolato della soluzione in (0,0)
-        return solution_vector[0];
+        return fe_function.value(Point<dim>(par.S0, 0));
 }
 
 int main() {
