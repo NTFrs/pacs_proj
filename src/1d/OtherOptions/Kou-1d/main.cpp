@@ -815,23 +815,24 @@ double Opzione<dim>::get_price() {
         }
 	
         // Creo nuova grigla ( che passi da 0 )
-        Triangulation<dim> price;
+//         Triangulation<dim> price;
         // Creo degli fe
-        FE_Q<dim> fe3 (1);
+//         FE_Q<dim> fe3 (1);
         // Creo un DoFHandler e lo attacco a price
-        DoFHandler<dim> dof_handler_3 (price);
+//         DoFHandler<dim> dof_handler_3 (price);
         // Costruisco la griglia, in modo che passi da 0 e non la rifinisco
-        GridGenerator::hyper_rectangle(price, Point<dim> (0.), Point<dim> (xmax));
+//         GridGenerator::hyper_rectangle(price, Point<dim> (0.), Point<dim> (xmax));
         // Assegno a dof_handler_3 gli elementi finit fe3 appena creati
-        dof_handler_3.distribute_dofs(fe3);
+//         dof_handler_3.distribute_dofs(fe3);
         // Definisco questa fantomatica funzione FEFieldFunction
         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
         // Creo il vettore che conterrà i valori interpolati
-        Vector<double> solution_vector(2);
+//         Vector<double> solution_vector(2);
         // Interpolo
-        VectorTools::interpolate(dof_handler_3, fe_function, solution_vector);
+//         VectorTools::interpolate(dof_handler_3, fe_function, solution_vector);
         // Ritorno il valore interpolato della soluzione in 0
-        return solution_vector[0];
+        Point<dim> p(0.);
+        return fe_function.value(p);
 
 }
 
