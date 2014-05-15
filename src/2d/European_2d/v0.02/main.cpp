@@ -446,7 +446,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	{
                 
                 //we create the fevalues here,  in 1D
-                QGauss<1> quadrature_formula2(7);
+                QGauss<1> quadrature_formula2(20);
                 FEValues<1> fe_values2 (fe_integral_x, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
                 
                 const unsigned int   n_q_points    = quadrature_formula2.size();
@@ -509,7 +509,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	}
         // here we do the same but inverting x and y
 	{
-                QGauss<1> quadrature_formula2(7);
+                QGauss<1> quadrature_formula2(20);
                 FEValues<1> fe_values2 (fe_integral_y, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
                 
                 const unsigned int   n_q_points    = quadrature_formula2.size();
