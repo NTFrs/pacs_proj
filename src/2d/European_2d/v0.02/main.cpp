@@ -852,7 +852,7 @@ void Opzione<dim>::solve() {
 
 				 data_out.build_patches ();
 
-				 std::string name("step-");
+				 std::string name("plot/step-");
 				 name.append(to_string(Step));
 				 name.append(".gpl");
 				 std::ofstream output (name);
@@ -936,24 +936,24 @@ int main() {
 	par.lambda_meno_1=3.13868;                            // Parametro 4 Kou
         
 	// Parametri della parte salto
-        /*
+        
 	par.p2=0.20761;                                            // Parametro 1 Kou
 	par.lambda2=0.330966;                                      // Parametro 2 Kou
 	par.lambda_piu_2=9.65997;                                  // Parametro 3 Kou
 	par.lambda_meno_2=3.13868;                                 // Parametro 4 Kou
-        */
         
+        /*
         par.p2=0.7;
         par.lambda2=0.78;
         par.lambda_meno_2=20.;
         par.lambda_piu_2=2.;
-	
+	*/
 	// tempo // spazio
-	Opzione<2> Call(par, 50, 5);
+	Opzione<2> Call(par, 10, 5);
 	double prezzo=Call.run();
         
 	cout<<"Prezzo "<<prezzo<<"\n";
-	cout<<"2d v001\n";
+	cout<<"2d v002\n";
         
 	return 0;
 }
