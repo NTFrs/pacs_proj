@@ -24,7 +24,7 @@ lambda_piu2=9.65997;
 rho=-0.2;
 
 Nsim=1000;
-Nstep=1;
+Nstep=100;
 
 t=linspace(0,T,Nstep+1);
 
@@ -119,4 +119,4 @@ figure;
 plot(t,S2);
 title('S2');
 
-Prezzo=mean(max(S1(:,2)+S2(:,2)-K,0))
+Prezzo=exp(-r*T)*mean(max(S1(:,2)+S2(:,2)-K,0))
