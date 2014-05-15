@@ -337,10 +337,10 @@ void Opzione<dim>::assemble_system() {
                 ones[i]=1;
         
         Tensor< 1, dim, double > trasp;
-        
+		Tensor< 1, dim, double > divSIG;
         trasp[0]=0.;
         trasp[1]=0.;
-        
+		divSIG[1]=0.;
 //         const Coefficient<dim> coefficient(par.r, par.S0);
 	        std::vector<Point<dim> >    quad_points (n_q_points);
         
@@ -366,15 +366,18 @@ void Opzione<dim>::assemble_system() {
 										sigma_matrix[0][0]=0.5*par.sigma*par.sigma*
 														quad_points[q_point][0]*quad_points[q_point][0];
 // 									cout<< fe_values.jacobian(q_point)[1][1]<< "\n";
-										sigma_matrix[1][1]=0.5*fabs(trasp[1])/fe_values.jacobian(q_point)[1][1];
+// 										sigma_matrix[1][1]=0.5*fabs(trasp[1])/fe_values.jacobian(q_point)[1][1];
+			  
+									divSIG[0]=par.sigma*par.sigma*quad_points[q_point][0];
 			  
 // 									cerr<< "but not here";
                                         cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
                                         cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
-                                        (fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
-                                         fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
+                                        (fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)+
+                                        fe_values.shape_value(i, q_point)*divSIG*fe_values.shape_grad(j, q_point)
+                                        -fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
                                          (1/time_step+par.r)*
                                          fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
