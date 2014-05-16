@@ -239,6 +239,15 @@ void Opzione<dim>::make_grid() {
         GridOut grid_out;
         grid_out.write_eps (triangulation, out);
         
+	cout<< "Controlling Boundary indicators\n";
+	vector<types::boundary_id> info;
+	info=triangulation.get_boundary_indicators();
+	cout<< "Number of Boundaries: " << info.size()<< endl;
+	cout<< "which are"<< endl;
+	for (unsigned int i=0; i<info.size();++i)
+	cout<< info[i] << endl;
+
+        
 }
 
 template<int dim>
@@ -440,23 +449,24 @@ double Opzione<dim>::get_price() {
         }
         
         // Creo nuova grigla ( che passi da (0,0) )
-        Triangulation<dim> price;
+//         Triangulation<dim> price;
         // Creo degli fe
-        FE_Q<dim> fe2 (1);
+//         FE_Q<dim> fe2 (1);
         // Creo un DoFHandler e lo attacco a price
-        DoFHandler<dim> dof_handler_2 (price);
+//         DoFHandler<dim> dof_handler_2 (price);
         // Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
-        GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), Point<dim> (xmax1,xmax2));
+//         GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), Point<dim> (xmax1,xmax2));
         // Assegno a dof_handler_2 gli elementi finit fe2 appena creati
-        dof_handler_2.distribute_dofs(fe2);
+//         dof_handler_2.distribute_dofs(fe2);
         // Definisco questa fantomatica funzione FEFieldFunction
         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
         // Creo il vettore che conterrà i valori interpolati
-        Vector<double> solution_vector(4);
+//         Vector<double> solution_vector(4);
         // Interpolo
-        VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
+//         VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
         // Ritorno il valore interpolato della soluzione in (0,0)
-        return solution_vector[0];
+        Point<dim> p(0.,0.);
+        return fe_function.value(p);
 }
 
 int main() {
@@ -473,11 +483,11 @@ int main() {
         */
         
         par.T=1.;
-	par.K=200;
-	par.S01=80;
+		par.K=200;
+		par.S01=80;
         par.S02=120;
-	par.r=0.1;
-	par.sigma1=0.1256;
+		par.r=0.1;
+		par.sigma1=0.1256;
         par.sigma2=0.2;
         par.ro=-0.2;
         
