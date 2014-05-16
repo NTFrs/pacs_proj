@@ -124,16 +124,19 @@ template<int dim>
 class Boundary_Condition: public Function<dim>
 {
 public:
-	Boundary_Condition() : Function< dim>() {};
+	Boundary_Condition(double T) : Function< dim>(),  _T(T) {};
         
 	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+
+private:
+	double _T;
 };
 
 template<int dim>
 double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-        return max(p[0]-p[1]/this->get_time(),0.);
+        return max(p[0]-p[1]/_T,0.);
         
 }
 
@@ -314,8 +317,6 @@ void Opzione<dim>::assemble_system() {
         
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
         
-	FullMatrix<double> cell_dd(dofs_per_cell);
-	FullMatrix<double> cell_fd(dofs_per_cell);
 	FullMatrix<double> cell_ff(dofs_per_cell);
     FullMatrix<double> cell_system(dofs_per_cell);
         
@@ -331,10 +332,6 @@ void Opzione<dim>::assemble_system() {
         sigma_matrix[0][1]=0.;
         sigma_matrix[1][0]=0.;
         
-        Tensor< 1 , dim, double > ones;
-	
-        for (unsigned i=0;i<dim;++i)
-                ones[i]=1;
         
         Tensor< 1, dim, double > trasp;
 		Tensor< 1, dim, double > divSIG;
@@ -349,47 +346,45 @@ void Opzione<dim>::assemble_system() {
                 
                 fe_values.reinit(cell);
                 
-                cell_dd=0;
-                cell_fd=0;
                 cell_ff=0;
                 cell_system=0;
                 
                 quad_points=fe_values.get_quadrature_points();
                 
-                for (unsigned q_point=0;q_point<n_q_points;++q_point)
+                for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+					
+
+					trasp[0]=par.r*quad_points[q_point][0];
+					trasp[1]=quad_points[q_point][0];
+					// 									cerr<< "got to here\n";
+					sigma_matrix[0][0]=0.5*par.sigma*par.sigma*
+					quad_points[q_point][0]*quad_points[q_point][0];
+					// 									cout<< fe_values.jacobian(q_point)[1][1]<< "\n";
+					// 										sigma_matrix[1][1]=0.5*fabs(trasp[1])/fe_values.jacobian(q_point)[1][1];
+
+					divSIG[0]=par.sigma*par.sigma*quad_points[q_point][0];
+
+					
+					
+					
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
-                                        trasp[0]=par.r*quad_points[q_point][0];
-                                        trasp[1]=quad_points[q_point][0];
-// 									cerr<< "got to here\n";
-										sigma_matrix[0][0]=0.5*par.sigma*par.sigma*
-														quad_points[q_point][0]*quad_points[q_point][0];
-// 									cout<< fe_values.jacobian(q_point)[1][1]<< "\n";
-// 										sigma_matrix[1][1]=0.5*fabs(trasp[1])/fe_values.jacobian(q_point)[1][1];
-			  
-									divSIG[0]=par.sigma*par.sigma*quad_points[q_point][0];
-			  
 // 									cerr<< "but not here";
-                                        cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
-                                        cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
                                         (fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)+
-                                        fe_values.shape_value(i, q_point)*divSIG*fe_values.shape_grad(j, q_point)
-                                        -fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                         (1/time_step+par.r)*
-                                         fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
+                                        fe_values.shape_value(i, q_point)*(divSIG-trasp)*fe_values.shape_grad(j, q_point)
+                                        +(1/time_step+par.r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
+				}
                 
                 cell->get_dof_indices (local_dof_indices);
                 
                 for (unsigned int i=0; i<dofs_per_cell;++i)
                         for (unsigned int j=0; j< dofs_per_cell; ++j) {
                                 
-                                dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
-                                fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
                                 ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
                                 system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_system(i, j));
                                 
@@ -435,7 +430,7 @@ void Opzione<dim>::solve() {
         }
         //
         
-        Boundary_Condition<dim> bc;
+        Boundary_Condition<dim> bc(par.T);
 	cout<< "time step is"<< time_step<< endl;
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
@@ -477,6 +472,18 @@ void Opzione<dim>::solve() {
                 
                 solution=system_rhs;
                 
+	 DataOut<2> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "end");
+
+	 data_out.build_patches ();
+
+	 std::string name("plot/step-");
+	 name.append(to_string(Step));
+	 name.append(".gpl");
+	 std::ofstream output (name);
+	 data_out.write_gnuplot (output);
 	}
         
         // Printing final solution
