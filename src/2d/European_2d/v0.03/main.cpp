@@ -357,7 +357,7 @@ private:
         std::vector<double> right_quad_weights_x;
         std::vector<double> left_quad_weights_x;
         
-        std::vector<Point<dim> > quadrature_points_x;
+        std::vector<Point<1> > quadrature_points_x;
         
         Quadrature_Laguerre right_quad_y;
         Quadrature_Laguerre left_quad_y;
@@ -367,7 +367,7 @@ private:
         std::vector<double> right_quad_weights_y;
         std::vector<double> left_quad_weights_y;
         
-        std::vector<Point<dim> > quadrature_points_y;
+        std::vector<Point<1> > quadrature_points_y;
         
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
@@ -460,7 +460,7 @@ template<int dim>
 void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y) {
 	
 	//initialize
-	J_x.reinit(solution.size());                                 // If fast is false, the vector is filled by zeros
+	J_x.reinit(solution.size());    // If fast is false, the vector is filled by zeros
 	J_y.reinit(solution.size());
         
 	unsigned int N(grid_points.size());
@@ -481,7 +481,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                         
                         // Inserisco in quad_points tutti i punti di quadrature shiftati
                         for (int i=0; i<quad_points.size(); ++i) {
-                                quad_points[i]=quadrature_points_x[i] + grid_points[it];
+                                quad_points[i][0]=quadrature_points_x[i][0] + grid_points[it][0];
+                                quad_points[i][1]=grid_points[it][1];
                         }
                         
                         // valuto f_u in quad_points
@@ -511,7 +512,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                         
                         // Inserisco in quad_points tutti i punti di quadrature shiftati
                         for (int i=0; i<quad_points.size(); ++i) {
-                                quad_points[i]=quadrature_points_y[i] + grid_points[it];
+                                quad_points[i][0]=grid_points[it][0];
+                                quad_points[i][1]=quadrature_points_y[i][0] + grid_points[it][1];
                         }
                         
                         // valuto f_u in quad_points
@@ -651,14 +653,14 @@ void Opzione<dim>::setup_system() {
         left_quad_nodes_x=left_quad_x.get_nodes();
         left_quad_weights_x=left_quad_x.get_weights();
         
-        quadrature_points_x=std::vector<Point<dim> > (left_quad_x.get_order()+right_quad_x.get_order());
+        quadrature_points_x=std::vector<Point<1> > (left_quad_x.get_order()+right_quad_x.get_order());
         
         // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
         for (int i=0; i<left_quad_x.get_order(); ++i) {
-                quadrature_points_x[i]=static_cast< Point<dim> > (-left_quad_nodes_x[i]);
+                quadrature_points_x[i]=static_cast< Point<1> > (-left_quad_nodes_x[i]);
         }
         for (int i=0; i<right_quad_x.get_order(); ++i) {
-                quadrature_points_x[i+left_quad_x.get_order()]=static_cast< Point<dim> > (right_quad_nodes_x[i]);
+                quadrature_points_x[i+left_quad_x.get_order()]=static_cast< Point<1> > (right_quad_nodes_x[i]);
         }
         
         // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
@@ -672,14 +674,14 @@ void Opzione<dim>::setup_system() {
         left_quad_nodes_y=left_quad_y.get_nodes();
         left_quad_weights_y=left_quad_y.get_weights();
         
-        quadrature_points_y=std::vector<Point<dim> > (left_quad_y.get_order()+right_quad_y.get_order());
+        quadrature_points_y=std::vector<Point<1> > (left_quad_y.get_order()+right_quad_y.get_order());
         
         // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
         for (int i=0; i<left_quad_y.get_order(); ++i) {
-                quadrature_points_y[i]=static_cast< Point<dim> > (-left_quad_nodes_y[i]);
+                quadrature_points_y[i]=static_cast< Point<1> > (-left_quad_nodes_y[i]);
         }
         for (int i=0; i<right_quad_y.get_order(); ++i) {
-                quadrature_points_y[i+left_quad_y.get_order()]=static_cast< Point<dim> > (right_quad_nodes_y[i]);
+                quadrature_points_y[i+left_quad_y.get_order()]=static_cast< Point<1> > (right_quad_nodes_y[i]);
         }
         
 }
@@ -959,7 +961,7 @@ int main() {
          par.lambda_piu_2=2.;
          */
 	// tempo // spazio
-	Opzione<2> Call(par, 10, 5);
+	Opzione<2> Call(par, 50, 6);
 	double prezzo=Call.run();
         
 	cout<<"Prezzo "<<prezzo<<"\n";
