@@ -472,7 +472,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	{
                 //we need a solution trimmer
                 Solution_Trimmer<dim> func(0, &bc, &bc, dof_handler, solution, xmin, xmax);
-                
+#pragma omp parallel for
                 for (int it=0; it<J_x.size(); ++it) {
                         
                         // and some vectors
@@ -504,7 +504,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	{
                 
                 Solution_Trimmer<dim> func(1, &bc, &bc, dof_handler, solution, xmin, xmax);
-                
+#pragma omp parallel for
                 for (int it=0; it<J_y.size(); ++it) {
                         
                         std::vector< Point<dim> > quad_points(left_quad_y.get_order()+right_quad_y.get_order());
