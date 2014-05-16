@@ -1,3 +1,23 @@
+A grandi linee:
+0)Strutturare -> Designa Patterns
+
+1) 2D Hermite Kou -> G
+1) Cabio integrale Se^y -> N
+	1.1) PDE con coeff variabili ->N 
+2)Americane
+	2.1)Approccio deal 2
+	2.2)Psor o alternativo (LIS, PETSc,Trilinos)
+3)Mesh coarsening and refinement (kelly, doubling grid)
+3)integral refinement
+
+Varie:
+-Parallelizzare (openmp e rifiutare MPI)
+-Asiatica chiedere a marazzina
+-2D validation chiedere a marazzina (se niente MC)
+-Imparare CMAKE
+-Imparare Doxygen e documentare
+
+Nel dettaglio alcuni compiti sono:
 Things to do go here
 
 Giorgio:

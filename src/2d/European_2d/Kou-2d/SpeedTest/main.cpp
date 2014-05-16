@@ -29,10 +29,7 @@
 #include <iostream>
 
 #include <vector>
-#include <ctime>
 #include <algorithm>
-
-#include <climits>
 
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/grid_tools.h>
@@ -44,23 +41,25 @@
 #include <deal.II/lac/sparse_direct.h>
 #include <deal.II/lac/solver_richardson.h>
 #include <deal.II/lac/precondition.h>
-#include <boost/graph/graph_concepts.hpp>
+#include <boost/graph/buffer_concepts.hpp>
 
 #include <cmath>
 #include <algorithm>
 
-#include <omp.h>
+#include <climits>
 
-# include <cstdlib>
-# include <cmath>
-# include <iostream>
-# include <fstream>
-# include <iomanip>
-# include <ctime>
-# include <string>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_integration.h>
+#include <gsl/gsl_sf.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_spline.h>
 
 using namespace std;
 using namespace dealii;
+
+const double eps=std::numeric_limits<double>::epsilon();
+const double toll=1e-8;
 
 // laguerre stuff found on http://people.sc.fsu.edu/~jburkardt/cpp_src/laguerre_rule/laguerre_rule.cpp
 // This code is distributed under the GNU LGPL license.
@@ -86,219 +85,6 @@ void sgqf ( int nt, double aj[], double bj[], double zemu, double t[],
            double wts[] );
 void timestamp ( );
 // laguerre stuff
-
-//#define dim 1
-
-#define __PIDE__
-#define __MATLAB__
-//#define __INTERPOLATION__
-
-const double toll=1e-8;
-const double eps=std::numeric_limits<double>::epsilon();
-/*
- auto greater = [] (Point<dim> p1, Point<dim> p2) {
- return p1[0]<p2[0];
- };
- 
- sort(integral_points.begin(), integral_points.end(), greater);
- */
-
-class Parametri{
-public:
-	//Dati
-	double T;                                                  // Scadenza
-	double K;                                                  // Strike price
-	double S0;                                                 // Spot price
-	double r;                                                  // Tasso risk free
-        
-	// Parametri della parte continua
-	double sigma;                                              // Volatilità
-        
-	// Parametri della parte salto
-	double p;                                                  // Parametro 1 Kou
-	double lambda;                                             // Parametro 2 Kou
-	double lambda_piu;                                         // Parametro 3 Kou
-	double lambda_meno;                                        // Parametro 4 Kou
-        
-	Parametri()=default;
-	Parametri(const Parametri &)=default;
-};
-
-// auto grid_order = [] (Point<1> p1, Point<1> p2) {return p1[0]<p2[0];};
-
-template<int dim>
-class PayOff : public Function<dim>
-{
-public:
-	PayOff (double K_, double S0_) : Function<dim>(), K(K_), S0(S0_) {};
-        
-	virtual double value (const Point<dim>   &p,
-                              const unsigned int  component = 0) const;
-private:
-	double K;
-	double S0;
-};
-
-template<int dim>
-double PayOff<dim>::value (const Point<dim>  &p,
-                           const unsigned int component) const
-{
-	Assert (component == 0, ExcInternalError());
-	return max(K-S0*exp(p(0)),0.);
-}
-
-template<int dim>
-class Boundary_Right_Side : public Function<dim>
-{
-public:
-	Boundary_Right_Side() : Function< dim>() {};
-        
-	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
-        
-};
-
-template<int dim>
-double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
-{
-	Assert (component == 0, ExcInternalError());
-	return 0;
-        
-}
-
-template<int dim>
-class Boundary_Left_Side: public Function<dim>
-{
-public:
-	Boundary_Left_Side(double S0, double K, double T,  double r) : Function< dim>(), _S0(S0), _K(K), _T(T), _r(r) {};
-        
-	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
-private:
-	double _S0;
-	double _K;
-	double _T;
-	double _r;
-};
-
-template<int dim>
-double Boundary_Left_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
-{
-	Assert (component == 0, ExcInternalError());
-	return _K*exp(-_r*(_T-this->get_time()))-_S0*exp(p[0]);
-        
-}
-template<int dim>
-class Kou_Density: public Function<dim>
-{
-        
-public:
-	Kou_Density(double p,  double lam, double lam_u,  double lam_d) : Function<dim>(),  _p(p),  _lam(lam), 
-	_lam_u(lam_u),  _lam_d(lam_d) {};
-        
-	virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
-	virtual void value_list(const std::vector<Point<dim> > &points,
-                                std::vector<double> &values,
-                                const unsigned int component = 0) const;
-private:
-	double _p;
-	double _lam;
-	double _lam_u,  _lam_d;
-};
-
-template<int dim>
-double Kou_Density<dim>::value(const Point<dim> &p,  const unsigned int component) const
-{
-	Assert (component == 0, ExcInternalError());
-	if (p[0]>0)
-                return _p*_lam*_lam_u*exp(-_lam_u*p[0]);
-	else
-                return (1-_p)*_lam*_lam_d*exp(_lam_d*p[0]);
-        
-}
-
-template<int dim>
-void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
-{
-	Assert (values.size() == points.size(),
-                ExcDimensionMismatch (values.size(), points.size()));
-	Assert (component == 0, ExcInternalError());
-	
-	const unsigned int n_points=points.size();
-	
-	for (unsigned int i=0;i<n_points;++i)
-                if (points[i][0]>0)
-                        values[i]=_p*_lam*_lam_u*exp(-_lam_u*points[i][0]);
-                else
-                        values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][0]);
-}
-
-
-template<int dim>
-class Solution_Trimmer: public Function<dim>
-{
-private:
-	//check that this causes no memory leaks while keeping hereditariety
-	Function<dim> * _left;  
-	Function<dim> * _right;
-	DoFHandler<dim> const & _dof;
-	Vector<double> const & _sol;
-	Point<dim> _l_lim, _r_lim;
-	Functions::FEFieldFunction<dim> _fe_func;
-	
-public:
-	Solution_Trimmer(       Function<dim> * left,
-                                Function<dim> * right,
-                                DoFHandler<dim> const & dof,
-                                Vector<double> const & sol, 
-                                Point<dim> const & xmin,
-                                Point<dim> const & xmax         )
-                                :
-                                _left(left),
-                                _right(right),
-                                _dof(dof),
-                                _sol(sol),
-                                _l_lim(xmin),
-                                _r_lim(xmax),
-                                _fe_func(_dof, _sol)
-                                {};
-	
-	virtual double value(const Point<dim> &p,  const unsigned int component=0) const;
-	virtual void value_list(const std::vector<Point<dim> > &points,
-                                std::vector<double> &values,
-                                const unsigned int component = 0) const;
-};
-
-template<int dim>
-double Solution_Trimmer<dim>::value(const Point<dim> &p,  const unsigned int component) const
-{
-	Assert (component == 0, ExcInternalError());
-	
-	if (p[0]<_l_lim[0])
-                return _left->value(p);
-	if (p[0]>_r_lim[0])
-                return _right->value(p);
-	return _fe_func.value(p);  
-	
-}
-
-template<int dim>
-void Solution_Trimmer<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
-{
-	Assert (values.size() == points.size(),
-                ExcDimensionMismatch (values.size(), points.size()));
-	Assert (component == 0, ExcInternalError());
-	
-	const unsigned int n_points=points.size();
-        
-	for (unsigned int i=0;i<n_points;++i)
-        {
-                if (points[i][0]<_l_lim[0])
-                        values[i]=_left->value(points[i]);
-                else if (points[i][0]>_r_lim[0])
-                        values[i]=_right->value(points[i]);
-                else
-                        values[i]=_fe_func.value(points[i]);
-        }
-}
 
 class Quadrature_Laguerre{
 private:
@@ -330,31 +116,231 @@ public:
         inline std::vector<double> const & get_weights () {return weights;}
 };
 
+#define __CALL__
+// max(s1+s2-k,0)
+
+//selfexplanatory,  just extended it
+class Parametri2d{
+public:
+	//Dati
+	double T;                                                  // Scadenza
+	double K;                                                  // Strike price
+	double S01;                                                // Spot price
+	double S02;                                                // Spot price
+	double r;                                                  // Tasso risk free
+        
+	// Parametri della parte continua
+	double sigma1;                                             // Volatilità
+	double sigma2;                                          // Volatilità
+	double ro;                                              // Volatilità
+        
+	// Parametri della parte salto
+	double p1;                                              // Parametro 1 Kou
+	double lambda1;                                         // Parametro 2 Kou
+	double lambda_piu_1;                                    // Parametro 3 Kou
+	double lambda_meno_1;                                   // Parametro 4 Kou
+        
+	double p2;                                                 // Parametro 1 Kou
+	double lambda2;                                            // Parametro 2 Kou
+	double lambda_piu_2;                                       // Parametro 3 Kou
+	double lambda_meno_2;                                      // Parametro 4 Kou
+        
+        
+	Parametri2d()=default;
+	Parametri2d(const Parametri2d &)=default;
+};
+
+template<int dim>
+class Boundary_Condition: public Function<dim>
+{
+public:
+	Boundary_Condition(double S01, double S02, double K, double T,  double r) : Function< dim>(),
+	_S01(S01), _S02(S02), _K(K), _T(T), _r(r) {};
+        
+	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+private:
+	double _S01;
+	double _S02;
+	double _K;
+	double _T;
+	double _r;
+};
+
+template<int dim>
+double Boundary_Condition<dim>::value(const Point<dim> &p, const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+#ifdef __CALL__
+	return max(_S01*exp(p[0])+_S02*exp(p[1])-_K*exp(-_r*(_T-this->get_time())),0.);
+#else
+	return max(_K*exp(-_r*(_T-this->get_time()))-(_S01*exp(p[0])+_S02*exp(p[1])),0.);
+#endif
+}
+
+template<int dim>
+class PayOff : public Function<dim>
+{
+public:
+	PayOff (double K_, double S01_, double S02_) : Function<dim>(), K(K_), S01(S01_), S02(S02_) {};
+        
+	virtual double value (const Point<dim>   &p,
+                              const unsigned int  component = 0) const;
+private:
+	double K;
+	double S01;
+	double S02;
+};
+
+template<int dim>
+double PayOff<dim>::value (const Point<dim>  &p,
+                           const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+#ifdef __CALL__
+	return max(S01*exp(p(0))+S02*exp(p(1))-K,0.);
+#else
+	return max(K-(S01*exp(p(0))+S02*exp(p(1))),0.);
+#endif
+}
+
+
+//added a new private variable,  that indicates with ax the density uses
+template<int dim>
+class Kou_Density: public Function<dim>
+{
+        
+public:
+	Kou_Density(unsigned int ax,  double p,  double lam, double lam_u,  double lam_d) : Function<dim>(),  _ax(ax),  _p(p),  _lam(lam), 
+	_lam_u(lam_u),  _lam_d(lam_d) {};
+        
+	//value in the point p
+	virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
+	//same but vector of points
+	virtual void value_list(const std::vector<Point<dim> > &points,
+                                std::vector<double> &values,
+                                const unsigned int component = 0) const;
+private:
+	//indicates wich ax
+	unsigned int _ax;
+	double _p;
+	double _lam;
+	double _lam_u,  _lam_d;
+};
+
+template<int dim>
+double Kou_Density<dim>::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	if (p[_ax]>0)
+                return _p*_lam*_lam_u*exp(-_lam_u*p[_ax]);
+	else
+                return (1-_p)*_lam*_lam_d*exp(_lam_d*p[_ax]);
+        
+}
+
+template<int dim>
+void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+{
+	Assert (values.size() == points.size(),
+                ExcDimensionMismatch (values.size(), points.size()));
+	Assert (component == 0, ExcInternalError());
+        
+	const unsigned int n_points=points.size();
+        
+	for (unsigned int i=0;i<n_points;++i)
+                if (points[i][_ax]>0)
+                        values[i]=_p*_lam*_lam_u*exp(-_lam_u*points[i][_ax]);
+                else
+                        values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][_ax]);
+}
+
+//same,  added a private variable indicating wih ax
+//TODO delete default constructor
+template<int dim>
+class Solution_Trimmer: public Function<dim>
+{
+private:
+	unsigned int _ax;
+	//check that this causes no memory leaks while keeping hereditariety
+	Function<dim> * _left;  
+	Function<dim> * _right;
+	DoFHandler<dim> const & _dof;
+	Vector<double> const & _sol;
+	Point<dim> _l_lim, _r_lim;
+	Functions::FEFieldFunction<dim> _fe_func;
+        
+public:
+	Solution_Trimmer(unsigned int ax, Function<dim> * left,  Function<dim> * right, DoFHandler<dim> const & dof, Vector<double> const & sol,  Point<dim> const & xmin, Point<dim> const & xmax): _ax(ax), _left(left),  _right(right),  _dof(dof), _sol(sol), _l_lim(xmin), _r_lim(xmax) , _fe_func(_dof, _sol){};
+        
+	virtual double value(const Point<dim> &p,  const unsigned int component=0) const;
+	virtual void value_list(const std::vector<Point<dim> > &points,
+                                std::vector<double> &values,
+                                const unsigned int component = 0) const;
+};
+
+template<int dim>
+double Solution_Trimmer<dim>::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+        
+	if (p[_ax]<_l_lim[_ax])
+                return _left->value(p);
+	if (p[_ax]>_r_lim[_ax])
+                return _right->value(p);
+	return _fe_func.value(p);  
+        
+}
+
+template<int dim>
+void Solution_Trimmer<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+{
+	Assert (values.size() == points.size(),
+                ExcDimensionMismatch (values.size(), points.size()));
+	Assert (component == 0, ExcInternalError());
+        
+	const unsigned int n_points=points.size();
+        
+	for (unsigned int i=0;i<n_points;++i)
+	{
+                if (points[i][_ax]<_l_lim[_ax])
+                        values[i]=_left->value(points[i]);
+                else if (points[i][_ax]>_r_lim[_ax])
+                        values[i]=_right->value(points[i]);
+                else
+                        values[i]=_fe_func.value(points[i]);
+        }
+}
+
+
 
 template<int dim>
 class Opzione{
 private:
-	Parametri par;
+	Parametri2d par;
 	void make_grid();
-	void setup_system ();
-	void assemble_system ();
-	void solve ();
+	void setup_system () ;
+	void assemble_system () ;
+	void solve () ;
 	void output_results () const {};
         
-	
+	//two densities that work on 2D points
+	Kou_Density<dim>				k_x;
+	Kou_Density<dim>				k_y;
         
-	Kou_Density<dim>				k;    
-        
+	//domain triangulation 2D
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
 	DoFHandler<dim>                 dof_handler;
         
-	Triangulation<dim>              integral_triangulation;
-	//     Triangulation<dim>              integral_triangulation2;
+	//integral triangulations 1D,  and relatives FE and DoF_handlers
+	Triangulation<1>        integral_triangulation_x;
+	FE_Q<1>                 fe_integral_x;
+	DoFHandler<1>           dof_handler_integral_x;
         
-	FE_Q<dim>                       fe2;
-	DoFHandler<dim>                 dof_handler_2;
-        
+	Triangulation<1>        integral_triangulation_y;
+	FE_Q<1>			fe_integral_y;
+	DoFHandler<1>		dof_handler_integral_y;
+	
 	SparsityPattern                 sparsity_pattern;
 	SparseMatrix<double>            system_matrix;
 	SparseMatrix<double>            system_M2;
@@ -362,175 +348,271 @@ private:
 	SparseMatrix<double>            fd_matrix;
 	SparseMatrix<double>            ff_matrix;
         
+        // quadrature di laguerre
+        Quadrature_Laguerre right_quad_x;
+        Quadrature_Laguerre left_quad_x;
+        
+        std::vector<double> right_quad_nodes_x;
+        std::vector<double> left_quad_nodes_x;
+        std::vector<double> right_quad_weights_x;
+        std::vector<double> left_quad_weights_x;
+        
+        std::vector<Point<1> > quadrature_points_x;
+        
+        Quadrature_Laguerre right_quad_y;
+        Quadrature_Laguerre left_quad_y;
+        
+        std::vector<double> right_quad_nodes_y;
+        std::vector<double> left_quad_nodes_y;
+        std::vector<double> right_quad_weights_y;
+        std::vector<double> left_quad_weights_y;
+        
+        std::vector<Point<1> > quadrature_points_y;
+        
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
-        
-        // 	std::vector<unsigned int>       index;
-        // 	std::vector<double>             u_array;
-        // 	double *                        x_array;
-        
+	
 	std::vector< Point<dim> >       grid_points;
-        // 	std::vector< Point<dim> >       integral_grid_points;
-        
-        // 	std::vector< double >           integral_weights;
-        // 	std::vector< Point<dim> >       integral_points;
-        
-        // quadrature di laguerre
-        Quadrature_Laguerre right_quad;
-        Quadrature_Laguerre left_quad;
-        
-        std::vector<double> right_quad_nodes;
-        std::vector<double> left_quad_nodes;
-        std::vector<double> right_quad_weights;
-        std::vector<double> left_quad_weights;
-        
-        std::vector<Point<dim> > quadrature_points;
-        
+	
 	unsigned int refs, Nsteps;
 	double time_step;
-	double dx;
-	double Smin, Smax;
-	double                          price;
-	Point<dim> xmin, xmax, Bmin, Bmax;
-        
-	double alpha;
-        
-        
-        
-	void Levy_integral_part1();
-	void Levy_integral_part2(Vector<double> &J,  double time);
-        // 	void f_u(std::vector<Point<dim> > &val, std::vector<Point<dim> > const &y);
-        // 	inline double payoff(double x, double K, double S0){return max(S0*exp(x)-K, 0.);}
-        // 	void calculate_weights();
-        
+	double dx1, dx2;
+	double Smin1, Smax1, Smin2, Smax2;
+	double price;
+	//using as points
+	Point<dim> xmin, xmax;
+	Point<dim> Bmin, Bmax;
+	
+	double alpha1,  alpha2;
+	
 	bool ran;
-        
+	
+	//redefined these parts
+	void Levy_integral_part1();
+	void Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y );
+	
 public:
-	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
+	//standard initialization.
+	Opzione(Parametri2d const &par_, int Nsteps_,  int refinement):
 	par(par_),
-	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
+	k_x(0, par_.p1, par_.lambda1,  par_.lambda_piu_1,  par_.lambda_meno_1),
+	k_y(1, par_.p2, par_.lambda2,  par_.lambda_piu_2,  par_.lambda_meno_2),
 	fe (1),
 	dof_handler (triangulation),
-	fe2 (1),
-	dof_handler_2 (integral_triangulation),
+	fe_integral_x(1), 
+	dof_handler_integral_x(integral_triangulation_x), 
+	fe_integral_y(1), 
+	dof_handler_integral_y(integral_triangulation_y), 
 	refs(refinement), 
 	Nsteps(Nsteps_), 
 	time_step (par.T/double(Nsteps_)),
-	price(0),  
+	price(0), 
 	ran(false)
 	{};
         
-	double get_price();
+	double get_price() ;
         
 	double run(){
                 make_grid();
                 setup_system();
                 assemble_system();
                 solve();
+                output_results();
                 return get_price();
                 
         };
 };
 
 
+//we calculate both alpha 1 and 2 in two separate cycles. Since the integral
+//grid is 1 dimensional,  we need to transform the 1D points of quadrature
+//q_i in 2D points (q_i, 0),  or (0, q_i) since all functions work on points.
+
 template<int dim>
 void Opzione<dim>::Levy_integral_part1(){
-        
-	alpha=0;
-        
-        for (int i=0; i<right_quad.get_order(); ++i) {
-                alpha+=(exp(right_quad_nodes[i])-1)*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
-        }
-
-        for (int i=0; i<left_quad.get_order(); ++i) {
-                        // il - è perché i nodi sono positivi (Quadrature_Laguerre integra da 0 a \infty)
-                alpha+=(exp(-left_quad_nodes[i])-1)*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
+	
+	alpha1=0;
+	alpha2=0;
+	
+        for (int i=0; i<right_quad_x.get_order(); ++i) {
+                alpha1+=(exp(right_quad_nodes_x[i])-1)*par.p1*par.lambda1*par.lambda_piu_1*right_quad_weights_x[i];
         }
         
-	return;
+        for (int i=0; i<left_quad_x.get_order(); ++i) {
+                // il - è perché i nodi sono positivi (Quadrature_Laguerre integra da 0 a \infty)
+                alpha1+=(exp(-left_quad_nodes_x[i])-1)*(1-par.p1)*par.lambda1*par.lambda_meno_1*left_quad_weights_x[i];
+        }
+        
+        for (int i=0; i<right_quad_y.get_order(); ++i) {
+                alpha2+=(exp(right_quad_nodes_y[i])-1)*par.p2*par.lambda2*par.lambda_piu_2*right_quad_weights_y[i];
+        }
+        
+        for (int i=0; i<left_quad_y.get_order(); ++i) {
+                // il - è perché i nodi sono positivi (Quadrature_Laguerre integra da 0 a \infty)
+                alpha2+=(exp(-left_quad_nodes_y[i])-1)*(1-par.p2)*par.lambda2*par.lambda_meno_2*left_quad_weights_y[i];
+        }
+        
+        cout<<"alpha1 "<<alpha1<<" alpha2 "<<alpha2<<"\n";
+	
 }
 
 template<int dim>
-void Opzione<dim>::Levy_integral_part2(Vector<double> &J,  double time) {
-        
-	J.reinit(solution.size());// If fast is false, the vector is filled by zeros
-        
-	Boundary_Left_Side<dim>         leftie(par.S0, par.K, par.T, par.r);
-	Boundary_Right_Side<dim>        rightie;
-	leftie.set_time(time);rightie.set_time(time);
+void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y) {
 	
-	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
-
-//#pragma omp parallel for
-        for (int it=0; it<J.size(); ++it) {
-                
-                std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
-                
-                std::vector<double> f_u(left_quad.get_order()+right_quad.get_order());
-                
-                // Inserisco in quad_points tutti i punti di quadrature shiftati
-                for (int i=0; i<quad_points.size(); ++i) {
-                        quad_points[i]=quadrature_points[i] + grid_points[it];
+	//initialize
+	J_x.reinit(solution.size());    // If fast is false, the vector is filled by zeros
+	J_y.reinit(solution.size());
+        
+	unsigned int N(grid_points.size());
+        
+        //we need a BC in 2d
+        Boundary_Condition<dim> bc(par.S01, par.S02, par.K, par.T, par.r);
+	
+	//we start the integration here
+	{
+                //we need a solution trimmer
+                Solution_Trimmer<dim> func(0, &bc, &bc, dof_handler, solution, xmin, xmax);
+#pragma omp parallel for
+                for (int it=0; it<J_x.size(); ++it) {
+                        
+                        // and some vectors
+                        std::vector< Point<dim> > quad_points(left_quad_x.get_order()+right_quad_x.get_order());
+                        std::vector<double> f_u(left_quad_x.get_order()+right_quad_x.get_order());
+                        
+                        // Inserisco in quad_points tutti i punti di quadrature shiftati
+                        for (int i=0; i<quad_points.size(); ++i) {
+                                quad_points[i][0]=quadrature_points_x[i][0] + grid_points[it][0];
+                                quad_points[i][1]=grid_points[it][1];
+                        }
+                        
+                        // valuto f_u in quad_points
+                        func.value_list(quad_points, f_u);
+                        
+                        // Integro dividendo fra parte sinistra e parte destra dell'integrale
+                        for (int i=0; i<left_quad_x.get_order(); ++i) {
+                                J_x(it)+=f_u[i]*(1-par.p1)*par.lambda1*par.lambda_meno_1*left_quad_weights_x[i];
+                        }
+                        for (int i=0; i<right_quad_x.get_order(); ++i) {
+                                J_x(it)+=f_u[i+left_quad_x.get_order()]*par.p1*par.lambda1
+                                *par.lambda_piu_1*right_quad_weights_x[i];
+                        }
+                        
                 }
                 
-                // valuto f_u in quad_points
-                func.value_list(quad_points, f_u);
+	}
+        // here we do the same but inverting x and y
+	{
                 
-                // Integro dividendo fra parte sinistra e parte destra dell'integrale
-                for (int i=0; i<left_quad.get_order(); ++i) {
-                        J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
+                Solution_Trimmer<dim> func(1, &bc, &bc, dof_handler, solution, xmin, xmax);
+#pragma omp parallel for
+                for (int it=0; it<J_y.size(); ++it) {
+                        
+                        std::vector< Point<dim> > quad_points(left_quad_y.get_order()+right_quad_y.get_order());
+                        std::vector<double> f_u(left_quad_y.get_order()+right_quad_y.get_order());
+                        
+                        // Inserisco in quad_points tutti i punti di quadrature shiftati
+                        for (int i=0; i<quad_points.size(); ++i) {
+                                quad_points[i][0]=grid_points[it][0];
+                                quad_points[i][1]=quadrature_points_y[i][0] + grid_points[it][1];
+                        }
+                        
+                        // valuto f_u in quad_points
+                        func.value_list(quad_points, f_u);
+                        
+                        // Integro dividendo fra parte sinistra e parte destra dell'integrale
+                        for (int i=0; i<left_quad_y.get_order(); ++i) {
+                                J_y(it)+=f_u[i]*(1-par.p2)*par.lambda2*par.lambda_meno_2*left_quad_weights_y[i];
+                        }
+                        for (int i=0; i<right_quad_y.get_order(); ++i) {
+                                J_y(it)+=f_u[i+left_quad_y.get_order()]*par.p2*par.lambda2
+                                *par.lambda_piu_2*right_quad_weights_y[i];
+                        }
+                        
                 }
-                for (int i=0; i<right_quad.get_order(); ++i) {
-                        J(it)+=f_u[i+left_quad.get_order()]*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
-                }
-
         }
-
+	
 }
 
 
+//   here I've changed double to points,  makes it easier in some parts
 template<int dim>
 void Opzione<dim>::make_grid() {
         
-	Smin=0.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
-                            -par.sigma*sqrt(par.T)*6);
-	Smax=1.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
-                            +par.sigma*sqrt(par.T)*6);
+	Smin1=par.S01*exp((par.r-par.sigma1*par.sigma1/2)*par.T
+                          -par.sigma1*sqrt(par.T)*6);
+	Smax1=par.S01*exp((par.r-par.sigma1*par.sigma1/2)*par.T
+                          +par.sigma1*sqrt(par.T)*6);
+	Smin2=par.S02*exp((par.r-par.sigma2*par.sigma2/2)*par.T
+                          -par.sigma2*sqrt(par.T)*6);
+	Smax2=par.S02*exp((par.r-par.sigma2*par.sigma2/2)*par.T
+                          +par.sigma2*sqrt(par.T)*6);
         
-	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
+	dx1=(log(Smax1/par.S01)-log(Smin1/par.S01))/pow(2., refs);
+	dx2=(log(Smax2/par.S02)-log(Smin2/par.S02))/pow(2., refs);
+        
 	xmin[0]=0;
 	xmax[0]=0;
+	xmin[1]=0;
+	xmax[1]=0;
         
-	dx=(log(Smax/par.S0)-log(Smin/par.S0))/pow(2., refs);
-	cout<<"dx "<<dx<<"\n";
+	while (xmin[0]>log(Smin1/par.S01))
+                xmin[0]-=dx1;
+	while (xmax[0]<log(Smax1/par.S01))
+                xmax[0]+=dx1;
+	
+	xmin[0]-=dx1;
+	xmax[0]+=dx1;
+	
+	while (xmin[1]>log(Smin2/par.S02))
+                xmin[1]-=dx2;
+	while (xmax[1]<log(Smax2/par.S02))
+                xmax[1]+=dx2;
+	
+	xmin[1]-=dx2;
+	xmax[1]+=dx2;
+	
+	cout<<"dx1 "<<dx1<<"\n";
+	cout<<"dx2 "<<dx2<<"\n";
+	
+	cout<< "Smin1= "<< Smin1<< "\t e Smax1= "<< Smax1<< endl;
+	cout<< "Smin2= "<< Smin2<< "\t e Smax2= "<< Smax2<< endl;
+	cout<< "xmin= "<< xmin<< endl;
+	cout<< "xmax= "<< xmax<< endl;
         
-	while (xmin[0]>log(Smin/par.S0))
-                xmin[0]-=dx;
-	while (xmax[0]<log(Smax/par.S0))
-                xmax[0]+=dx;
-	xmin[0]-=dx;
-	xmax[0]+=dx;
+	Bmin=xmin;
+	Bmax=xmax;
+	
+	while(k_x.value(Bmin)>toll)
+                Bmin[0]-=dx1;
         
-	cout<<"dx "<<dx<<"\n";
+	while(k_x.value(Bmax)>toll)
+                Bmax[0]+=dx1;
+	
+	while(k_y.value(Bmin)>toll)
+                Bmin[1]-=dx2;
         
-	Bmin[0]=xmin[0];
-	Bmax[0]=xmax[0];
-        
-        
-	while(k.value(Bmin)>toll)
-                Bmin[0]-=dx;
-        
-	while(k.value(Bmax)>toll)
-                Bmax[0]+=dx;
+	while(k_y.value(Bmax)>toll)
+                Bmax[1]+=dx2;
         
 	cout<<"Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
+	
+        // 	Point<dim> p1(xmin1,xmin2);
+        // 	Point<dim> p2(xmax1,xmax2);
         
-	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs)+3, xmin[0],xmax[0]);
+        // we can then create all triangulations
+	std::vector<unsigned> refinement={static_cast<unsigned>(pow(2,refs))+3, static_cast<unsigned>(pow(2,refs))+3};
+        
+	GridGenerator::subdivided_hyper_rectangle(triangulation, refinement, xmin, xmax);
         
 	grid_points=triangulation.get_vertices();
 	
-	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, refs-3), Bmin[0], Bmax[0]);
+	GridGenerator::subdivided_hyper_cube(integral_triangulation_x, pow(2, refs-3), Bmin[0], Bmax[0]);
 	
+	GridGenerator::subdivided_hyper_cube(integral_triangulation_y, pow(2, refs-3), Bmin[1], Bmax[1]);
+        
+	std::ofstream out ("grid.eps");
+	GridOut grid_out;
+	grid_out.write_eps (triangulation, out);
         
 }
 
@@ -538,10 +620,11 @@ template<int dim>
 void Opzione<dim>::setup_system() {
         
 	dof_handler.distribute_dofs(fe);
+	
+	dof_handler_integral_x.distribute_dofs(fe_integral_x);
+	dof_handler_integral_y.distribute_dofs(fe_integral_y);
         
-	dof_handler_2.distribute_dofs(fe2);
-        
-	std::cout << "   Number of degrees of freedom: "
+	std::cout << " Number of degrees of freedom: "
 	<< dof_handler.n_dofs()
 	<< std::endl;
         
@@ -556,47 +639,51 @@ void Opzione<dim>::setup_system() {
 	system_matrix.reinit(sparsity_pattern);
 	system_M2.reinit(sparsity_pattern);
         
-	typename Triangulation<dim>::cell_iterator
-	cell = triangulation.begin (),
-	endc = triangulation.end();
-	for (; cell!=endc; ++cell)
-                for (unsigned int face=0;
-                     face<GeometryInfo<dim>::faces_per_cell;++face)
-                        if (cell->face(face)->at_boundary())
-                                if (std::fabs(cell->face(face)->center()(0) - (xmax[0])) < toll)
-                                        cell->face(face)->set_boundary_indicator (1);
-        
-	cout<< "Controlling Boundary indicators\n";
-	vector<types::boundary_id> info;
-	info=triangulation.get_boundary_indicators();
-	cout<< "Number of Boundaries: " << info.size()<< endl;
-	cout<< "which are"<< endl;
-	for (unsigned int i=0; i<info.size();++i)
-                cout<< info[i] << endl;
-        
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
         // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
-        right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
-        left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
+        right_quad_x=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx1)/10), par.lambda_piu_1);
+        left_quad_x=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx1)/10), par.lambda_meno_1);
         
         // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
-        right_quad_nodes=right_quad.get_nodes();
-        right_quad_weights=right_quad.get_weights();
+        right_quad_nodes_x=right_quad_x.get_nodes();
+        right_quad_weights_x=right_quad_x.get_weights();
         
-        left_quad_nodes=left_quad.get_nodes();
-        left_quad_weights=left_quad.get_weights();
+        left_quad_nodes_x=left_quad_x.get_nodes();
+        left_quad_weights_x=left_quad_x.get_weights();
         
-        quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
+        quadrature_points_x=std::vector<Point<1> > (left_quad_x.get_order()+right_quad_x.get_order());
         
         // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
-        for (int i=0; i<left_quad.get_order(); ++i) {
-                quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
+        for (int i=0; i<left_quad_x.get_order(); ++i) {
+                quadrature_points_x[i]=static_cast< Point<1> > (-left_quad_nodes_x[i]);
         }
-        for (int i=0; i<right_quad.get_order(); ++i) {
-                quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
+        for (int i=0; i<right_quad_x.get_order(); ++i) {
+                quadrature_points_x[i+left_quad_x.get_order()]=static_cast< Point<1> > (right_quad_nodes_x[i]);
         }
+        
+        // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
+        right_quad_y=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[1]/dx2)/10), par.lambda_piu_2);
+        left_quad_y=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[1]/dx2)/10), par.lambda_meno_2);
+        
+        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
+        right_quad_nodes_y=right_quad_y.get_nodes();
+        right_quad_weights_y=right_quad_y.get_weights();
+        
+        left_quad_nodes_y=left_quad_y.get_nodes();
+        left_quad_weights_y=left_quad_y.get_weights();
+        
+        quadrature_points_y=std::vector<Point<1> > (left_quad_y.get_order()+right_quad_y.get_order());
+        
+        // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
+        for (int i=0; i<left_quad_y.get_order(); ++i) {
+                quadrature_points_y[i]=static_cast< Point<1> > (-left_quad_nodes_y[i]);
+        }
+        for (int i=0; i<right_quad_y.get_order(); ++i) {
+                quadrature_points_y[i+left_quad_y.get_order()]=static_cast< Point<1> > (right_quad_nodes_y[i]);
+        }
+        
 }
 
 template<int dim>
@@ -604,9 +691,8 @@ void Opzione<dim>::assemble_system() {
         
 	Levy_integral_part1();
         
-	cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
+	QGauss<dim> quadrature_formula(2);                  // 2 nodes, 2d -> 4 quadrature points per cell
         
-	QGauss<dim> quadrature_formula(2);
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
                                  update_JxW_values);
         
@@ -622,28 +708,48 @@ void Opzione<dim>::assemble_system() {
 	FullMatrix<double> cell_dd(dofs_per_cell);
 	FullMatrix<double> cell_fd(dofs_per_cell);
 	FullMatrix<double> cell_ff(dofs_per_cell);
+	FullMatrix<double> cell_system(dofs_per_cell);
         
 	typename DoFHandler<dim>::active_cell_iterator
 	cell=dof_handler.begin_active(),
 	endc=dof_handler.end();
-	Tensor< 1 , dim, double > ones;
-	// 	Tensor< 1 , dim, double > increasing;
         
-	for (unsigned i=0;i<dim;++i)
-                ones[i]=1;
+	// building tensors
+	Tensor< dim , dim, double > sigma_matrix;
         
+	sigma_matrix[0][0]=par.sigma1*par.sigma1;
+	sigma_matrix[1][1]=par.sigma2*par.sigma2;
+	sigma_matrix[0][1]=par.sigma1*par.sigma2*par.ro;
+	sigma_matrix[1][0]=par.sigma1*par.sigma2*par.ro;
+	/*
+         Tensor< 1 , dim, double > ones;
+         for (unsigned i=0;i<dim;++i)
+         ones[i]=1;
+	 */
+	Tensor< 1, dim, double > trasp;
+	trasp[0]=par.r-par.sigma1*par.sigma1/2-alpha1;
+	trasp[1]=par.r-par.sigma2*par.sigma2/2-alpha2;
+        
+	// cell loop
 	for (; cell !=endc;++cell) {
                 fe_values.reinit(cell);
                 cell_dd=0;
                 cell_fd=0;
                 cell_ff=0;
+                cell_system=0;
                 for (unsigned q_point=0;q_point<n_q_points;++q_point)
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
-                                        cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
-                                        cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
+                                        // mass matrix
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
+                                        
+                                        // system matrix
+                                        cell_system(i, j)+=fe_values.JxW(q_point)*
+                                        (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
+                                         fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
+                                         (1/time_step+par.r+par.lambda1+par.lambda2)*
+                                         fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
                 
@@ -652,92 +758,83 @@ void Opzione<dim>::assemble_system() {
                 for (unsigned int i=0; i<dofs_per_cell;++i)
                         for (unsigned int j=0; j< dofs_per_cell; ++j) {
                                 
-                                dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
-                                fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
                                 ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
+                                system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_system(i, j));
                                 
                         }
                 
         }
         
+	system_M2.add(1/time_step, ff_matrix);
         
-#ifdef __PIDE__
-	double diff=par.sigma*par.sigma/2;
-	double trasp=par.r-par.sigma*par.sigma/2-alpha;
-	double reaz=-par.r-par.lambda;
-        
-	system_matrix.add(1/time_step-0.5*reaz, ff_matrix); 
-	system_matrix.add(0.5*diff, dd_matrix);
-	system_matrix.add(-0.5*trasp, fd_matrix);
-        
-	system_M2.add(1/time_step+0.5*reaz, ff_matrix); 
-	system_M2.add(-0.5*diff, dd_matrix);
-	system_M2.add(0.5*trasp, fd_matrix);
-#else
-	system_M2.add(1, ff_matrix);
-	system_matrix.add(1, ff_matrix);
-	system_matrix.add(par.sigma*par.sigma*time_step/2, dd_matrix);
-	system_matrix.add(-time_step*(par.r-par.sigma*par.sigma/2), fd_matrix);
-	system_matrix.add(par.r*time_step, ff_matrix);
-        
+#ifdef __VERBOSE__
+	cout<<"system_matrix\n";
+	system_matrix.print_formatted(cout);
+	cout<<"system_M2\n";
+	system_M2.print_formatted(cout);
 #endif
-        
 }
 
 template<int dim>
 void Opzione<dim>::solve() {
         
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
-        
-	{
-	 DataOut<1> data_out;
-
-	 data_out.attach_dof_handler (dof_handler);
-	 data_out.add_data_vector (solution, "begin");
-
-	 data_out.build_patches ();
-
-	 std::ofstream output ("begin.gpl");
-	 data_out.write_gnuplot (output);
-	 }
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S01, par.S02), solution);
         
 	unsigned int Step=Nsteps;
         
-	Boundary_Left_Side<dim> left_bound(par.S0, par.K, par.T, par.r);
-	Boundary_Right_Side<dim> right_bound;
+	// Printing beginning solution
+	{
+                DataOut<2> data_out;
+                
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "begin");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("begin.gpl");
+                data_out.write_gnuplot (output);
+        }
+	//
+        
+	Boundary_Condition<dim> bc(par.S01, par.S02, par.K, par.T, par.r);
 	cout<< "time step is"<< time_step<< endl;
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+                cout<< "Step "<< Step<<"\t at time \t"<< time << endl;
                 
-#ifdef __PIDE__
-                Vector<double> J;
-                J.reinit(solution.size());
-                Levy_integral_part2(J, time);
+                // 	 pretty much the same: we calculate J_x and J_y
+                Vector<double> J_x, J_y;
+                Levy_integral_part2(J_x, J_y);
                 
-                ff_matrix.vmult(system_rhs, J);
-                Vector<double> temp;
-                temp.reinit(dof_handler.n_dofs());
-                system_M2.vmult(temp,solution);
-                system_rhs+=temp;
-#else
+                // 	 And we use the same old way
+                //   M2*old_solution+FF*J_x+FF*J_y to calculate rhs
                 system_M2.vmult(system_rhs, solution);
+                {
+                        Vector<double> temp;
+                        temp.reinit(dof_handler.n_dofs());
+                        ff_matrix.vmult(temp, J_x);
+                        
+                        system_rhs+=temp;
+                        
+                        temp.reinit(dof_handler.n_dofs());
+                        ff_matrix.vmult(temp, J_y);
+                        
+                        system_rhs+=temp;
+                }
+#ifdef __VERBOSE__
+                cout<<"rhs ";
+                system_rhs.print(cout);
+                cout<<"\n";
 #endif
-                left_bound.set_time(time);
-                right_bound.set_time(time);
                 
+                bc.set_time(time);
                 
                 {
                         
                         std::map<types::global_dof_index,double> boundary_values;
+                        
                         VectorTools::interpolate_boundary_values (dof_handler,
                                                                   0,
-                                                                  left_bound,
-                                                                  boundary_values);
-                        
-                        
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  1,
-                                                                  right_bound,
+                                                                  bc,
                                                                   boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
@@ -747,64 +844,50 @@ void Opzione<dim>::solve() {
                         
                 }
                 
+#ifdef __VERBOSE__
+                if (time==par.T-time_step) {
+                        system_matrix.print(cout);
+                }
+#endif
+                
                 SparseDirectUMFPACK solver;
                 solver.initialize(sparsity_pattern);
                 solver.factorize(system_matrix);
                 solver.solve(system_rhs);
                 
                 solution=system_rhs;
-         
-		 {
-		  DataOut<1> data_out;
-		  std::string name("step-");
-		  name.append(to_string(Step));
-		  data_out.attach_dof_handler (dof_handler);
-		  data_out.add_data_vector (solution, "end");
-
-		  data_out.build_patches ();
-		  name.append(".gpl");
-		  std::ofstream output (name);
-		  data_out.write_gnuplot (output);
-		  }
-         
-         
+                
+                DataOut<2> data_out;
+                
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "end");
+                
+                data_out.build_patches ();
+                
+                std::string name("plot/step-");
+                name.append(to_string(Step));
+                name.append(".gpl");
+                std::ofstream output (name);
+                data_out.write_gnuplot (output);
                 
         }
         
+	// Printing final solution
 	{
-	 DataOut<1> data_out;
-
-	 data_out.attach_dof_handler (dof_handler);
-	 data_out.add_data_vector (solution, "end");
-
-	 data_out.build_patches ();
-
-	 std::ofstream output ("end.gpl");
-	 data_out.write_gnuplot (output);
-	 }
+                DataOut<2> data_out;
+                
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "end");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("end.gpl");
+                data_out.write_gnuplot (output);
+        }
+	//
         
 	ran=true;
         
-#ifdef __MATLAB__
-	ofstream print;
-        print.open("solution.m");
-        
-        if (print.is_open()) {
-                print<<"x=[ ";
-                for (int i=0; i<grid_points.size()-1; ++i) {
-                        print<<par.S0*exp(grid_points[i][0])<<"; ";
-                }
-                print<<par.S0*exp(grid_points[grid_points.size()-1][0])<<" ];\n";
-                
-                print<<"sol=[ ";
-                for (int i=0; i<solution.size()-1; ++i) {
-                        print<<solution(i)<<"; ";
-                }
-                print<<solution(solution.size()-1)<<" ];\n";
-        }
-        
-        print.close();
-#endif
 }
 
 template<int dim>
@@ -813,83 +896,137 @@ double Opzione<dim>::get_price() {
 	if (ran==false) {
                 this->run();
         }
+        
+        //    No need to create more poits since xmin and xmax are already points
 	
-        // Creo nuova grigla ( che passi da 0 )
-//         Triangulation<dim> price;
-        // Creo degli fe
-//         FE_Q<dim> fe3 (1);
-        // Creo un DoFHandler e lo attacco a price
-//         DoFHandler<dim> dof_handler_3 (price);
-        // Costruisco la griglia, in modo che passi da 0 e non la rifinisco
-//         GridGenerator::hyper_rectangle(price, Point<dim> (0.), Point<dim> (xmax));
-        // Assegno a dof_handler_3 gli elementi finit fe3 appena creati
-//         dof_handler_3.distribute_dofs(fe3);
-        // Definisco questa fantomatica funzione FEFieldFunction
-        Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
-        // Creo il vettore che conterrà i valori interpolati
-//         Vector<double> solution_vector(2);
-        // Interpolo
-//         VectorTools::interpolate(dof_handler_3, fe_function, solution_vector);
-        // Ritorno il valore interpolato della soluzione in 0
-        Point<dim> p(0.);
-        return fe_function.value(p);
-
+	// Creo nuova grigla ( che passi da (0,0) )
+	Triangulation<dim> price;
+	// Creo degli fe
+	FE_Q<dim> fe2 (1);
+	// Creo un DoFHandler e lo attacco a price
+	DoFHandler<dim> dof_handler_2 (price);
+	// Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
+	GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), xmax);
+	// Assegno a dof_handler_2 gli elementi finit fe2 appena creati
+	dof_handler_2.distribute_dofs(fe2);
+	// Definisco questa fantomatica funzione FEFieldFunction
+	Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
+	// Creo il vettore che conterrà i valori interpolati
+	Vector<double> solution_vector(4);
+	// Interpolo
+	VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
+	// Ritorno il valore interpolato della soluzione in (0,0)
+	return solution_vector[0];
 }
 
-
 int main() {
-	Parametri par;
+	Parametri2d par;
+        
 	par.T=1.;
-	par.K=90;
-	par.S0=95;
-	par.r=0.0367;
-	par.sigma=0.120381;
+	par.K=200;
+	par.S01=80;
+	par.S02=120;
+	par.r=0.1;
+	par.sigma1=0.1256;
+	par.sigma2=0.2;
+	par.ro=-0.2;
         
 	// Parametri della parte salto
-	par.p=0.20761;                                             // Parametro 1 Kou
-	par.lambda=0.330966;                                       // Parametro 2 Kou
-	par.lambda_piu=9.65997;                                    // Parametro 3 Kou
-	par.lambda_meno=3.13868;                                   // Parametro 4 Kou
+	par.p1=0.20761;                                      // Parametro 1 Kou
+	par.lambda1=0.330966;                                // Parametro 2 Kou
+	par.lambda_piu_1=9.65997;                             // Parametro 3 Kou
+	par.lambda_meno_1=3.13868;                            // Parametro 4 Kou
         
-	cout<<"eps "<<eps<<"\n";
+	// Parametri della parte salto
         
-        Opzione<1> Call(par, 100, 8);
-        double Prezzo=Call.run();
-        cout<<"Prezzo "<<Prezzo<<"\n";
+	par.p2=0.20761;                                            // Parametro 1 Kou
+	par.lambda2=0.330966;                                      // Parametro 2 Kou
+	par.lambda_piu_2=9.65997;                                  // Parametro 3 Kou
+	par.lambda_meno_2=3.13868;                                 // Parametro 4 Kou
         
-        /*
-	// tempo // spazio
-        // 4 a 9 *100 time_step
-        const int top=9-4+1;
-        double T[top], ratio[top], result[top], real_T[top];
+        // tempo // spazio
+        // 4 a 7 * 10/50/100 time_step
+        const int top=7-4+1;
+        double T[3][top], ratio[3][top], result[3][top], real_T[3][top];
 	
 	clock_t inizio,fine;
         struct timeval start, end;
-        	
+        
         for (int i=0; i<top; i++) {
                 
-                Opzione<1> Call(par, 10, i+4);
+                {
+                        
+                        Opzione<2> Call(par, 10, i+4);
+                        
+                        gettimeofday(&start, NULL);
+                        inizio=clock();
+                        Call.run();
+                        gettimeofday(&end, NULL);
+                        fine=clock();
+                        
+                        result[0][i]=Call.get_price();
+                        
+                        T[0][i]=static_cast<double> (((fine-inizio)*1.e6)/CLOCKS_PER_SEC);
+                        real_T[0][i]=((end.tv_sec  - start.tv_sec) * 1000000u + 
+                                      end.tv_usec - start.tv_usec);
+                        
+                }
                 
-                gettimeofday(&start, NULL);
-                inizio=clock();
-                Call.run();
-                gettimeofday(&end, NULL);
-                fine=clock();
+                {
+                        
+                        Opzione<2> Call(par, 50, i+4);
+                        
+                        gettimeofday(&start, NULL);
+                        inizio=clock();
+                        Call.run();
+                        gettimeofday(&end, NULL);
+                        fine=clock();
+                        
+                        result[1][i]=Call.get_price();
+                        
+                        T[1][i]=static_cast<double> (((fine-inizio)*1.e6)/CLOCKS_PER_SEC);
+                        real_T[1][i]=((end.tv_sec  - start.tv_sec) * 1000000u + 
+                                   end.tv_usec - start.tv_usec);
+                        
+                }
                 
-                result[i]=Call.get_price();
-                
-                T[i]=static_cast<double> (((fine-inizio)*1.e6)/CLOCKS_PER_SEC);
-                real_T[i]=((end.tv_sec  - start.tv_sec) * 1000000u + 
-                           end.tv_usec - start.tv_usec);
+                {
+                        
+                        Opzione<2> Call(par, 100, i+4);
+                        
+                        gettimeofday(&start, NULL);
+                        inizio=clock();
+                        Call.run();
+                        gettimeofday(&end, NULL);
+                        fine=clock();
+                        
+                        result[2][i]=Call.get_price();
+                        
+                        T[2][i]=static_cast<double> (((fine-inizio)*1.e6)/CLOCKS_PER_SEC);
+                        real_T[2][i]=((end.tv_sec  - start.tv_sec) * 1000000u + 
+                                   end.tv_usec - start.tv_usec);
+                        
+                }
                 
         }
         
+        cout<<"Results for 10 time iterations:\n";
+	for (int i=0; i<top; ++i) {
+                cout<<"Grid\t"<<pow(2,2*i+8)<<"\tPrice\t"<<result[0][i]<<"\tclocktime\t"<<
+                T[0][i]/1e6<<" s\trealtime\t"<<real_T[0][i]/1e6<<"s\n";
+        }
+        cout<<"Results for 50 time iterations:\n";
+	for (int i=0; i<top; ++i) {
+                cout<<"Grid\t"<<pow(2,2*i+8)<<"\tPrice\t"<<result[1][i]<<"\tclocktime\t"<<
+                T[1][i]/1e6<<" s\trealtime\t"<<real_T[1][i]/1e6<<"s\n";
+        }
         cout<<"Results for 100 time iterations:\n";
 	for (int i=0; i<top; ++i) {
-                cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
-                T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
-        }*/
-	cout<<"Kou-1d\n";
+                cout<<"Grid\t"<<pow(2,2*i+8)<<"\tPrice\t"<<result[2][i]<<"\tclocktime\t"<<
+                T[2][i]/1e6<<" s\trealtime\t"<<real_T[2][i]/1e6<<"s\n";
+        }
+        
+        cout<<"Kou 2d SpeedTest\n";
         
 	return 0;
 }
