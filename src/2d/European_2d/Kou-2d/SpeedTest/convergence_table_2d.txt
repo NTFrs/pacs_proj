@@ -1,0 +1,45 @@
+***** CONVERGENCE TABLE KOU 2D
+
+SERIAL
+Results for 10 time iterations:
+Grid	256	Price	24.0698	clocktime	0.834105 s	realtime	1.19823s
+Grid	1024	Price	24.0331	clocktime	5.95355 s	realtime	5.93102s
+Grid	4096	Price	24.0056	clocktime	72.8185 s	realtime	72.9283s
+Grid	16384	Price	23.9989	clocktime	1188.15 s	realtime	1188.05s
+Results for 50 time iterations:
+Grid	256	Price	24.6081	clocktime	4.20071 s	realtime	4.3475s
+Grid	1024	Price	24.5562	clocktime	28.969 s	realtime	28.8803s
+Grid	4096	Price	24.5281	clocktime	358.552 s	realtime	358.808s
+Grid	16384	Price	24.5216	clocktime	5824 s		realtime	5823.98s
+Results for 100 time iterations:
+Grid	256	Price	24.9159	clocktime	8.23538 s	realtime	8.17444s
+Grid	1024	Price	24.86	clocktime	58.5224 s	realtime	58.3327s
+Grid	4096	Price	24.8312	clocktime	712.988 s	realtime	712.625s
+Grid	16384	Price	24.8247	clocktime	11723.7 s	realtime	11722.1s
+Kou 2d SpeedTest
+
+real	333m6.124s
+user	332m55.051s
+sys	0m11.950s
+
+PARALLEL (4 cores)
+Results for 10 time iterations:
+Grid	256	Price	24.0698	clocktime	1.11252 s	realtime	0.361724s
+Grid	1024	Price	24.0331	clocktime	7.69497 s	realtime	2.21336s
+Grid	4096	Price	24.0056	clocktime	92.2628 s	realtime	26.2175s
+Grid	16384	Price	23.9989	clocktime	1493.46 s	realtime	387.896s
+Results for 50 time iterations:
+Grid	256	Price	24.6081	clocktime	5.47604 s	realtime	1.79931s
+Grid	1024	Price	24.5562	clocktime	38.1244 s	realtime	11.433s
+Grid	4096	Price	24.5281	clocktime	444.86 s	realtime	118.885s
+Grid	16384	Price	24.5216	clocktime	7324.66 s	realtime	1911.61s
+Results for 100 time iterations:
+Grid	256	Price	24.9159	clocktime	11.0635 s	realtime	3.58342s
+Grid	1024	Price	24.86	clocktime	76.1403 s	realtime	21.8426s
+Grid	4096	Price	24.8312	clocktime	898.849 s	realtime	239.745s
+Grid	16384	Price	24.8247	clocktime	14779 s		realtime	3825.48s
+Kou 2d SpeedTest
+
+real	109m11.282s
+user	419m4.541s
+sys	0m28.218s
