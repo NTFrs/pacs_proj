@@ -149,8 +149,51 @@ double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int c
 	return p[0]-_K*exp(-_r*(_T-this->get_time()));
 
 }
-  
+   
+template<int dim>
+class Kou_Density: public Function<dim>
+{
+public:
+	Kou_Density(double p,  double lam, double lam_u,  double lam_d) : Function<dim>(),  _p(p),  _lam(lam), 
+	_lam_u(lam_u),  _lam_d(lam_d) {};
+	
+virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
+virtual void value_list(const std::vector<Point<dim> > &points,
+	std::vector<double> &values,
+	const unsigned int component = 0) const;
+private:
+double _p;
+double _lam;
+double _lam_u,  _lam_d;
+};
 
+template<int dim>
+double Kou_Density<dim>::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	if (p[0]>0)
+	return _p*_lam*_lam_u*exp(-_lam_u*p[0]);
+	else
+	return (1-_p)*_lam*_lam_d*exp(_lam_d*p[0]);
+
+}
+
+template<int dim>
+void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+{
+	Assert (values.size() == points.size(),
+	 ExcDimensionMismatch (values.size(), points.size()));
+	Assert (component == 0, ExcInternalError());
+
+	const unsigned int n_points=points.size();
+
+	for (unsigned int i=0;i<n_points;++i)
+	if (points[i][0]>0)
+	values[i]=_p*_lam*_lam_u*exp(-_lam_u*points[i][0]);
+	else
+	values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][0]);
+}
+  
 template<int dim>
 class Opzione{
 private:
@@ -160,6 +203,8 @@ private:
 	void assemble_system ();
 	void solve ();
 	void output_results () const {};
+	
+	Kou_Density<dim>				k;
 	
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
@@ -175,17 +220,24 @@ private:
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
 	
+	std::vector< Point<dim> >       grid_points;
+	
 	unsigned int refs, Nsteps;
 	double time_step;
 	
 	Point<dim> Smin, Smax;
 	double price;
+	double alpha;
+	
+	void Levy_integral_part1();
+	void Levy_integral_part2(Vector<double> &J);
 	
 	bool ran;
 	
 public:
 	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
 	par(par_),
+	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
 	fe (1),
 	dof_handler (triangulation),
 	refs(refinement), 
@@ -207,7 +259,62 @@ public:
    };
   };
   
-  
+
+template<int dim>
+void Opzione<dim>::Levy_integral_part1() {
+	
+	alpha=0;
+	
+	QGauss<dim> quadrature_formula(5);
+	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points);
+
+	typename DoFHandler<dim>::active_cell_iterator
+	cell=dof_handler.begin_active(),
+	endc=dof_handler.end();
+
+	const unsigned int n_q_points(quadrature_formula.size());
+	
+	for (; cell !=endc;++cell) {
+	 fe_values.reinit(cell);
+	 std::vector< Point<dim> > quad_points(fe_values.get_quadrature_points());
+	 for (unsigned q_point=0;q_point<n_q_points;++q_point)
+	  alpha+=fe_values.JxW(q_point)*(exp(quad_points[q_point][0])-1.)*k.value(quad_points[q_point]);
+	 
+	}
+	
+	return;
+
+}
+
+template<int dim>
+void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
+
+	J.reinit(solution.size());
+	unsigned int N(solution.size());
+	
+	QGauss<dim> quadrature_formula(20);
+	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
+	
+	const unsigned int n_q_points(quadrature_formula.size());
+	
+	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
+	
+	std::vector<double> sol_cell(n_q_points);
+	
+	for (; cell !=endc;++cell) {
+	 fe_values.reinit(cell);
+	 std::vector< Point <dim> > quad_points(fe_values.get_quadrature_points());
+	 fe_values.get_function_values(solution, sol_cell);
+	for (unsigned q_point=0;q_point<n_q_points;++q_point)
+	 for (unsigned i=0;i<N;++i) {
+	  Point<dim> p(log(quad_points[q_point][0]/grid_points[i][0]));
+	  J(i)=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(p);
+	  }
+	 }
+	
+}
+
+
   
 template<int dim>
 void Opzione<dim>::make_grid() {
@@ -219,6 +326,8 @@ void Opzione<dim>::make_grid() {
 
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
 	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs)+3, Smin[0],Smax[0]);
+	
+	grid_points=triangulation.get_vertices();
   }
 	
 template<int dim>
@@ -309,7 +418,7 @@ void Opzione<dim>::assemble_system() {
 	 
 	 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 	  
-	  trasp[0]=(par.r-par.sigma*par.sigma)*quad_points[q_point][0];
+	  trasp[0]=(par.r-par.sigma*par.sigma-alpha)*quad_points[q_point][0];
 	  sig_mat[0][0]=0.5*par.sigma*par.sigma
 					*quad_points[q_point][0]*quad_points[q_point][0];
 	 
@@ -318,7 +427,7 @@ void Opzione<dim>::assemble_system() {
 
 	 
 	  cell_mat(i, j)+=fe_values.JxW(q_point)*(
-	   (1/time_step+par.r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
+	   (1/time_step+par.r+par.lambda)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
 	   +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
 	   -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point));
 	 
@@ -354,7 +463,18 @@ void Opzione<dim>::solve() {
 	
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
 	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-	 system_M2.vmult(system_rhs, solution);
+	 
+	 Vector<double> J;
+	 Levy_integral_part2(J);
+	 
+	 ff_matrix.vmult(system_rhs, J);
+	 Vector<double> temp;
+	 
+	 temp.reinit(dof_handler.n_dofs());
+	 system_M2.vmult(temp,solution);
+	 
+	 system_rhs+=temp;
+	 
 	 right_bound.set_time(time);
 	 
 	 {
@@ -432,13 +552,19 @@ int main() {
 	par.r=0.0367;
 	par.sigma=0.120381;
 	
+	// Parametri della parte salto
+	par.p=0.20761;                                             // Parametro 1 Kou
+	par.lambda=0.330966;                                       // Parametro 2 Kou
+	par.lambda_piu=9.65997;                                    // Parametro 3 Kou
+	par.lambda_meno=3.13868;                                   // Parametro 4 Kou
+	
 	cout<<"eps "<<eps<<"\n";
 
 	Opzione<1> Call(par, 100, 7);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 	
-	cout<<"BS non cost\n";
+	cout<<"Kou non cost\n";
 	return 0;
   }
   
