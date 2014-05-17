@@ -725,7 +725,7 @@ int main() {
 	cout<<"eps "<<eps<<"\n";
         
 	// tempo // spazio
-	Opzione<1> Call(par, 10, 8);
+	Opzione<1> Call(par, 50, 6);
 	Call.run();
         
 	cout<<"Prezzo "<<Call.get_price()<<"\n";
