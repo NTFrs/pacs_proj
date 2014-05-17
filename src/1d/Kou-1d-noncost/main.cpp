@@ -178,6 +178,8 @@ double Kou_Density<dim>::value(const Point<dim> &p,  const unsigned int componen
 
 }
 
+
+
 template<int dim>
 void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
 {
@@ -193,6 +195,54 @@ void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::v
 	else
 	values[i]=(1-_p)*_lam*_lam_d*exp(_lam_d*points[i][0]);
 }
+
+template<int dim>
+class Kou_Density_logged: public Function<dim>
+{
+public:
+	Kou_Density_logged(double p,  double lam, double lam_u,  double lam_d) : Function<dim>(),  _p(p),  _lam(lam), 
+	_lam_u(lam_u),  _lam_d(lam_d) {};
+	virtual double value (const Point<dim> &p,  const unsigned int component=0) const;
+	virtual void value_list(const std::vector<Point<dim> > &points,
+	 std::vector<double> &values,
+	 const unsigned int component = 0) const;
+private:
+	double _p;
+	double _lam;
+	double _lam_u,  _lam_d;
+};
+
+template<int dim>
+double Kou_Density_logged<dim>::value(const Point<dim> &p,  const unsigned int component) const
+{
+	Assert (component == 0, ExcInternalError());
+	if (p[0]>0)
+	return _p*_lam*_lam_u*(p[0], -_lam_u);
+	else
+	return (1-_p)*_lam*_lam_d*(p[0], _lam_d);
+
+}
+
+
+
+template<int dim>
+void Kou_Density_logged<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+{
+	Assert (values.size() == points.size(),
+	 ExcDimensionMismatch (values.size(), points.size()));
+	Assert (component == 0, ExcInternalError());
+
+	const unsigned int n_points=points.size();
+
+	for (unsigned int i=0;i<n_points;++i)
+	if (points[i][0]>0)
+	values[i]=_p*_lam*_lam_u*pow(points[i][0], -_lam_u);
+	else
+	values[i]=(1-_p)*_lam*_lam_d*pow(points[i][0], +_lam_d);
+}
+
+
+
   
 template<int dim>
 class Opzione{
@@ -205,6 +255,7 @@ private:
 	void output_results () const {};
 	
 	Kou_Density<dim>				k;
+// 	Kou_Density_logged<dim>			k_log;
 	
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
@@ -238,6 +289,7 @@ public:
 	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
 	par(par_),
 	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
+// 	k_log(par.p, par.lambda, par.lambda_piu, par.lambda_meno), 
 	fe (1),
 	dof_handler (triangulation),
 	refs(refinement), 
@@ -255,7 +307,6 @@ public:
 	 assemble_system();
 	 solve();
 	 return get_price();
-
    };
   };
   
@@ -264,13 +315,31 @@ template<int dim>
 void Opzione<dim>::Levy_integral_part1() {
 	
 	alpha=0;
+	Point<dim> Bmin(0.), Bmax(Smax);
+	double step(0.5);
+	
+	while (k.value(Bmin)>toll)
+	 Bmin[0]+=-step;
+	
+	while (k.value(Bmax)>toll)
+	Bmin[0]+=step;
+
+	Triangulation<dim> integral_grid;
+	FE_Q<dim> fe2(1);
+	DoFHandler<dim> dof_handler2(integral_grid);
+	
+	GridGenerator::hyper_cube<dim>(integral_grid, Bmin[0], Bmax[0]);
+	integral_grid.refine_global(10);
+	
+	
+	dof_handler2.distribute_dofs(fe2);
 	
 	QGauss<dim> quadrature_formula(5);
-	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points);
+	FEValues<dim> fe_values(fe2, quadrature_formula,  update_quadrature_points |update_JxW_values);
 
 	typename DoFHandler<dim>::active_cell_iterator
-	cell=dof_handler.begin_active(),
-	endc=dof_handler.end();
+	cell=dof_handler2.begin_active(),
+	endc=dof_handler2.end();
 
 	const unsigned int n_q_points(quadrature_formula.size());
 	
@@ -281,7 +350,7 @@ void Opzione<dim>::Levy_integral_part1() {
 	  alpha+=fe_values.JxW(q_point)*(exp(quad_points[q_point][0])-1.)*k.value(quad_points[q_point]);
 	 
 	}
-	
+	cout<< "alpha is "<< alpha<< endl;
 	return;
 
 }
@@ -300,18 +369,29 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
 	
 	std::vector<double> sol_cell(n_q_points);
+// 	std::vector<double> sol_cell2(n_q_points);
+
 	
+// 	Functions::FEFieldFunction<dim> func(dof_handler, solution);
+	for (unsigned i=0;i<N;++i) {
 	for (; cell !=endc;++cell) {
 	 fe_values.reinit(cell);
+// 	 func.set_active_cell(cell);
 	 std::vector< Point <dim> > quad_points(fe_values.get_quadrature_points());
 	 fe_values.get_function_values(solution, sol_cell);
-	for (unsigned q_point=0;q_point<n_q_points;++q_point)
-	 for (unsigned i=0;i<N;++i) {
+// 		if (i=N/2)
+// 		  cout<< "fe_values"<< sol_cell[0]<< endl;
+	 
+// 	 func.value_list(quad_points, sol_cell2);
+// 	  if (i=N/2)
+// 	  cout<< "fe_field"<< sol_cell2[0]<< endl;
+
+	for (unsigned q_point=0;q_point<n_q_points;++q_point){
 	  Point<dim> p(log(quad_points[q_point][0]/grid_points[i][0]));
-	  J(i)=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(p);
+	  J(i)+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(p);
 	  }
 	 }
-	
+ }
 }
 
 
@@ -319,9 +399,9 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 template<int dim>
 void Opzione<dim>::make_grid() {
 
-	Smin[0]=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+	Smin[0]=0.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
 	 -par.sigma*sqrt(par.T)*6);
-	Smax[0]=par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
+	Smax[0]=1.5*par.S0*exp((par.r-par.sigma*par.sigma/2)*par.T
 	 +par.sigma*sqrt(par.T)*6);
 
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
@@ -357,10 +437,12 @@ void Opzione<dim>::setup_system() {
 	for (; cell!=endc; ++cell)
 	for (unsigned int face=0;
 	 face<GeometryInfo<dim>::faces_per_cell;++face)
-	if (cell->face(face)->at_boundary())
+	if (cell->face(face)->at_boundary()) {
+	if (std::fabs(cell->face(face)->center()(0) - (Smin[0])) < toll)
+	cell->face(face)->set_boundary_indicator (0);
 	if (std::fabs(cell->face(face)->center()(0) - (Smax[0])) < toll)
 	cell->face(face)->set_boundary_indicator (1);
-
+	}
 	cout<< "Controlling Boundary indicators\n";
 	vector<types::boundary_id> info;
 	info=triangulation.get_boundary_indicators();
@@ -381,7 +463,7 @@ void Opzione<dim>::setup_system() {
 template<int dim>
 void Opzione<dim>::assemble_system() {
 
-
+	Levy_integral_part1();
 
 	QGauss<dim> quadrature_formula(2);
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
@@ -466,6 +548,9 @@ void Opzione<dim>::solve() {
 	 
 	 Vector<double> J;
 	 Levy_integral_part2(J);
+	 
+	 if (Step==50)
+	  cout<< "vector J \n"<< J << endl;
 	 
 	 ff_matrix.vmult(system_rhs, J);
 	 Vector<double> temp;
