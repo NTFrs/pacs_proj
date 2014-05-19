@@ -754,6 +754,7 @@ void Opzione<dim>::solve() {
                 for (unsigned k=0; k<maxiter && !converged; ++k) {
                         
                         for (unsigned i=1; i<N-1; ++i) {
+                                
                                 z=(system_rhs(i)-system_matrix(i,i-1)*solution(i-1)
                                    -system_matrix(i,i+1)*solution_old(i+1))/system_matrix(i,i);
                                 // per la put

@@ -89,7 +89,7 @@ void timestamp ( );
 
 //#define dim 1
 
-#define __PIDE__
+//#define __PIDE__
 #define __MATLAB__
 //#define __INTERPOLATION__
 
@@ -853,7 +853,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 8);
+        Opzione<1> Call(par, 100, 10);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
