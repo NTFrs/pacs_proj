@@ -360,41 +360,49 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 
 	J.reinit(solution.size());
 	unsigned int N(solution.size());
+	cout << " N IS "<< N << endl;
 	
-	QGauss<dim> quadrature_formula(20);
+	QGauss<dim> quadrature_formula(10);
 	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
 	
 	const unsigned int n_q_points(quadrature_formula.size());
 	
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
 	
-	std::vector<double> sol_cell(n_q_points);
-// 	std::vector<double> sol_cell2(n_q_points);
-
+	vector<double> sol_cell(n_q_points);
 	
-// 	Functions::FEFieldFunction<dim> func(dof_handler, solution);
-	for (unsigned i=0;i<N;++i) {
-	for (; cell !=endc;++cell) {
-	 fe_values.reinit(cell);
-// 	 func.set_active_cell(cell);
-	 std::vector< Point <dim> > quad_points(fe_values.get_quadrature_points());
-	 fe_values.get_function_values(solution, sol_cell);
-// 		if (i=N/2)
-// 		  cout<< "fe_values"<< sol_cell[0]<< endl;
+	vector< Point <dim> > quad_points(n_q_points);
+	Point<dim> logz(0.);
+//  cout<< "densità\n";
+unsigned int iter;
+ for (iter=0;iter<N;++iter) {
+	 cerr << "iter is " <<  iter << endl;
 	 
-// 	 func.value_list(quad_points, sol_cell2);
-// 	  if (i=N/2)
-// 	  cout<< "fe_field"<< sol_cell2[0]<< endl;
+	 for (; cell!=endc;++cell) {
+	  fe_values.reinit(cell);
+	  quad_points=fe_values.get_quadrature_points();
+	  fe_values.get_function_values(solution, sol_cell);
+	  double a, b, c;
+	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+	   cerr << "iter is " <<  iter << endl;
+	   cerr<< "At grid point "<< grid_points[iter]<< " and z " << quad_points[q_point](0);
+	   logz(0)=log(quad_points[q_point](0)/grid_points[iter](0));
+	   a=fe_values.JxW(q_point);
+	   b=sol_cell[q_point];
+	   c=k.value(logz);
+	   cerr<< " the density value is "<< c<< endl;
+// 	   cout<< "peso: "<< a<< endl;
+// 	   cout<< "funzione: "<< b<< endl;
+// 	   cout<<c<< "\t";
 
-	for (unsigned q_point=0;q_point<n_q_points;++q_point){
-	  Point<dim> p(log(quad_points[q_point][0]/grid_points[i][0]));
-	  J(i)+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(p);
-	  }
-	 }
- }
+	   J[iter]+=a*b*c;
+// 	   J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(logz);
+  }
+  }
+//  cout<< ";"<< endl;
 }
 
-
+}
   
 template<int dim>
 void Opzione<dim>::make_grid() {
@@ -408,6 +416,8 @@ void Opzione<dim>::make_grid() {
 	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs)+3, Smin[0],Smax[0]);
 	
 	grid_points=triangulation.get_vertices();
+	for (unsigned i=0;i<grid_points.size();++i)
+	cout<< grid_points[i]<< endl;
   }
 	
 template<int dim>
@@ -544,13 +554,13 @@ void Opzione<dim>::solve() {
 	cout<< "time step is"<< time_step<< endl;
 	
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+// 	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
 	 
 	 Vector<double> J;
 	 Levy_integral_part2(J);
 	 
-	 if (Step==50)
-	  cout<< "vector J \n"<< J << endl;
+// 	 if (Step==100)
+// 	  cout<< "vector J \n"<< J << endl;
 	 
 	 ff_matrix.vmult(system_rhs, J);
 	 Vector<double> temp;
@@ -645,7 +655,7 @@ int main() {
 	
 	cout<<"eps "<<eps<<"\n";
 
-	Opzione<1> Call(par, 100, 7);
+	Opzione<1> Call(par, 100, 4);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 	
