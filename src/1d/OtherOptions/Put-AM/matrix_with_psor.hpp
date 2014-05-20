@@ -72,7 +72,11 @@ dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<so
                         
                 }
                 
-                v(row)=std::max(K-S0*exp(grid_points[row][0]),v_old(row)+om*(z/(this->diag_element(row))-v_old(row)));
+                v(row)=(K-S0*exp(grid_points[row][0])>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
+                        ?
+                        K-S0*exp(grid_points[row][0])
+                        :
+                        v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
                 
         }
 }

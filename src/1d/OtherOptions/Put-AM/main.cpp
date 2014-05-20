@@ -463,7 +463,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J,  double time) {
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
         
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
                 std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
@@ -762,9 +762,9 @@ void Opzione<dim>::solve() {
                 
                 for (unsigned k=0; k<maxiter && !converged; ++k) {
                         
-                        //system_matrix.SOR_step(solution, system_rhs);
+                        system_matrix.SOR_step(solution, system_rhs);
                         
-                        system_matrix.ProjectedSOR_step(solution, solution_old, system_rhs, grid_points, par.S0, par.K);
+                        //system_matrix.ProjectedSOR_step(solution, solution_old, system_rhs, grid_points, par.S0, par.K);
                         
                         auto temp=solution;
                         temp.add(-1, solution_old);
@@ -866,7 +866,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 252, 12);
+        Opzione<1> Call(par, 100, 10);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
@@ -902,7 +902,7 @@ int main() {
          cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
          T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
          }*/
-	cout<<"Target 1.55249\nusa-1d\n";
+	cout<<"Target 1.55249 usa pde\nTarget 4.4046 usa pide\nusa-1d\n";
         
 	return 0;
 }
