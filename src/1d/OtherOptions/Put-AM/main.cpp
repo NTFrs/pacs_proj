@@ -358,7 +358,7 @@ private:
 	DoFHandler<dim>                 dof_handler_2;
         
 	SparsityPattern                 sparsity_pattern;
-	SparseMatrix_withProjectedSOR<double>            system_matrix;
+	SparseMatrix_withProjectedSOR<double, dim>            system_matrix;
 	SparseMatrix<double>            system_M2;
 	SparseMatrix<double>            dd_matrix;
 	SparseMatrix<double>            fd_matrix;
@@ -749,12 +749,6 @@ void Opzione<dim>::solve() {
                         
                 }
                 
-                /*
-                SparseDirectUMFPACK solver;
-                solver.initialize(sparsity_pattern);
-                solver.factorize(system_matrix);
-                solver.solve(system_rhs);
-                */
                 double omega=1.5;
                 unsigned maxiter=1000;
                 double tollerance=1.e-12;
@@ -766,42 +760,11 @@ void Opzione<dim>::solve() {
                 
                 bool converged=false;
                 
-                if (time==0.99) {
-                        solution.print(std::cout);
-                        solution_old.print(std::cout);
-                }
-                
                 for (unsigned k=0; k<maxiter && !converged; ++k) {
                         
                         //system_matrix.SOR_step(solution, system_rhs);
                         
-                        system_matrix.ProjectedSOR_step(solution, solution_old, system_rhs);
-                        
-                        /*
-                        for (unsigned row=1; row<N-1; ++row) {
-                                
-                                SparseMatrixIterators::Iterator< double, true > col (&system_matrix, row, 0);
-                                SparseMatrixIterators::Iterator< double, true > colend (&system_matrix, row+1, 0);
-                                
-                                SparseMatrixIterators::Accessor< double, true > row_iterator(*col);
-                                
-                                double z=system_rhs(row);
-                                
-                                for ( ;  col<colend; col++){
-                                        
-                                        row_iterator=*col;
-                                        
-                                        if (row_iterator.column()<row)
-                                                z-=row_iterator.value()*solution(row_iterator.column());
-                                        
-                                        if (row_iterator.column()>row)
-                                              z-=row_iterator.value()*solution_old(row_iterator.column());
-                                        
-                                }
-                                
-                                solution(row)=solution_old(row)+
-                                                omega*(z/system_matrix(row, row)-solution_old(row));
-                        }*/
+                        system_matrix.ProjectedSOR_step(solution, solution_old, system_rhs, grid_points, par.S0, par.K);
                         
                         auto temp=solution;
                         temp.add(-1, solution_old);
@@ -813,38 +776,12 @@ void Opzione<dim>::solve() {
                         else
                                 solution_old=solution;
                         
+                        
                         if (k==maxiter-1) {
                                 cout<<"Warning: maxiter reached.\n";
                         }
                         
                 }
-                
-                /*
-                Vector<double> solution_old=solution;
-                
-                bool converged=false;
-                unsigned maxiter=1000;
-                const double tollerance=1e-8;
-                
-                for (unsigned k=0; k<maxiter && !converged; ++k){
-                        system_matrix.ProjectedSOR_step(solution, solution_old, 1.5);
-                        
-                        auto temp=solution;
-                        temp.add(-1, solution_old);
-                        
-                        if (temp.linfty_norm()<tollerance){
-                                converged=true;
-                        }
-                        
-                        else
-                                solution_old=solution;
-                        
-                        if (k==maxiter-1) {
-                                cout<<"Warning: maxiter reached.\n";
-                        }
-                }
-                */
-                //solution=system_rhs;
                 
                 {
                         DataOut<1> data_out;
@@ -906,25 +843,9 @@ double Opzione<dim>::get_price() {
                 this->run();
         }
 	
-        // Creo nuova grigla ( che passi da 0 )
-        //         Triangulation<dim> price;
-        // Creo degli fe
-        //         FE_Q<dim> fe3 (1);
-        // Creo un DoFHandler e lo attacco a price
-        //         DoFHandler<dim> dof_handler_3 (price);
-        // Costruisco la griglia, in modo che passi da 0 e non la rifinisco
-        //         GridGenerator::hyper_rectangle(price, Point<dim> (0.), Point<dim> (xmax));
-        // Assegno a dof_handler_3 gli elementi finit fe3 appena creati
-        //         dof_handler_3.distribute_dofs(fe3);
-        // Definisco questa fantomatica funzione FEFieldFunction
         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
-        // Creo il vettore che conterrà i valori interpolati
-        //         Vector<double> solution_vector(2);
-        // Interpolo
-        //         VectorTools::interpolate(dof_handler_3, fe_function, solution_vector);
-        // Ritorno il valore interpolato della soluzione in 0
-        Point<dim> p(0.);
-        return fe_function.value(p);
+
+        return fe_function.value(Point<dim> (0.));
         
 }
 
@@ -945,7 +866,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 10);
+        Opzione<1> Call(par, 252, 12);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
@@ -981,7 +902,7 @@ int main() {
          cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
          T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
          }*/
-	cout<<"Target 1.40933\nusa-1d\n";
+	cout<<"Target 1.55249\nusa-1d\n";
         
 	return 0;
 }
