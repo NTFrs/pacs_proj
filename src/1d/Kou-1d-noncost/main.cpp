@@ -360,9 +360,9 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 
 	J.reinit(solution.size());
 	unsigned int N(solution.size());
-	cout << " N IS "<< N << endl;
+// 	cout << " N IS "<< N << endl;
 	
-	QGauss<dim> quadrature_formula(10);
+	QGauss<dim> quadrature_formula(5);
 	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
 	
 	const unsigned int n_q_points(quadrature_formula.size());
@@ -374,32 +374,33 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	vector< Point <dim> > quad_points(n_q_points);
 	Point<dim> logz(0.);
 //  cout<< "densità\n";
-unsigned int iter;
- for (iter=0;iter<N;++iter) {
-	 cerr << "iter is " <<  iter << endl;
-	 
+
+	for(unsigned int iter=0;iter<N;++iter) {
+// 	 cerr << "iter is " <<  iter << endl;
+	 cell=dof_handler.begin_active();
 	 for (; cell!=endc;++cell) {
+// 	  cout<< "switching cell\n";
 	  fe_values.reinit(cell);
 	  quad_points=fe_values.get_quadrature_points();
 	  fe_values.get_function_values(solution, sol_cell);
-	  double a, b, c;
+	  double a, b, c, d;
+	  
 	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-	   cerr << "iter is " <<  iter << endl;
-	   cerr<< "At grid point "<< grid_points[iter]<< " and z " << quad_points[q_point](0);
+// 	   cout << "iter is " <<  iter << endl;
+// 	   cout<< "At grid point\t"<< grid_points[iter]<< "\tand z\t" << quad_points[q_point](0);
 	   logz(0)=log(quad_points[q_point](0)/grid_points[iter](0));
 	   a=fe_values.JxW(q_point);
 	   b=sol_cell[q_point];
 	   c=k.value(logz);
-	   cerr<< " the density value is "<< c<< endl;
-// 	   cout<< "peso: "<< a<< endl;
-// 	   cout<< "funzione: "<< b<< endl;
+	   d=quad_points[q_point](0);
+// 	   cout<< "\tthe density value is\t"<< c<< "\tpeso:\t"<< a<< "\tfunzione:\t"<< b;
 // 	   cout<<c<< "\t";
 
-	   J[iter]+=a*b*c;
+	   J[iter]+=a*b*c/d;
+// 	   cout<< "\tcon un contributo a J di\t"<< iter << "\tdi\t" << a*b*c<< endl;
 // 	   J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(logz);
   }
   }
-//  cout<< ";"<< endl;
 }
 
 }
@@ -548,6 +549,18 @@ void Opzione<dim>::solve() {
 
 	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K), solution);
 
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "begin");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("begin.gpl");
+	 data_out.write_gnuplot (output);
+	 }
+	
 	unsigned int Step=Nsteps;
 
 	Boundary_Right_Side<dim> right_bound(par.K, par.T, par.r);
@@ -570,6 +583,7 @@ void Opzione<dim>::solve() {
 	 
 	 system_rhs+=temp;
 	 
+
 	 right_bound.set_time(time);
 	 
 	 {
@@ -600,8 +614,32 @@ void Opzione<dim>::solve() {
 
 	 solution=system_rhs;
 
-   }
+	 DataOut<dim> data_out;
 
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "step");
+
+	 data_out.build_patches ();
+
+	 std::string name("plot/step-");
+	 name.append(to_string(Step));
+	 name.append(".gpl");
+	 std::ofstream output (name);
+	 data_out.write_gnuplot (output);  
+ }
+
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "end");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("end.gpl");
+	 data_out.write_gnuplot (output);
+	 }
+ 
 	ran=true;
 
 #ifdef __MATLAB__
@@ -655,7 +693,7 @@ int main() {
 	
 	cout<<"eps "<<eps<<"\n";
 
-	Opzione<1> Call(par, 100, 4);
+	Opzione<1> Call(par, 100, 8);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 	
