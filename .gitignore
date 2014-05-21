@@ -46,3 +46,6 @@ makefile
 
 #matlab generated files
 *.m
+
+#plot folders
+plot
