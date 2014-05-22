@@ -37,6 +37,12 @@
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/grid_tools.h>
 
+#include <deal.II/grid/grid_refinement.h>
+#include <deal.II/numerics/error_estimator.h>
+#include <deal.II/fe/mapping_q1.h>
+#include <deal.II/numerics/derivative_approximation.h>
+#include <deal.II/numerics/solution_transfer.h>
+
 #include <deal.II/base/function.h>
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/matrix_tools.h>
@@ -45,14 +51,6 @@
 #include <deal.II/lac/solver_richardson.h>
 #include <deal.II/lac/precondition.h>
 #include <boost/graph/graph_concepts.hpp>
-
-#include <deal.II/grid/grid_refinement.h>
-
-#include <deal.II/numerics/error_estimator.h>
-
-#include <deal.II/fe/mapping_q1.h>
-
-#include <deal.II/numerics/derivative_approximation.h>
 
 #include <cmath>
 #include <algorithm>
@@ -347,19 +345,16 @@ private:
 	void setup_system ();
 	void assemble_system ();
 	void solve ();
-        void solve_onetimestep (double time);
 	void output_results () const {};
         void refine_grid (bool refine);
-        
-	
+        void solve_onetimestep(double time);
         
 	Kou_Density<dim>				k;    
         
 	Triangulation<dim>              triangulation;
-        const MappingQ1<dim>            mapping;
 	FE_Q<dim>                       fe;
-        ConstraintMatrix                constraints;
 	DoFHandler<dim>                 dof_handler;
+        MappingQ1<dim>                  mapping;
         
 	Triangulation<dim>              integral_triangulation;
 	//     Triangulation<dim>              integral_triangulation2;
@@ -444,6 +439,146 @@ public:
                 
         };*/
 };
+
+template<int dim>
+double Opzione<dim>::run(){
+        
+        unsigned int Step=Nsteps;
+        
+        for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
+                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+                
+                if (time==par.T-time_step) {
+                        std::cout << "Step 100\n";
+                        make_grid();
+                        setup_system ();
+                        assemble_system();
+                        VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
+                        
+                        std::cout << "   Number of active cells:       "
+                        << triangulation.n_active_cells()
+                        << std::endl;
+                        std::cout << "   Number of degrees of freedom: "
+                        << dof_handler.n_dofs()
+                        << std::endl;
+                        
+                        grid_points=triangulation.get_vertices();
+                        
+                        solve_onetimestep(time);
+                }
+                
+                else if (!(Step%10)) {
+                        std::cout << "Refinment Step "<<Step<<"\n";
+                        
+                        refine_grid (true);
+                        //setup_system ();
+                        assemble_system();
+                        
+                        //VectorTools::interpolate (dof_handler, solution, solution);
+                        
+                        std::cout << "   Number of active cells:       "
+                        << triangulation.n_active_cells()
+                        << std::endl;
+                        std::cout << "   Number of degrees of freedom: "
+                        << dof_handler.n_dofs()
+                        << std::endl;
+                        
+                        grid_points=triangulation.get_vertices();
+                
+                        solve_onetimestep(time);
+                }
+                
+                else {
+                        //refine_grid (false);
+                        std::cout << "   Number of active cells:       "
+                        << triangulation.n_active_cells()
+                        << std::endl;
+                        std::cout << "   Number of degrees of freedom: "
+                        << dof_handler.n_dofs()
+                        << std::endl;
+                        
+                        solve_onetimestep(time);
+                        
+                }
+                
+        }
+        
+#ifdef __MATLAB__
+	ofstream print;
+        print.open("solution.m");
+        
+        std::cout<<grid_points.size()<<" "<<solution.size()<<"\n";
+        
+        if (print.is_open()) {
+                print<<"x=[ ";
+                for (int i=0; i<grid_points.size()-1; ++i) {
+                        print<<par.S0*exp(grid_points[i][0])<<"; ";
+                }
+                print<<par.S0*exp(grid_points[grid_points.size()-1][0])<<" ];\n";
+                
+                print<<"sol=[ ";
+                for (int i=0; i<solution.size()-1; ++i) {
+                        print<<solution(i)<<"; ";
+                }
+                print<<solution(solution.size()-1)<<" ];\n";
+        }
+        
+        print.close();
+#endif
+        
+        ran=true;
+        
+        return get_price();
+}
+
+template <int dim>
+void Opzione<dim>::refine_grid (bool refine){
+        
+        Vector<float> gradient_indicator (triangulation.n_active_cells());
+        
+        DerivativeApproximation::approximate_gradient (mapping,
+                                                       dof_handler,
+                                                       solution,
+                                                       gradient_indicator);
+        
+        typename DoFHandler<dim>::active_cell_iterator
+        cell = dof_handler.begin_active(),
+        endc = dof_handler.end();
+        for (unsigned int cell_no=0; cell!=endc; ++cell, ++cell_no)
+                gradient_indicator(cell_no)*=std::pow(cell->diameter(), 1+1.0*dim/2);
+        
+        // Finally they serve as refinement indicator.
+        GridRefinement::refine_and_coarsen_fixed_number (triangulation,
+                                                         gradient_indicator,
+                                                         0.3, 0.01);
+        
+        /*
+        Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
+        
+        KellyErrorEstimator<dim>::estimate (dof_handler,
+                                            QGauss<dim-1>(3),
+                                            typename FunctionMap<dim>::type(),
+                                            solution,
+                                            estimated_error_per_cell);
+        
+        GridRefinement::refine_and_coarsen_fixed_number (triangulation,
+                                                         estimated_error_per_cell,
+                                                         0.6, 0.4);
+        */
+        
+        SolutionTransfer<dim> solution_trans(dof_handler);
+        
+        Vector<double> previous_solution;
+        previous_solution = solution;
+        triangulation.prepare_coarsening_and_refinement();
+        solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
+        
+        triangulation.execute_coarsening_and_refinement ();
+        setup_system ();
+        
+        solution_trans.interpolate(previous_solution, solution);
+        
+}
 
 
 template<int dim>
@@ -537,262 +672,12 @@ void Opzione<dim>::make_grid() {
         
 	cout<<"Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
         
-        GridGenerator::hyper_cube(triangulation, xmin[0], xmax[0]);
-        
-        triangulation.refine_global (10);
-        /*
 	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs)+3, xmin[0],xmax[0]);
         
 	grid_points=triangulation.get_vertices();
 	
 	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, refs-3), Bmin[0], Bmax[0]);
-	*/
-        
-}
-
-template <int dim>
-void Opzione<dim>::refine_grid (bool refine){
-        
-        Vector<float> gradient_indicator (triangulation.n_active_cells());
-        
-        DerivativeApproximation::approximate_gradient (mapping,
-                                                       dof_handler,
-                                                       solution,
-                                                       gradient_indicator);
-        
-        cout<<"estimated_error: ";
-        for (unsigned i=0; i<triangulation.n_active_cells(); ++i) {
-                cout<<"( "<<par.S0*exp(grid_points[i][0])<<", "<<gradient_indicator(i)<<" )\t";
-        }
-        cout<<"\n";
-        
-        typename DoFHandler<dim>::active_cell_iterator
-        cell = dof_handler.begin_active(),
-        endc = dof_handler.end();
-        for (unsigned int cell_no=0; cell!=endc; ++cell, ++cell_no)
-                gradient_indicator(cell_no)*=std::pow(cell->diameter(), 1+1.0*dim/2);
-        
-        // Finally they serve as refinement indicator.
-        GridRefinement::refine_and_coarsen_fixed_number (triangulation,
-                                                         gradient_indicator,
-                                                         0.5, 0.1);
-        
-        /*
-        Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
-        
-        KellyErrorEstimator<dim>::estimate (dof_handler,
-                                            QGauss<dim-1>(3),
-                                            typename FunctionMap<dim>::type(),
-                                            solution,
-                                            estimated_error_per_cell);
-        
-        cout<<"estimated_error: ";
-        for (unsigned i=0; i<triangulation.n_active_cells(); ++i) {
-                cout<<"( "<<par.S0*exp(grid_points[i][0])<<", "<<estimated_error_per_cell(i)<<" )\t";
-        }
-        cout<<"\n";
-        
-        GridRefinement::refine_and_coarsen_fixed_number (triangulation,
-                                                         estimated_error_per_cell,
-                                                         0.3, 0.03);
-        */
-        if (refine) {
-                triangulation.execute_coarsening_and_refinement ();
-        }
-        
-
-}
-
-template<int dim>
-void Opzione<dim>::setup_system() {
-        
-	dof_handler.distribute_dofs(fe);
-        
-	dof_handler_2.distribute_dofs(fe2);
-        
-	std::cout << "   Number of degrees of freedom: "
-	<< dof_handler.n_dofs()
-	<< std::endl;
-        
-        typename Triangulation<dim>::cell_iterator
-	cell = triangulation.begin (),
-	endc = triangulation.end();
-	for (; cell!=endc; ++cell)
-                for (unsigned int face=0;
-                     face<GeometryInfo<dim>::faces_per_cell;++face)
-                        if (cell->face(face)->at_boundary())
-                                if (std::fabs(cell->face(face)->center()(0) - (xmax[0])) < toll)
-                                        cell->face(face)->set_boundary_indicator (1);
-        
-	cout<< "Controlling Boundary indicators\n";
-	vector<types::boundary_id> info;
-	info=triangulation.get_boundary_indicators();
-	cout<< "Number of Boundaries: " << info.size()<< endl;
-	cout<< "which are"<< endl;
-	for (unsigned int i=0; i<info.size();++i)
-                cout<< info[i] << endl;
-        
-        constraints.clear ();
-        DoFTools::make_hanging_node_constraints (dof_handler,
-                                                 constraints);
-        
-        VectorTools::interpolate_boundary_values (dof_handler,
-                                                  0,
-                                                  PayOff<dim>(par.K, par.S0),
-                                                  constraints);
-        
-        VectorTools::interpolate_boundary_values (dof_handler,
-                                                  1,
-                                                  PayOff<dim>(par.K, par.S0),
-                                                  constraints);
-        
-        constraints.close ();
-        
-        CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-        
-        DoFTools::make_sparsity_pattern(dof_handler,
-                                        c_sparsity,
-                                        constraints,
-                                        /*keep_constrained_dofs = */ false);
-        
-        sparsity_pattern.copy_from(c_sparsity);
-        
-	//CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	//DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
-        
-	//sparsity_pattern.copy_from(c_sparsity);
-        
-	dd_matrix.reinit(sparsity_pattern);
-	fd_matrix.reinit(sparsity_pattern);
-	ff_matrix.reinit(sparsity_pattern);
-	system_matrix.reinit(sparsity_pattern);
-	system_M2.reinit(sparsity_pattern);
-        
-        //system_matrix.reinit (sparsity_pattern);
-        
-	solution.reinit(dof_handler.n_dofs());
-	system_rhs.reinit(dof_handler.n_dofs());
-        
-        
-        
-        // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
-        right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
-        left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
-        
-        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
-        right_quad_nodes=right_quad.get_nodes();
-        right_quad_weights=right_quad.get_weights();
-        
-        left_quad_nodes=left_quad.get_nodes();
-        left_quad_weights=left_quad.get_weights();
-        
-        quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
-        
-        // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
-        for (int i=0; i<left_quad.get_order(); ++i) {
-                quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
-        }
-        for (int i=0; i<right_quad.get_order(); ++i) {
-                quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
-        }
-}
-
-template<int dim>
-void Opzione<dim>::assemble_system() {
-
-#ifdef __PIDE__
-	Levy_integral_part1();
-        
-	cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
-#endif
-        
-	QGauss<dim> quadrature_formula(2);
-	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
-                                 update_JxW_values);
-        
-	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
-	const unsigned int   n_q_points    = quadrature_formula.size();
-        
-	cout<< "Assembling System\n";
-	cout<< "Degrees of freedom per cell: "<< dofs_per_cell<< endl;
-	cout<< "Quadrature points per cell: "<< n_q_points<< endl;
-        
-	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-        
-	FullMatrix<double> cell_dd(dofs_per_cell);
-	FullMatrix<double> cell_fd(dofs_per_cell);
-	FullMatrix<double> cell_ff(dofs_per_cell);
-        
-        Vector<double>       cell_rhs (dofs_per_cell);
-        
-	typename DoFHandler<dim>::active_cell_iterator
-	cell=dof_handler.begin_active(),
-	endc=dof_handler.end();
-	Tensor< 1 , dim, double > ones;
-	// 	Tensor< 1 , dim, double > increasing;
-        
-	for (unsigned i=0;i<dim;++i)
-                ones[i]=1;
-        
-	for (; cell !=endc;++cell) {
-                fe_values.reinit(cell);
-                cell_dd=0;
-                cell_fd=0;
-                cell_ff=0;
-                for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                        for (unsigned i=0;i<dofs_per_cell;++i)
-                                for (unsigned j=0; j<dofs_per_cell;++j) {
-                                        
-                                        cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
-                                        cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
-                                        cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
-                                        
-                                        cell_rhs(i)=0;
-                                        
-                                }
-                
-                cell->get_dof_indices (local_dof_indices);
-                
-                //cell->get_dof_indices (local_dof_indices);
-                /*
-                constraints.distribute_local_to_global (cell_ff,
-                                                        cell_rhs,
-                                                        local_dof_indices,
-                                                        system_matrix,
-                                                        system_rhs);
-                */
-                for (unsigned int i=0; i<dofs_per_cell;++i)
-                        for (unsigned int j=0; j< dofs_per_cell; ++j) {
-                                
-                                dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
-                                fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
-                                ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                                
-                        }
-                
-        }
-        
-        
-#ifdef __PIDE__
-	double diff=par.sigma*par.sigma/2;
-	double trasp=par.r-par.sigma*par.sigma/2-alpha;
-	double reaz=-par.r-par.lambda;
-        
-	system_matrix.add(1/time_step-0.5*reaz, ff_matrix); 
-	system_matrix.add(0.5*diff, dd_matrix);
-	system_matrix.add(-0.5*trasp, fd_matrix);
-        
-	system_M2.add(1/time_step+0.5*reaz, ff_matrix); 
-	system_M2.add(-0.5*diff, dd_matrix);
-	system_M2.add(0.5*trasp, fd_matrix);
-#else
-	system_M2.add(1, ff_matrix);
-	system_matrix.add(1, ff_matrix);
-	system_matrix.add(par.sigma*par.sigma*time_step/2, dd_matrix);
-	system_matrix.add(-time_step*(par.r-par.sigma*par.sigma/2), fd_matrix);
-	system_matrix.add(par.r*time_step, ff_matrix);
-        
-#endif
+	
         
 }
 
@@ -844,7 +729,157 @@ void Opzione<dim>::solve_onetimestep(double time){
         
         solution=system_rhs;
         
-        constraints.distribute (solution);
+        //constraints.distribute (solution);
+        
+}
+
+template<int dim>
+void Opzione<dim>::setup_system() {
+        
+	dof_handler.distribute_dofs(fe);
+        
+	dof_handler_2.distribute_dofs(fe2);
+        
+	std::cout << "   Number of degrees of freedom: "
+	<< dof_handler.n_dofs()
+	<< std::endl;
+        
+	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
+	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+        
+	sparsity_pattern.copy_from(c_sparsity);
+        
+	dd_matrix.reinit(sparsity_pattern);
+	fd_matrix.reinit(sparsity_pattern);
+	ff_matrix.reinit(sparsity_pattern);
+	system_matrix.reinit(sparsity_pattern);
+	system_M2.reinit(sparsity_pattern);
+        
+	typename Triangulation<dim>::cell_iterator
+	cell = triangulation.begin (),
+	endc = triangulation.end();
+	for (; cell!=endc; ++cell)
+                for (unsigned int face=0;
+                     face<GeometryInfo<dim>::faces_per_cell;++face)
+                        if (cell->face(face)->at_boundary())
+                                if (std::fabs(cell->face(face)->center()(0) - (xmax[0])) < toll)
+                                        cell->face(face)->set_boundary_indicator (1);
+        
+	cout<< "Controlling Boundary indicators\n";
+	vector<types::boundary_id> info;
+	info=triangulation.get_boundary_indicators();
+	cout<< "Number of Boundaries: " << info.size()<< endl;
+	cout<< "which are"<< endl;
+	for (unsigned int i=0; i<info.size();++i)
+                cout<< info[i] << endl;
+        
+	solution.reinit(dof_handler.n_dofs());
+	system_rhs.reinit(dof_handler.n_dofs());
+        
+        // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
+        right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
+        left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
+        
+        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
+        right_quad_nodes=right_quad.get_nodes();
+        right_quad_weights=right_quad.get_weights();
+        
+        left_quad_nodes=left_quad.get_nodes();
+        left_quad_weights=left_quad.get_weights();
+        
+        quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
+        
+        // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
+        for (int i=0; i<left_quad.get_order(); ++i) {
+                quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
+        }
+        for (int i=0; i<right_quad.get_order(); ++i) {
+                quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
+        }
+}
+
+template<int dim>
+void Opzione<dim>::assemble_system() {
+        
+	Levy_integral_part1();
+        
+	cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
+        
+	QGauss<dim> quadrature_formula(2);
+	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
+                                 update_JxW_values);
+        
+	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
+	const unsigned int   n_q_points    = quadrature_formula.size();
+        
+	cout<< "Assembling System\n";
+	cout<< "Degrees of freedom per cell: "<< dofs_per_cell<< endl;
+	cout<< "Quadrature points per cell: "<< n_q_points<< endl;
+        
+	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+        
+	FullMatrix<double> cell_dd(dofs_per_cell);
+	FullMatrix<double> cell_fd(dofs_per_cell);
+	FullMatrix<double> cell_ff(dofs_per_cell);
+        
+	typename DoFHandler<dim>::active_cell_iterator
+	cell=dof_handler.begin_active(),
+	endc=dof_handler.end();
+	Tensor< 1 , dim, double > ones;
+	// 	Tensor< 1 , dim, double > increasing;
+        
+	for (unsigned i=0;i<dim;++i)
+                ones[i]=1;
+        
+	for (; cell !=endc;++cell) {
+                fe_values.reinit(cell);
+                cell_dd=0;
+                cell_fd=0;
+                cell_ff=0;
+                for (unsigned q_point=0;q_point<n_q_points;++q_point)
+                        for (unsigned i=0;i<dofs_per_cell;++i)
+                                for (unsigned j=0; j<dofs_per_cell;++j) {
+                                        
+                                        cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
+                                        cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
+                                        cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
+                                        
+                                }
+                
+                cell->get_dof_indices (local_dof_indices);
+                
+                for (unsigned int i=0; i<dofs_per_cell;++i)
+                        for (unsigned int j=0; j< dofs_per_cell; ++j) {
+                                
+                                dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
+                                fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
+                                ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
+                                
+                        }
+                
+        }
+        
+        
+#ifdef __PIDE__
+	double diff=par.sigma*par.sigma/2;
+	double trasp=par.r-par.sigma*par.sigma/2-alpha;
+	double reaz=-par.r-par.lambda;
+        
+	system_matrix.add(1/time_step-0.5*reaz, ff_matrix); 
+	system_matrix.add(0.5*diff, dd_matrix);
+	system_matrix.add(-0.5*trasp, fd_matrix);
+        
+	system_M2.add(1/time_step+0.5*reaz, ff_matrix); 
+	system_M2.add(-0.5*diff, dd_matrix);
+	system_M2.add(0.5*trasp, fd_matrix);
+#else
+	system_M2.add(1, ff_matrix);
+	system_matrix.add(1, ff_matrix);
+	system_matrix.add(par.sigma*par.sigma*time_step/2, dd_matrix);
+	system_matrix.add(-time_step*(par.r-par.sigma*par.sigma/2), fd_matrix);
+	system_matrix.add(par.r*time_step, ff_matrix);
+        
+#endif
         
 }
 
@@ -931,118 +966,15 @@ void Opzione<dim>::solve() {
 }
 
 template<int dim>
-double Opzione<dim>::run(){
-        
-        unsigned int Step=Nsteps;
-        
-        for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-                
-                if (time==par.T-time_step) {
-                        std::cout << "Step 100\n";
-                        make_grid();
-                        setup_system ();
-                        assemble_system();
-                        VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
-                        
-                        std::cout << "   Number of active cells:       "
-                        << triangulation.n_active_cells()
-                        << std::endl;
-                        std::cout << "   Number of degrees of freedom: "
-                        << dof_handler.n_dofs()
-                        << std::endl;
-                        
-                        grid_points=triangulation.get_vertices();
-                        
-                        solve_onetimestep(time);
-                }
-                /*
-                else if (!(Step%20)) {
-                        std::cout << "Refinment Step "<<Step<<"\n";
-                        refine_grid (true);
-                        setup_system ();
-                        assemble_system();
-                        
-                        std::cout << "   Number of active cells:       "
-                        << triangulation.n_active_cells()
-                        << std::endl;
-                        std::cout << "   Number of degrees of freedom: "
-                        << dof_handler.n_dofs()
-                        << std::endl;
-                        
-                        grid_points=triangulation.get_vertices();
-                        
-                        solve_onetimestep(time);
-                }*/
-                
-                else {
-                        //refine_grid (false);
-                        std::cout << "   Number of active cells:       "
-                        << triangulation.n_active_cells()
-                        << std::endl;
-                        std::cout << "   Number of degrees of freedom: "
-                        << dof_handler.n_dofs()
-                        << std::endl;
-                        
-                        solve_onetimestep(time);
-                        
-                }
-            
-        }
-        
-#ifdef __MATLAB__
-	ofstream print;
-        print.open("solution.m");
-        
-        std::cout<<grid_points.size()<<" "<<solution.size()<<"\n";
-        
-        if (print.is_open()) {
-                print<<"x=[ ";
-                for (int i=0; i<grid_points.size()-1; ++i) {
-                        print<<par.S0*exp(grid_points[i][0])<<"; ";
-                }
-                print<<par.S0*exp(grid_points[grid_points.size()-1][0])<<" ];\n";
-                
-                print<<"sol=[ ";
-                for (int i=0; i<solution.size()-1; ++i) {
-                        print<<solution(i)<<"; ";
-                }
-                print<<solution(solution.size()-1)<<" ];\n";
-        }
-        
-        print.close();
-#endif
-        
-        ran=true;
-        
-        return get_price();
-}
-
-template<int dim>
 double Opzione<dim>::get_price() {
         
 	if (ran==false) {
                 this->run();
         }
 	
-        // Creo nuova grigla ( che passi da 0 )
-        Triangulation<dim> price;
-        // Creo degli fe
-        FE_Q<dim> fe3 (1);
-        // Creo un DoFHandler e lo attacco a price
-        DoFHandler<dim> dof_handler_3 (price);
-        // Costruisco la griglia, in modo che passi da 0 e non la rifinisco
-        GridGenerator::hyper_rectangle(price, Point<dim> (0.), Point<dim> (xmax));
-        // Assegno a dof_handler_3 gli elementi finit fe3 appena creati
-        dof_handler_3.distribute_dofs(fe3);
-        // Definisco questa fantomatica funzione FEFieldFunction
-        Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
-        // Creo il vettore che conterrà i valori interpolati
-        Vector<double> solution_vector(2);
-        // Interpolo
-        VectorTools::interpolate(dof_handler_3, fe_function, solution_vector);
-        // Ritorno il valore interpolato della soluzione in 0
-        return solution_vector[0];
+        Point<dim> p(0.);
+	Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
+	return fe_function.value(p);
 
 }
 
@@ -1063,7 +995,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 10);
+        Opzione<1> Call(par, 100, 7);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
@@ -1099,7 +1031,7 @@ int main() {
                 cout<<"Grid\t"<<pow(2,i+4)<<"\tPrice\t"<<result[i]<<"\tclocktime\t"<<
                 T[i]/1e6<<" s\trealtime\t"<<real_T[i]/1e6<<"\n";
         }*/
-	cout<<"Kou-1d\n";
+	cout<<"Target 9.62005.\nMeshAdapting\n";
         
 	return 0;
 }
