@@ -499,7 +499,6 @@ double Opzione<dim>::run(){
                 }
                 
                 else {
-                        //refine_grid (false);
                         std::cout << "   Number of active cells:       "
                         << triangulation.n_active_cells()
                         << std::endl;

@@ -205,13 +205,13 @@ template<int dim>
 void Opzione<dim>::make_grid() {
 	
         Smin1=par.S01*exp((par.r-par.sigma1*par.sigma1/2)*par.T
-                            -par.sigma1*sqrt(par.T)*6);
+                          -par.sigma1*sqrt(par.T)*6);
 	Smax1=par.S01*exp((par.r-par.sigma1*par.sigma1/2)*par.T
-                            +par.sigma1*sqrt(par.T)*6);
+                          +par.sigma1*sqrt(par.T)*6);
         Smin2=par.S02*exp((par.r-par.sigma2*par.sigma2/2)*par.T
-                         -par.sigma2*sqrt(par.T)*6);
+                          -par.sigma2*sqrt(par.T)*6);
 	Smax2=par.S02*exp((par.r-par.sigma2*par.sigma2/2)*par.T
-                         +par.sigma2*sqrt(par.T)*6);
+                          +par.sigma2*sqrt(par.T)*6);
         
 	xmin1=log(Smin1/par.S01);
         xmax1=log(Smax1/par.S01);
@@ -245,8 +245,8 @@ void Opzione<dim>::make_grid() {
 	cout<< "Number of Boundaries: " << info.size()<< endl;
 	cout<< "which are"<< endl;
 	for (unsigned int i=0; i<info.size();++i)
-	cout<< info[i] << endl;
-
+                cout<< info[i] << endl;
+        
         
 }
 
@@ -272,7 +272,7 @@ void Opzione<dim>::setup_system() {
 	
         solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
-
+        
 }
 
 template<int dim>
@@ -309,10 +309,10 @@ void Opzione<dim>::assemble_system() {
         sigma_matrix[0][1]=par.sigma1*par.sigma2*par.ro;
         sigma_matrix[1][0]=par.sigma1*par.sigma2*par.ro;
         /*
-        Tensor< 1 , dim, double > ones;
-	for (unsigned i=0;i<dim;++i)
-                ones[i]=1;
-        */
+         Tensor< 1 , dim, double > ones;
+         for (unsigned i=0;i<dim;++i)
+         ones[i]=1;
+         */
         Tensor< 1, dim, double > trasp;
         trasp[0]=par.r-par.sigma1*par.sigma1/2;
         trasp[1]=par.r-par.sigma2*par.sigma2/2;
@@ -334,9 +334,9 @@ void Opzione<dim>::assemble_system() {
                                         // system matrix
                                         cell_system(i, j)+=fe_values.JxW(q_point)*
                                         (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
-                                        fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                        (1/time_step+par.r)*
-                                        fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
+                                         fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
+                                         (1/time_step+par.r)*
+                                         fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                         
                                 }
                 
@@ -371,15 +371,15 @@ void Opzione<dim>::solve() {
         
         // Printing beginning solution
         {
-        DataOut<2> data_out;
-        
-        data_out.attach_dof_handler (dof_handler);
-        data_out.add_data_vector (solution, "begin");
-        
-        data_out.build_patches ();
-        
-        std::ofstream output ("begin.gpl");
-        data_out.write_gnuplot (output);
+                DataOut<2> data_out;
+                
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "begin");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("begin.gpl");
+                data_out.write_gnuplot (output);
         }
         //
         
@@ -389,7 +389,7 @@ void Opzione<dim>::solve() {
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
                 system_M2.vmult(system_rhs, solution);
-
+                
 #ifdef __VERBOSE__
                 cout<<"rhs ";
                 system_rhs.print(cout);
@@ -425,15 +425,15 @@ void Opzione<dim>::solve() {
         
         // Printing final solution
         {
-        DataOut<2> data_out;
-        
-        data_out.attach_dof_handler (dof_handler);
-        data_out.add_data_vector (solution, "end");
-        
-        data_out.build_patches ();
-        
-        std::ofstream output ("end.gpl");
-        data_out.write_gnuplot (output);
+                DataOut<2> data_out;
+                
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "end");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("end.gpl");
+                data_out.write_gnuplot (output);
         }
         //
         
@@ -449,21 +449,21 @@ double Opzione<dim>::get_price() {
         }
         
         // Creo nuova grigla ( che passi da (0,0) )
-//         Triangulation<dim> price;
+        //         Triangulation<dim> price;
         // Creo degli fe
-//         FE_Q<dim> fe2 (1);
+        //         FE_Q<dim> fe2 (1);
         // Creo un DoFHandler e lo attacco a price
-//         DoFHandler<dim> dof_handler_2 (price);
+        //         DoFHandler<dim> dof_handler_2 (price);
         // Costruisco la griglia, in modo che passi da (0,0) e non la rifinisco
-//         GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), Point<dim> (xmax1,xmax2));
+        //         GridGenerator::hyper_rectangle(price, Point<dim> (0.,0.), Point<dim> (xmax1,xmax2));
         // Assegno a dof_handler_2 gli elementi finit fe2 appena creati
-//         dof_handler_2.distribute_dofs(fe2);
+        //         dof_handler_2.distribute_dofs(fe2);
         // Definisco questa fantomatica funzione FEFieldFunction
         Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
         // Creo il vettore che conterrà i valori interpolati
-//         Vector<double> solution_vector(4);
+        //         Vector<double> solution_vector(4);
         // Interpolo
-//         VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
+        //         VectorTools::interpolate(dof_handler_2, fe_function, solution_vector);
         // Ritorno il valore interpolato della soluzione in (0,0)
         Point<dim> p(0.,0.);
         return fe_function.value(p);
@@ -472,22 +472,22 @@ double Opzione<dim>::get_price() {
 int main() {
 	Parametri2d par;
         /*
-	par.T=1.;
-	par.K=200;
-	par.S01=100;
-        par.S02=100;
-	par.r=0.0367;
-	par.sigma1=0.120381;
-        par.sigma2=0.09;
-        par.ro=0.2;
-        */
+         par.T=1.;
+         par.K=200;
+         par.S01=100;
+         par.S02=100;
+         par.r=0.0367;
+         par.sigma1=0.120381;
+         par.sigma2=0.09;
+         par.ro=0.2;
+         */
         
         par.T=1.;
-		par.K=200;
-		par.S01=80;
+        par.K=200;
+        par.S01=80;
         par.S02=120;
-		par.r=0.1;
-		par.sigma1=0.1256;
+        par.r=0.1;
+        par.sigma1=0.1256;
         par.sigma2=0.2;
         par.ro=-0.2;
         
