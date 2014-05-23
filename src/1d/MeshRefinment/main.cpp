@@ -345,7 +345,7 @@ private:
 	void setup_system ();
 	void assemble_system ();
 	void solve ();
-	void output_results () const {};
+	void output_results (unsigned number) const;
         void refine_grid (bool refine);
         void solve_onetimestep(double time);
         
@@ -440,6 +440,19 @@ public:
         };*/
 };
 
+template <int dim>
+void Opzione<dim>::output_results (unsigned number) const
+{
+        
+        std::string filename = "grid-";
+        filename += ('0' + number);
+        filename += ".eps";
+        std::ofstream output (filename.c_str());
+        GridOut grid_out;
+        grid_out.write_eps (triangulation, output);
+        
+}
+
 template<int dim>
 double Opzione<dim>::run(){
         
@@ -471,7 +484,6 @@ double Opzione<dim>::run(){
                         std::cout << "Refinment Step "<<Step<<"\n";
                         
                         refine_grid (true);
-                        //setup_system ();
                         assemble_system();
                         
                         //VectorTools::interpolate (dof_handler, solution, solution);
@@ -483,8 +495,6 @@ double Opzione<dim>::run(){
                         << dof_handler.n_dofs()
                         << std::endl;
                         
-                        grid_points=triangulation.get_vertices();
-                
                         solve_onetimestep(time);
                 }
                 
@@ -533,7 +543,7 @@ double Opzione<dim>::run(){
 
 template <int dim>
 void Opzione<dim>::refine_grid (bool refine){
-        
+        /*
         Vector<float> gradient_indicator (triangulation.n_active_cells());
         
         DerivativeApproximation::approximate_gradient (mapping,
@@ -550,9 +560,9 @@ void Opzione<dim>::refine_grid (bool refine){
         // Finally they serve as refinement indicator.
         GridRefinement::refine_and_coarsen_fixed_number (triangulation,
                                                          gradient_indicator,
-                                                         0.3, 0.01);
+                                                         0.1, 0.01);
+        */
         
-        /*
         Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
         
         KellyErrorEstimator<dim>::estimate (dof_handler,
@@ -563,8 +573,8 @@ void Opzione<dim>::refine_grid (bool refine){
         
         GridRefinement::refine_and_coarsen_fixed_number (triangulation,
                                                          estimated_error_per_cell,
-                                                         0.6, 0.4);
-        */
+                                                         0.1, 0.01);
+        
         
         SolutionTransfer<dim> solution_trans(dof_handler);
         
@@ -574,6 +584,7 @@ void Opzione<dim>::refine_grid (bool refine){
         solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
         
         triangulation.execute_coarsening_and_refinement ();
+        grid_points=triangulation.get_vertices();
         setup_system ();
         
         solution_trans.interpolate(previous_solution, solution);
@@ -608,7 +619,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
 
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
                 std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
