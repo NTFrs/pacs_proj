@@ -95,8 +95,9 @@ void timestamp ( );
 
 //#define dim 1
 
-//#define __PIDE__
+#define __PIDE__
 #define __MATLAB__
+#define __GNUPLOT__
 //#define __INTERPOLATION__
 
 const double toll=1e-8;
@@ -402,7 +403,7 @@ private:
         
 	double alpha;
         
-        
+        double up, down;
         
 	void Levy_integral_part1();
 	void Levy_integral_part2(Vector<double> &J);
@@ -413,7 +414,7 @@ private:
 	bool ran;
         
 public:
-	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
+	Opzione(Parametri const &par_, int Nsteps_,  int refinement, double up_, double down_):
         mapping (),
 	par(par_),
 	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
@@ -424,7 +425,9 @@ public:
 	refs(refinement), 
 	Nsteps(Nsteps_), 
 	time_step (par.T/double(Nsteps_)),
-	price(0),  
+	price(0),
+        up(up_),
+        down(down_),
 	ran(false)
 	{};
         
@@ -468,6 +471,36 @@ double Opzione<dim>::run(){
                         assemble_system();
                         VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
                         
+                        // Printing beginning solution
+                        {
+                                DataOut<1> data_out;
+                                
+                                data_out.attach_dof_handler (dof_handler);
+                                data_out.add_data_vector (solution, "begin");
+                                
+                                data_out.build_patches ();
+                                
+                                std::ofstream output ("begin.gpl");
+                                data_out.write_gnuplot (output);
+                        }
+                        //
+                        
+#ifdef __GNUPLOT__
+                        {
+                                ofstream print;
+                                print.open("beginS.gpl");
+                                
+                                std::cout<<grid_points.size()<<" "<<solution.size()<<"\n";
+                                
+                                if (print.is_open()) {
+                                        for (int i=0; i<grid_points.size()-1; ++i)
+                                                print<<par.S0*exp(grid_points[i][0])<<"\t"<<solution(i)<<"\n";
+                                }
+                                
+                                print.close();
+                        }
+#endif
+                        
                         std::cout << "   Number of active cells:       "
                         << triangulation.n_active_cells()
                         << std::endl;
@@ -480,7 +513,7 @@ double Opzione<dim>::run(){
                         solve_onetimestep(time);
                 }
                 
-                else if (!(Step%10)) {
+                else if (!(Step%20)) {
                         std::cout << "Refinment Step "<<Step<<"\n";
                         
                         refine_grid (true);
@@ -512,27 +545,34 @@ double Opzione<dim>::run(){
                 
         }
         
-#ifdef __MATLAB__
-	ofstream print;
-        print.open("solution.m");
-        
-        std::cout<<grid_points.size()<<" "<<solution.size()<<"\n";
-        
-        if (print.is_open()) {
-                print<<"x=[ ";
-                for (int i=0; i<grid_points.size()-1; ++i) {
-                        print<<par.S0*exp(grid_points[i][0])<<"; ";
-                }
-                print<<par.S0*exp(grid_points[grid_points.size()-1][0])<<" ];\n";
+        // Printing final solution
+        {
+                DataOut<1> data_out;
                 
-                print<<"sol=[ ";
-                for (int i=0; i<solution.size()-1; ++i) {
-                        print<<solution(i)<<"; ";
-                }
-                print<<solution(solution.size()-1)<<" ];\n";
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "end");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("end.gpl");
+                data_out.write_gnuplot (output);
         }
+        //
         
-        print.close();
+#ifdef __GNUPLOT__
+        {
+                ofstream print;
+                print.open("endS.gpl");
+                
+                std::cout<<grid_points.size()<<" "<<solution.size()<<"\n";
+                
+                if (print.is_open()) {
+                        for (int i=0; i<grid_points.size()-1; ++i)
+                                print<<par.S0*exp(grid_points[i][0])<<"\t"<<solution(i)<<"\n";
+                }
+                
+                print.close();
+        }
 #endif
         
         ran=true;
@@ -569,10 +609,13 @@ void Opzione<dim>::refine_grid (bool refine){
                                             typename FunctionMap<dim>::type(),
                                             solution,
                                             estimated_error_per_cell);
-        
+        /*
         GridRefinement::refine_and_coarsen_fixed_number (triangulation,
                                                          estimated_error_per_cell,
-                                                         0.1, 0.01);
+                                                         up, down);
+        */
+        GridRefinement::refine_and_coarsen_optimize (triangulation,
+                                                     estimated_error_per_cell);
         
         
         SolutionTransfer<dim> solution_trans(dof_handler);
@@ -1005,7 +1048,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 7);
+        Opzione<1> Call(par, 100, 8, 0.3, 0.01);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
