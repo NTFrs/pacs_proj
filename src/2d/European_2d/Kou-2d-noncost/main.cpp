@@ -560,9 +560,9 @@ void Opzione<dim>::assemble_system() {
 	 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 
 	  trasp[0]=par.sigma1*par.sigma1*quad_points[q_point][0]
-	  +0.5*par.rho*par.sigma1*par.sigma2*quad_points[q_point][0]+alpha_x-par.r*quad_points[q_point][0];
+	  +0.5*par.rho*par.sigma1*par.sigma2*quad_points[q_point][0]+(alpha_x-par.r)*quad_points[q_point][0];
 	  trasp[1]=par.sigma2*par.sigma2*quad_points[q_point][1]
-	  +0.5*par.rho*par.sigma1*par.sigma2*quad_points[q_point][1]+alpha_y-par.r*quad_points[q_point][1];
+	  +0.5*par.rho*par.sigma1*par.sigma2*quad_points[q_point][1]+(alpha_y-par.r)*quad_points[q_point][1];
 	 
 	  sig_mat[0][0]=0.5*par.sigma1*par.sigma1
 	  *quad_points[q_point][0]*quad_points[q_point][0];
@@ -615,7 +615,7 @@ void Opzione<dim>::solve() {
 
 	 data_out.build_patches ();
 
-	 std::ofstream output ("begin.gpl");
+	 std::ofstream output ("plot/begin.gpl");
 	 data_out.write_gnuplot (output);
  }
 
@@ -700,7 +700,7 @@ void Opzione<dim>::solve() {
 
 	 data_out.build_patches ();
 
-	 std::ofstream output ("end.gpl");
+	 std::ofstream output ("plot/end.gpl");
 	 data_out.write_gnuplot (output);
  }
 
