@@ -1,7 +1,7 @@
 #include <deal.II/grid/tria.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/grid/grid_generator.h>
-#include <qprojector.h>
+#include <deal.II/base/qprojector.h>
 #include <deal.II/grid/tria_accessor.h>
 #include <deal.II/grid/tria_iterator.h>
 #include <deal.II/dofs/dof_accessor.h>
@@ -154,7 +154,7 @@ template<int dim>
 double Boundary_Right_Side<dim>::value(const Point<dim> &p, const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-	return max(p[0]+p[1]-_K*exp(-_r*(_T-this->get_time())), 0-);
+	return max(p[0]+p[1]-_K*exp(-_r*(_T-this->get_time())), 0.);
 
 }
 
@@ -258,7 +258,7 @@ private:
 	bool ran;
 
 public:
-	Opzione(Parametri const &par_, int Nsteps_,  int refinement):
+	Opzione(Parametri2d const &par_, int Nsteps_,  int refinement):
 	par(par_),
 	k_x(0, par.p1 , par.lambda1, par.lambda_piu_1, par.lambda_meno_1),
 	k_y(1, par.p2 , par.lambda2, par.lambda_piu_2, par.lambda_meno_2),
@@ -328,7 +328,7 @@ void Opzione<dim>::Levy_integral_part1() {
 	 std::vector< Point<1> > quad_points_1D(fe_values.get_quadrature_points());
 	 
 	 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-	Point<dim> p(quad_points_1D[q_point][0], 0.); alpha_x+=fe_values.JxW(q_point)*(exp(p[0])-1.)*k_x.value(p[0]);
+	Point<dim> p(quad_points_1D[q_point][0], 0.); alpha_x+=fe_values.JxW(q_point)*(exp(p[0])-1.)*k_x.value(p);
 	  }
 	}
    
@@ -359,7 +359,7 @@ void Opzione<dim>::Levy_integral_part1() {
 	  std::vector< Point<1> > quad_points_1D(fe_values.get_quadrature_points());
 
 	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-	   Point<dim> p(0., quad_points_1D[q_point][0]); alpha_y+=fe_values.JxW(q_point)*(exp(p[1])-1.)*k_y.value(p[1]);
+	   Point<dim> p(0., quad_points_1D[q_point][0]); alpha_y+=fe_values.JxW(q_point)*(exp(p[1])-1.)*k_y.value(p);
 	 }
 	}
 
@@ -377,81 +377,66 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 
 	//TODO define grid_tol
-	//double grid_tol();
+	double grid_tol(1.0e-8);
 	J_x.reinit(solution.size());
 	J_y.reinit(solution.size());
 
 	unsigned int N(solution.size());
-	// 	cout << " N IS "<< N << endl;
-	unsigned int 
-	QGauss<dim> quadrature_formula(4);
-	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
-
-	const unsigned int n_q_points(quadrature_formula.size());
 
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
 
-	vector<double> sol_cell(n_q_points);
-
-	vector< Point <dim> > quad_points(n_q_points);
-	Point<dim> logz(0.);
-	//  cout<< "densità\n";
 	Functions::FEFieldFunction<dim> func(dof_handler, solution);
+	QGauss<1> quad1D(3);
+	MappingQ1<dim> mapping;
 	
+	Point<dim> z, karg;
+	double wei;
+
 	for (;cell !=endc;++cell)
 	 {
-	  fe_values.reinit(cell);
+// 	  fe_values.reinit(cell);
 	  func.set_active_cell(cell);
 	  
 	  for (unsigned int face=0;
 	   face<GeometryInfo<dim>::faces_per_cell;++face)
 	  {
-		//TODO first we project the quadrature to the face
-		//TODO or we could build a new quadrature too...
-		  if (face==2)   // se la faccia è sopra sommiamo il contributo a ogni J_x
-		  for (unsigned int i=0;i<N;++i)
-			if (fabs(cell->face(face)->center(1)-grid_points[i][1])<grid_tol)
-			   //TODO add values on face
-			   for (unsigned q_point=0;q_point<;++q_point)
-			   J_x[i]+=k_x.value();
-		  if (face==1)   // se la faccia è a destra sommiamo i contributi a J_y per ogni nodo
+	   
+		  if (face==2) {   // se la faccia è sopra sommiamo il contributo a ogni J_x
+			Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
+			unsigned int n_q_points=quad2D.size();
+						
 			for (unsigned int i=0;i<N;++i)
-			  if (fabs(cell->face(face)->center(0)-grid_points[i][0])<grid_tol)
-			  //TODO add values on face
-			  J_y[i]+=;
-	  }
-	
-  }	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	for(unsigned int iter=0;iter<N;++iter) {
-	 // 	 cerr << "iter is " <<  iter << endl;
-	 cell=dof_handler.begin_active();
-	 for (; cell!=endc;++cell) {
-	  // 	  cout<< "switching cell\n";
-	  fe_values.reinit(cell);
-	  quad_points=fe_values.get_quadrature_points();
-	  fe_values.get_function_values(solution, sol_cell);
-	  double a, b, c, d;
+				if (fabs(cell->face(face)->center()(1)-grid_points[i][1])<grid_tol) {
+				for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+				z=mapping.transform_unit_to_real_cell(cell, quad2D.point(q_point));
+				wei=quad2D.weight(q_point);
+				
+				karg(0)=log(z(0)/grid_points[i](0));
+				J_x[i]+=wei*func.value(z)*k_x.value(karg)/z(0);
+				}
+		    }
+		}
+				// se la faccia è a destra sommiamo i contributi a J_y per ogni nodo
+		  if (face==1) {
+			Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
+			unsigned int n_q_points=quad2D.size();
 
-	  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-	   // 	   cout << "iter is " <<  iter << endl;
-	   // 	   cout<< "At grid point\t"<< grid_points[iter]<< "\tand z\t" << quad_points[q_point](0);
-	   logz(0)=log(quad_points[q_point](0)/grid_points[iter](0));
-	   a=fe_values.JxW(q_point);
-	   b=sol_cell[q_point];
-	   c=k.value(logz);
-	   d=quad_points[q_point](0);
-	   // 	   cout<< "\tthe density value is\t"<< c<< "\tpeso:\t"<< a<< "\tfunzione:\t"<< b;
-	   // 	   cout<<c<< "\t";
-
-	   J[iter]+=a*b*c/d;
-	 // 	   cout<< "\tcon un contributo a J di\t"<< iter << "\tdi\t" << a*b*c<< endl;
-	 // 	   J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(logz);
-	 }
-	}
+				for (unsigned int i=0;i<N;++i)
+				if (fabs(cell->face(face)->center()(0)-grid_points[i][0])<grid_tol) {
+				  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+				  z=mapping.transform_unit_to_real_cell(cell, quad2D.point(q_point));
+				  wei=quad2D.weight(q_point);
+			  	  
+				  karg(1)=log(z(1)/grid_points[i](1));
+				  J_y[i]+=wei*func.value(z)*k_x.value(karg)/z(1);
+				}
+			}
+	
+			}
    }
-
-  }
+  }	
+ 
+}
 
 template<int dim>
 void Opzione<dim>::make_grid() {
@@ -756,7 +741,7 @@ int main() {
 	par.r=0.1;
 	par.sigma1=0.1256;
 	par.sigma2=0.2;
-	par.ro=-0.2;
+	par.rho=-0.2;
 
 	// Parametri della parte salto
 	par.p1=0.20761;                                            // Parametro 1 Kou
