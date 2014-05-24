@@ -392,26 +392,35 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	Point<dim> z, karg;
 	double wei;
 
+	//we do a loop on cells
 	for (;cell !=endc;++cell)
 	 {
 // 	  fe_values.reinit(cell);
+
+		//on each cell we reset the fefield func to know where we are.
 	  func.set_active_cell(cell);
 	  
+	  //then we cicle on faces
 	  for (unsigned int face=0;
 	   face<GeometryInfo<dim>::faces_per_cell;++face)
 	  {
 	   
-		  if (face==2) {   // se la faccia è sopra sommiamo il contributo a ogni J_x
+		  if (face==2) {   
+		// if we are on upper face we create a quadrature on this face. It returns values on the reference cell so we have to map them using a Q1 bilinear mapping.
 			Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
 			unsigned int n_q_points=quad2D.size();
 						
+			//for every node of the grid on that line (thus the need for an if)
 			for (unsigned int i=0;i<N;++i)
 				if (fabs(cell->face(face)->center()(1)-grid_points[i][1])<grid_tol) {
+				//for every quadrature point on this face we calculate it's contribute to J_x in that node
 				for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+				//we need to use the mapping!		
 				z=mapping.transform_unit_to_real_cell(cell, quad2D.point(q_point));
 				wei=quad2D.weight(q_point);
 				
 				karg(0)=log(z(0)/grid_points[i](0));
+				//here is the final add to J_x (weight*value*density divided by z)
 				J_x[i]+=wei*func.value(z)*k_x.value(karg)/z(0);
 				}
 		    }
