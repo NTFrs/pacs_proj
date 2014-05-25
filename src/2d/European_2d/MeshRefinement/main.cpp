@@ -450,6 +450,20 @@ double Opzione<dim>::run(){
                         assemble_system();
                         VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S01, par.S02), solution);
                         
+                        // Printing beginning solution
+                        {
+                                DataOut<2> data_out;
+                                
+                                data_out.attach_dof_handler (dof_handler);
+                                data_out.add_data_vector (solution, "begin");
+                                
+                                data_out.build_patches ();
+                                
+                                std::ofstream output ("begin.gpl");
+                                data_out.write_gnuplot (output);
+                        }
+                        //
+                        
                         std::cout << "   Number of active cells:       "
                         << triangulation.n_active_cells()
                         << std::endl;
@@ -494,15 +508,19 @@ double Opzione<dim>::run(){
                 
         }
         
-        //DataOutBase::EpsFlags eps_flags;
-        //eps_flags.z_scaling = 4;
-        DataOut<dim> data_out;
-        //data_out.set_flags (eps_flags);
-        data_out.attach_dof_handler (dof_handler);
-        data_out.add_data_vector (solution, "solution");
-        data_out.build_patches ();
-        std::ofstream output ("final-solution.eps");
-        data_out.write_eps (output);
+        // Printing final solution
+        {
+                DataOut<2> data_out;
+                
+                data_out.attach_dof_handler (dof_handler);
+                data_out.add_data_vector (solution, "end");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("end.gpl");
+                data_out.write_gnuplot (output);
+        }
+        //
         
 #ifdef __MATLAB__
 	ofstream print;
