@@ -409,7 +409,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                      face<GeometryInfo<dim>::faces_per_cell;++face)
                 {
                         
-                        if (face==2) {
+                        if (face==3) {
 								/*
                                 // if we are on upper face we create a quadrature on this face. It returns values on the reference cell so we have to map them using a Q1 bilinear mapping.
                                 Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
@@ -422,10 +422,10 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                                 vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(solution,  sol_values);
                                 
-                                cout<< "x values on cell:\n";
-                                for (unsigned j=0;j<n_q_points;++j)
-                                cout<< sol_values[j]<< "\t";
-                                cout<< endl;
+//                                 cout<< "x values on cell:\n";
+//                                 for (unsigned j=0;j<n_q_points;++j)
+//                                 cout<< sol_values[j]<< "\t";
+//                                 cout<< endl;
                                 for (unsigned int i=0;i<N;++i)
                                         if (fabs(quad_points[0](1)-grid_points[i](1))<grid_tol) {
                                                 //for every quadrature point on this face we calculate it's contribute to J_x in that node
@@ -433,8 +433,12 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                                                         //we need to use the mapping!		
                                                         z=quad_points[q_point];
                                                         karg(0)=log(z(0)/grid_points[i](0));
+//                                                         double a, b, c;
+//                                                         a=fe_face.JxW(q_point);
+//                                                         b=k_x.value(karg);
+//                                                         c=sol_values[]
                                                         //here is the final add to J_x (weight*value*density divided by z)
-                                                        J_x[i]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[n_q_points]/z(0);
+                                                        J_x[i]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[q_point]/z(0);
                                                 }
                                         }
                         }
@@ -447,10 +451,10 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 							vector<double> sol_values(n_q_points);
 							fe_face.get_function_values(solution,  sol_values);
 							
-							cout<< "y values on cell:\n";
-							for (unsigned j=0;j<n_q_points;++j)
-							cout<< sol_values[j]<< "\t";
-							cout<< endl;
+// 							cout<< "y values on cell:\n";
+// 							for (unsigned j=0;j<n_q_points;++j)
+// 							cout<< sol_values[j]<< "\t";
+// 							cout<< endl;
 
 							
 							for (unsigned int i=0;i<N;++i)
@@ -459,7 +463,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 													z=quad_points[q_point];
 													karg(1)=log(z(1)/grid_points[i](1));
 													//here is the final add to J_x (weight*value*density divided by z)
-													J_y[i]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[n_q_points]/z(1);
+													J_y[i]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[q_point]/z(1);
 
                                                 }
                                         }
@@ -655,7 +659,12 @@ void Opzione<dim>::solve() {
                 
                 // 	 if (Step==100)
                 // 	  cout<< "vector J \n"<< J << endl;
-                
+                if (Step % 25==0)
+				{
+				cout<< "J_x is:\n"<< J_x<<endl;
+
+				cout<< "J_y is:\n"<< J_y<<endl;
+				}
                 system_M2.vmult(system_rhs, solution);
                 {
                         Vector<double> temp;
@@ -790,7 +799,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<2> Call(par, 50, 6);
+	Opzione<2> Call(par, 100, 6);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
         
