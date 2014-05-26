@@ -454,7 +454,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 							
 							for (unsigned int i=0;i<N;++i)
-                                        if (fabs(cell->face(face)->center()(0)-grid_points[i][0])<grid_tol) {
+								if (fabs(quad_points[0](0)-grid_points[i](0))<grid_tol) {
                                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 													z=quad_points[q_point];
 													karg(1)=log(z(1)/grid_points[i](1));
@@ -790,7 +790,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<2> Call(par, 15, 4);
+	Opzione<2> Call(par, 50, 6);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
         
