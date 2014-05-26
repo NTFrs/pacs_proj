@@ -305,7 +305,7 @@ void Option<dim>::assemble_system()
                                         (
                                          (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
                                          +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
-                                         +fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point) //segno + o - ??
+                                         -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point) //segno + o - ??
                                          );
                                         
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
