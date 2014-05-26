@@ -373,6 +373,8 @@ private:
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
         
+        ConstraintMatrix                constraints;
+        
         // 	std::vector<unsigned int>       index;
         // 	std::vector<double>             u_array;
         // 	double *                        x_array;
@@ -609,14 +611,14 @@ void Opzione<dim>::refine_grid (bool refine){
                                             typename FunctionMap<dim>::type(),
                                             solution,
                                             estimated_error_per_cell);
-        /*
+        
         GridRefinement::refine_and_coarsen_fixed_number (triangulation,
                                                          estimated_error_per_cell,
-                                                         up, down);
-        */
+                                                         0.3, 0.001);
+        /*
         GridRefinement::refine_and_coarsen_optimize (triangulation,
                                                      estimated_error_per_cell);
-        
+        */
         
         SolutionTransfer<dim> solution_trans(dof_handler);
         
@@ -626,6 +628,7 @@ void Opzione<dim>::refine_grid (bool refine){
         solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
         
         triangulation.execute_coarsening_and_refinement ();
+        grid_points.clear();
         grid_points=triangulation.get_vertices();
         setup_system ();
         
@@ -782,7 +785,7 @@ void Opzione<dim>::solve_onetimestep(double time){
         
         solution=system_rhs;
         
-        //constraints.distribute (solution);
+        constraints.distribute (solution);
         
 }
 
@@ -797,8 +800,15 @@ void Opzione<dim>::setup_system() {
 	<< dof_handler.n_dofs()
 	<< std::endl;
         
+        constraints.clear ();
+        DoFTools::make_hanging_node_constraints (dof_handler,
+                                                 constraints);
+
+        constraints.close ();
+        
 	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, constraints,
+                                         /*keep_constrained_dofs = */ false);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
@@ -875,6 +885,8 @@ void Opzione<dim>::assemble_system() {
 	FullMatrix<double> cell_fd(dofs_per_cell);
 	FullMatrix<double> cell_ff(dofs_per_cell);
         
+        Vector<double>   cell_rhs(dofs_per_cell); 
+        
 	typename DoFHandler<dim>::active_cell_iterator
 	cell=dof_handler.begin_active(),
 	endc=dof_handler.end();
@@ -896,10 +908,15 @@ void Opzione<dim>::assemble_system() {
                                         cell_dd(i, j)+=fe_values.shape_grad(i, q_point)*fe_values.shape_grad(j, q_point)*fe_values.JxW(q_point);
                                         cell_fd(i, j)+=fe_values.shape_value(i, q_point)*(ones*fe_values.shape_grad(j,q_point))*fe_values.JxW(q_point);
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
+                                        cell_rhs(i)=0;
                                         
                                 }
                 
                 cell->get_dof_indices (local_dof_indices);
+                constraints.distribute_local_to_global(cell_ff,
+                                                       cell_rhs,
+                                                       local_dof_indices,
+                                                       ff_matrix, system_rhs);
                 
                 for (unsigned int i=0; i<dofs_per_cell;++i)
                         for (unsigned int j=0; j< dofs_per_cell; ++j) {
@@ -1048,7 +1065,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 8, 0.3, 0.01);
+        Opzione<1> Call(par, 100, 10, 0.3, 0.01);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
