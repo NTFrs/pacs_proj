@@ -380,6 +380,7 @@ private:
         // 	double *                        x_array;
         
 	std::vector< Point<dim> >       grid_points;
+        std::vector<bool>               grid_active_points;
         // 	std::vector< Point<dim> >       integral_grid_points;
         
         // 	std::vector< double >           integral_weights;
@@ -510,7 +511,7 @@ double Opzione<dim>::run(){
                         << dof_handler.n_dofs()
                         << std::endl;
                         
-                        grid_points=triangulation.get_vertices();
+                        //grid_points=triangulation.get_vertices();
                         
                         solve_onetimestep(time);
                 }
@@ -630,7 +631,15 @@ void Opzione<dim>::refine_grid (bool refine){
         triangulation.execute_coarsening_and_refinement ();
         grid_points.clear();
         grid_points=triangulation.get_vertices();
+        grid_active_points=triangulation.get_used_vertices();
+        cout<<"grid_active ";
+        for (unsigned i=0; i<grid_points.size(); ++i) {
+                cout<<grid_active_points[i]<<"\t";
+        }
+        cout<<"\n";
         setup_system ();
+        
+        cout<<"grid_points "<<grid_points.size()<<"\t solution "<<solution.size()<<"\n";
         
         solution_trans.interpolate(previous_solution, solution);
         
@@ -667,25 +676,29 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 #pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
-                std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
-                
-                std::vector<double> f_u(left_quad.get_order()+right_quad.get_order());
-                
-                // Inserisco in quad_points tutti i punti di quadrature shiftati
-                for (int i=0; i<quad_points.size(); ++i) {
-                        quad_points[i]=quadrature_points[i] + grid_points[it];
+                if (!grid_active_points[it]) {
+                        std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
+                        
+                        std::vector<double> f_u(left_quad.get_order()+right_quad.get_order());
+                        
+                        // Inserisco in quad_points tutti i punti di quadrature shiftati
+                        for (int i=0; i<quad_points.size(); ++i) {
+                                quad_points[i]=quadrature_points[i] + grid_points[it];
+                        }
+                        
+                        // valuto f_u in quad_points
+                        func.value_list(quad_points, f_u);
+                        
+                        // Integro dividendo fra parte sinistra e parte destra dell'integrale
+                        for (int i=0; i<left_quad.get_order(); ++i) {
+                                J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
+                        }
+                        for (int i=0; i<right_quad.get_order(); ++i) {
+                                J(it)+=f_u[i+left_quad.get_order()]*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
+                        }
                 }
                 
-                // valuto f_u in quad_points
-                func.value_list(quad_points, f_u);
                 
-                // Integro dividendo fra parte sinistra e parte destra dell'integrale
-                for (int i=0; i<left_quad.get_order(); ++i) {
-                        J(it)+=f_u[i]*(1-par.p)*par.lambda*par.lambda_meno*left_quad_weights[i];
-                }
-                for (int i=0; i<right_quad.get_order(); ++i) {
-                        J(it)+=f_u[i+left_quad.get_order()]*par.p*par.lambda*par.lambda_piu*right_quad_weights[i];
-                }
 
         }
 
@@ -731,6 +744,8 @@ void Opzione<dim>::make_grid() {
 	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs)+3, xmin[0],xmax[0]);
         
 	grid_points=triangulation.get_vertices();
+        
+        grid_active_points=triangulation.get_used_vertices();
 	
 	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, refs-3), Bmin[0], Bmax[0]);
 	
@@ -1065,7 +1080,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 10, 0.3, 0.01);
+        Opzione<1> Call(par, 100, 11, 0.5, 0.01);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
