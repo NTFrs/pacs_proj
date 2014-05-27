@@ -383,16 +383,16 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 	J_y.reinit(solution.size());
         
 	unsigned int N(solution.size());
-    
+        
 	QGauss<1> quad1D(3);    
-    FEFaceValues<dim> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
-    
-    
+        FEFaceValues<dim> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
+        
+        
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
         
 	Functions::FEFieldFunction<dim> func(dof_handler, solution);
 	const unsigned int n_q_points=quad1D.size();
-// 	MappingQ1<dim> mapping;
+        // 	MappingQ1<dim> mapping;
 	
 	Point<dim> z, karg;
         
@@ -405,73 +405,70 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                 func.set_active_cell(cell);
                 
                 //then we cicle on faces
-                for (unsigned int face=0;
-                     face<GeometryInfo<dim>::faces_per_cell;++face)
                 {
+                        unsigned face(3);
+                        /*
+                         // if we are on upper face we create a quadrature on this face. It returns values on the reference cell so we have to map them using a Q1 bilinear mapping.
+                         Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
+                         */
                         
-                        if (face==3) {
-								/*
-                                // if we are on upper face we create a quadrature on this face. It returns values on the reference cell so we have to map them using a Q1 bilinear mapping.
-                                Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
-                                */
-                                
-                                //for every node of the grid on that line (thus the need for an if)
-                                fe_face.reinit(cell, face);
-                                vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
-                                
-                                vector<double> sol_values(n_q_points);
-                                fe_face.get_function_values(solution,  sol_values);
-                                
-//                                 cout<< "x values on cell:\n";
-//                                 for (unsigned j=0;j<n_q_points;++j)
-//                                 cout<< sol_values[j]<< "\t";
-//                                 cout<< endl;
-                                for (unsigned int i=0;i<N;++i)
-                                        if (fabs(quad_points[0](1)-grid_points[i](1))<grid_tol) {
-                                                //for every quadrature point on this face we calculate it's contribute to J_x in that node
-                                                for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                                                        //we need to use the mapping!		
-                                                        z=quad_points[q_point];
-                                                        karg(0)=log(z(0)/grid_points[i](0));
-//                                                         double a, b, c;
-//                                                         a=fe_face.JxW(q_point);
-//                                                         b=k_x.value(karg);
-//                                                         c=sol_values[]
-                                                        //here is the final add to J_x (weight*value*density divided by z)
-                                                        J_x[i]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[q_point]/z(0);
-                                                }
+                        //for every node of the grid on that line (thus the need for an if)
+                        fe_face.reinit(cell, face);
+                        vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
+                        
+                        vector<double> sol_values(n_q_points);
+                        fe_face.get_function_values(solution,  sol_values);
+                        
+                        //                                 cout<< "x values on cell:\n";
+                        //                                 for (unsigned j=0;j<n_q_points;++j)
+                        //                                 cout<< sol_values[j]<< "\t";
+                        //                                 cout<< endl;
+                        for (unsigned int i=0;i<N;++i)
+                                if (fabs(quad_points[0](1)-grid_points[i](1))<grid_tol) {
+                                        //for every quadrature point on this face we calculate it's contribute to J_x in that node
+                                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+                                                //we need to use the mapping!		
+                                                z=quad_points[q_point];
+                                                karg(0)=log(z(0)/grid_points[i](0));
+                                                //                                                         double a, b, c;
+                                                //                                                         a=fe_face.JxW(q_point);
+                                                //                                                         b=k_x.value(karg);
+                                                //                                                         c=sol_values[]
+                                                //here is the final add to J_x (weight*value*density divided by z)
+                                                J_x[i]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[q_point]/z(0);
                                         }
-                        }
-                        // se la faccia è a destra sommiamo i contributi a J_y per ogni nodo
-                        if (face==1) {
-                                
-							fe_face.reinit(cell, face);
-							vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
-
-							vector<double> sol_values(n_q_points);
-							fe_face.get_function_values(solution,  sol_values);
-							
-// 							cout<< "y values on cell:\n";
-// 							for (unsigned j=0;j<n_q_points;++j)
-// 							cout<< sol_values[j]<< "\t";
-// 							cout<< endl;
-
-							
-							for (unsigned int i=0;i<N;++i)
-								if (fabs(quad_points[0](0)-grid_points[i](0))<grid_tol) {
-                                                for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-													z=quad_points[q_point];
-													karg(1)=log(z(1)/grid_points[i](1));
-													//here is the final add to J_x (weight*value*density divided by z)
-													J_y[i]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[q_point]/z(1);
-
-                                                }
+                                }
+                }
+                // se la faccia è a destra sommiamo i contributi a J_y per ogni nodo
+                {
+                        unsigned face(1);
+                        
+                        fe_face.reinit(cell, face);
+                        vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
+                        
+                        vector<double> sol_values(n_q_points);
+                        fe_face.get_function_values(solution,  sol_values);
+                        
+                        // 							cout<< "y values on cell:\n";
+                        // 							for (unsigned j=0;j<n_q_points;++j)
+                        // 							cout<< sol_values[j]<< "\t";
+                        // 							cout<< endl;
+                        
+                        
+                        for (unsigned int i=0;i<N;++i)
+                                if (fabs(quad_points[0](0)-grid_points[i](0))<grid_tol) {
+                                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+                                                z=quad_points[q_point];
+                                                karg(1)=log(z(1)/grid_points[i](1));
+                                                //here is the final add to J_x (weight*value*density divided by z)
+                                                J_y[i]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[q_point]/z(1);
+                                                
                                         }
-                                
-			}
+                                }
+                        
                 }
         }	
-        
+
 }
 
 template<int dim>
@@ -657,14 +654,6 @@ void Opzione<dim>::solve() {
                 Vector<double> J_x, J_y;
                 Levy_integral_part2(J_x, J_y);
                 
-                // 	 if (Step==100)
-                // 	  cout<< "vector J \n"<< J << endl;
-                if (Step % 25==0)
-				{
-				cout<< "J_x is:\n"<< J_x<<endl;
-
-				cout<< "J_y is:\n"<< J_y<<endl;
-				}
                 system_M2.vmult(system_rhs, solution);
                 {
                         Vector<double> temp;
