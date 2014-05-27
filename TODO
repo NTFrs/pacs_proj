@@ -1,3 +1,14 @@
+Cose da fare ora:
+
+-) Sistemare Mesh Adaptivity 		  (N)
+-) Iniziare organizzazione classi + doxy  (G)
+
+Cosa rimane da fare (N/G):
+-) Pensare una possibile parallelizzazione
+-) Adattamento dell'integrale (?) (forse solo per \alpha, \lambda)
+-) Benchmark PIDE 2d con MonteCarlo
+
+###############################################################################
 A grandi linee:
 0)Strutturare -> Designa Patterns
 
@@ -17,7 +28,7 @@ Varie:
 -Imparare CMAKE
 -Imparare Doxygen e documentare
 
-Nel dettaglio alcuni compiti sono:
+###############################################################################
 Things to do go here
 
 Giorgio:
