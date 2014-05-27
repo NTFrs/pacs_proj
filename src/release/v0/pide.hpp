@@ -178,7 +178,7 @@ void Option<dim>::make_grid(){
         for (unsigned i=0; i<dim; ++i) {
                 Smin[i]=models[i].get_spot()*exp((r-models[i].get_vol()*models[i].get_vol()/2)*T
                                                  -models[i].get_vol()*sqrt(T)*6);
-                Smin[i]=models[i].get_spot()*exp((r-models[i].get_vol()*models[i].get_vol()/2)*T
+                Smax[i]=models[i].get_spot()*exp((r-models[i].get_vol()*models[i].get_vol()/2)*T
                                                  +models[i].get_vol()*sqrt(T)*6);
                 refinement[i]=pow(2, refs);
         }
@@ -192,6 +192,8 @@ void Option<dim>::make_grid(){
 template<unsigned dim>
 void Option<dim>::setup_system()
 {
+        
+        system_matrix=SparseMatrix_withProjectedSOR<double, dim>();
         
 	dof_handler.distribute_dofs(fe);
         
@@ -261,7 +263,7 @@ void Option<dim>::assemble_system()
 	cell=dof_handler.begin_active(),
 	endc=dof_handler.end();
 	Tensor< 1 , dim, double > trasp;
-	Tensor< 2, dim,  double > sig_mat;
+	Tensor< 2 , dim, double > sig_mat;
 	
 	vector<Point<dim> > quad_points(n_q_points);
         
