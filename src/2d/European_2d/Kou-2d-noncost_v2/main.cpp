@@ -788,7 +788,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<2> Call(par, 100, 6);
+	Opzione<2> Call(par, 100, 7);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
         
