@@ -762,9 +762,9 @@ void Opzione<dim>::solve() {
                 
                 for (unsigned k=0; k<maxiter && !converged; ++k) {
                         
-                        system_matrix.SOR_step(solution, system_rhs);
+                        //system_matrix.SOR_step(solution, system_rhs);
                         
-                        //system_matrix.ProjectedSOR_step(solution, solution_old, system_rhs, grid_points, par.S0, par.K);
+                        system_matrix.ProjectedSOR_step(solution, solution_old, system_rhs, grid_points, par.S0, par.K);
                         
                         auto temp=solution;
                         temp.add(-1, solution_old);
