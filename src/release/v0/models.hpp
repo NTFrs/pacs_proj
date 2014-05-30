@@ -1,3 +1,6 @@
+#ifndef __models_hpp
+#define __models_hpp
+
 #include <iostream>
 
 class BlackScholesModel
@@ -73,8 +76,4 @@ public:
         virtual std::ostream& operator<<(std::ostream& OS){return OS;};
 };
 
-
-
-
-
-
+#endif

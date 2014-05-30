@@ -13,34 +13,37 @@
 
 DEAL_II_NAMESPACE_OPEN
 
-//using namespace dealii;
-
 template <typename number, unsigned dim>
-class SparseMatrix_withProjectedSOR : public SparseMatrix<number> {
+class SparseMatrix_withProjectedSOR : public virtual SparseMatrix<number> {
 public:
         // Inheriting needed typedef
         using typename SparseMatrix<number>::size_type;
         
+        
+        
         // Adding a new SOR_Step
-        template <typename somenumber>
-        void ProjectedSOR_step (Vector<somenumber> &v,                          // Solution
-                                const Vector<somenumber> &v_old,                // Solution step before
-                                const Vector<somenumber> &b,                    // right hand side
+        void ProjectedSOR_step (Vector<number> &v,                          // Solution
+                                const Vector<number> &v_old,                // Solution step before
+                                const Vector<number> &b,                    // right hand side
                                 const std::vector< Point<dim> > &grid_points,   // mesh points
-                                const number        S0,                         // Spot
                                 const number        K,                          // Strike
                                 const number        om = 1.);                   // SOR parameter
+        
+private:
+        SmartPointer<const SparsityPattern,SparseMatrix<number> > cols;
+        
+        number *val;
+        
+        std::size_t max_len;
 
 };
 
 template <typename number, unsigned dim>
-template <typename somenumber>
 void
-dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<somenumber> &v,
-                                         const Vector<somenumber> &v_old,
-                                         const Vector<somenumber> &b,
+dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
+                                         const Vector<number> &v_old,
+                                         const Vector<number> &b,
                                          const std::vector< Point<dim> > &grid_points,
-                                         const number        S0,
                                          const number        K,
                                          const number        om)
 
@@ -56,9 +59,9 @@ dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<so
                 SparseMatrixIterators::Iterator< number, true > col (this, row, 0);
                 SparseMatrixIterators::Iterator< number, true > colend (this, row+1, 0);
                 
-                SparseMatrixIterators::Accessor< somenumber, true > row_iterator(*col);
+                SparseMatrixIterators::Accessor< number, true > row_iterator(*col);
                 
-                somenumber z=b(row);
+                number z=b(row);
                 
                 for ( ;  col<colend; ++col){
                         
@@ -72,9 +75,9 @@ dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<so
                         
                 }
                 
-                v(row)=(K-S0*exp(grid_points[row][0])>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
+                v(row)=(K-grid_points[row][0]>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
                         ?
-                        K-S0*exp(grid_points[row][0])
+                        (K-grid_points[row][0])
                         :
                         v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
                 

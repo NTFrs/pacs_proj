@@ -1,3 +1,6 @@
+#ifndef __constants_hpp
+#define __constants_hpp
+
 #include <climits>
 
 namespace constants {
@@ -5,3 +8,5 @@ namespace constants {
         const double high_toll=1.e-12;
         const double eps=std::numeric_limits<double>::epsilon();
 }
+
+#endif

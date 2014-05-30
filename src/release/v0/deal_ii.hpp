@@ -1,3 +1,6 @@
+#ifndef __deal2_include_hpp
+#define __deal2_include_hpp
+
 #include <deal.II/grid/tria.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/grid/grid_generator.h>
@@ -36,3 +39,5 @@
 #include <deal.II/lac/solver_richardson.h>
 #include <deal.II/lac/precondition.h>
 #include <boost/graph/graph_concepts.hpp>
+
+#endif

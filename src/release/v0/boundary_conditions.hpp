@@ -1,3 +1,6 @@
+#ifndef __boundary_conditions2_hpp
+#define __boundary_conditions2_hpp
+
 #include "deal_ii.hpp"
 
 using namespace dealii;
@@ -61,3 +64,5 @@ double Boundary_Left_Side<dim>::value(const Point<dim> &p, const unsigned int co
 	return 0;
         
 }
+
+#endif
