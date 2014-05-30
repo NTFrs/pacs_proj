@@ -37,7 +37,7 @@ double BoundaryCondition<dim>::value(const Point<dim> &p, const unsigned int com
                 point+=p(i);
                 
         }
-        
+
         if (type==OptionType::Put)
                 return  (K*exp(-r*(T-this->get_time()))-point>0.)?
                         (K*exp(-r*(T-this->get_time()))-point):0.;

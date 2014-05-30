@@ -30,13 +30,14 @@ public:
         EuropeanOption(OptionType type_,
                        BlackScholesModel const &model1,
                        BlackScholesModel const &model2,
+                       double rho_,
                        double r_,
                        double T_,
                        double K_,
                        unsigned refs_,
                        unsigned time_step_)
         :
-        OptionBase<dim>::OptionBase(ExerciseType::EU, model1, model2, r_, T_, K_, refs_, time_step_),
+        OptionBase<dim>::OptionBase(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
         type(type_),
         eu(ExerciseType::EU)
         {};

@@ -34,10 +34,10 @@ protected:
         // Model and Option parameters
         ExerciseType            type;
         std::vector<BlackScholesModel>       models;
+        double                  rho;
         double                  r;
         double                  T;
         double                  K;
-        double                  rho;
         
         // Triangulation and fe objects
         Triangulation<dim>      triangulation;
@@ -54,7 +54,7 @@ protected:
 	SparseMatrix<double>    dd_matrix;
 	SparseMatrix<double>    fd_matrix;
 	SparseMatrix<double>    ff_matrix;
-
+        
         // points of grid
         std::vector< Point<dim> >       grid_points;
 	
@@ -89,10 +89,12 @@ public:
                    double K_,
                    unsigned refs_,
                    unsigned time_step_);
+        
         // Cosntructor 2d
         OptionBase(ExerciseType type_,
                    BlackScholesModel const &model1,
                    BlackScholesModel const &model2,
+                   double rho_,
                    double r_,
                    double T_,
                    double K_,
@@ -158,6 +160,7 @@ template <unsigned dim>
 OptionBase<dim>::OptionBase(ExerciseType type_,
                             BlackScholesModel const &model1,
                             BlackScholesModel const &model2,
+                            double rho_,
                             double r_,
                             double T_,
                             double K_,
@@ -172,6 +175,7 @@ template <>
 OptionBase<2>::OptionBase(ExerciseType type_,
                           BlackScholesModel const &model1,
                           BlackScholesModel const &model2,
+                          double rho_,
                           double r_,
                           double T_,
                           double K_,
@@ -179,6 +183,7 @@ OptionBase<2>::OptionBase(ExerciseType type_,
                           unsigned time_step_)
 :
 type(type_),
+rho(rho_),
 r(r_),
 T(T_),
 K(K_),
@@ -208,6 +213,8 @@ void OptionBase<dim>::make_grid(){
                                                  +models[i].get_vol()*sqrt(T)*6);
                 refinement[i]=pow(2, refs);
         }
+        
+        cout<<"Smin "<<Smin<<" Smax "<<Smax<<"\n";
         
         GridGenerator::subdivided_hyper_rectangle (triangulation, refinement, Smin, Smax);
         
@@ -241,28 +248,11 @@ void OptionBase<dim>::setup_system()
                 matrix_with_sor=NULL;
         }
         
-        
-        
         dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);
 	(*system_matrix).reinit(sparsity_pattern);
 	system_M2.reinit(sparsity_pattern);
-        
-	typename Triangulation<dim>::cell_iterator
-	cell = triangulation.begin (),
-	endc = triangulation.end();
-        
-        if (dim==1) {
-                
-                for (; cell!=endc; ++cell)
-                        for (unsigned int face=0; face<GeometryInfo<dim>::faces_per_cell; ++face)
-                                if (cell->face(face)->at_boundary())
-                                        if (std::fabs(cell->face(face)->center()(0) - (Smax[0])) < 
-                                            constants::light_toll)
-                                                cell->face(face)->set_boundary_indicator (1);
-                
-        }
         
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
@@ -316,12 +306,14 @@ void OptionBase<dim>::assemble_system()
                         
                         else if (dim==2) {
                                 
-                                trasp[0]=models[0].get_vol()*models[0].get_vol()*quad_points[q_point][0]
-                                +0.5*rho*models[0].get_vol()*models[1].get_vol()*quad_points[q_point][0]
-                                -r*quad_points[q_point][0];
+                                trasp[0]=models[0].get_vol()*models[0].get_vol()
+                                *quad_points[q_point][0]
+                                +0.5*rho*models[0].get_vol()*models[1].get_vol()
+                                *quad_points[q_point][0]-r*quad_points[q_point][0];
                                 
-                                trasp[1]=models[1].get_vol()*models[1].get_vol()*quad_points[q_point][1]
-                                +0.5*rho*models[0].get_vol()*models[1].get_vol()*quad_points[q_point][1]
+                                trasp[1]=models[1].get_vol()*models[1].get_vol()*
+                                quad_points[q_point][1]+0.5*rho*models[0].get_vol()*
+                                models[1].get_vol()*quad_points[q_point][1]
                                 -r*quad_points[q_point][1];
                                 
                                 sig_mat[0][0]=0.5*models[0].get_vol()*models[0].get_vol()
@@ -335,12 +327,23 @@ void OptionBase<dim>::assemble_system()
                         
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
-                                        cell_mat(i, j)+=fe_values.JxW(q_point)*
-                                        (
-                                         (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
-                                         +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
-                                         -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point) //segno + o - ??
-                                         );
+                                        
+                                        if ( dim==1 )
+                                                
+                                                cell_mat(i, j)+=fe_values.JxW(q_point)*
+                                                (
+                                                 (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
+                                                 +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
+                                                 -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
+                                                 );
+                                        
+                                        else 
+                                                cell_mat(i, j)+=fe_values.JxW(q_point)*
+                                                (
+                                                 (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
+                                                 +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
+                                                 +fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
+                                                 );
                                         
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
                                         
@@ -371,7 +374,12 @@ double OptionBase<dim>::get_price() {
                 this->run();
         }
         
-        Point<dim> p(models[0].get_spot());
+        Point<dim> p;
+        
+        for (unsigned i=0; i<dim; ++i) {
+                p(i)=models[i].get_spot();
+        }
+        
 	Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
 	return fe_function.value(p);
 }

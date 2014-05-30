@@ -26,13 +26,14 @@ public:
         // Cosntructor 2d
         AmericanOption(BlackScholesModel const &model1,
                        BlackScholesModel const &model2,
+                       double rho_,
                        double r_,
                        double T_,
                        double K_,
                        unsigned refs_,
                        unsigned time_step_)
         :
-        OptionBase<dim>::OptionBase(ExerciseType::US, model1, model2, r_, T_, K_, refs_, time_step_),
+        OptionBase<dim>::OptionBase(ExerciseType::US, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
         us(ExerciseType::US)
         {};
         
@@ -58,12 +59,6 @@ void AmericanOption<dim>::solve ()
                 std::ofstream output ("begin.gpl");
                 data_out.write_gnuplot (output);
         }
-        
-        cout<<"grid_points\n";
-        for (unsigned i=0; i<this->grid_points.size(); ++i) {
-                cout<<this->grid_points[i]<<"\t";
-        }
-        cout<<"\n";
         
 	unsigned Step=this->time_step;
         
