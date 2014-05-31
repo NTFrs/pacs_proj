@@ -95,7 +95,7 @@ void timestamp ( );
 
 //#define dim 1
 
-// #define __PIDE__
+#define __PIDE__
 #define __MATLAB__
 #define __GNUPLOT__
 //#define __INTERPOLATION__
@@ -526,7 +526,7 @@ double Opzione<dim>::run(){
                         
                         refine_grid (true);
                         assemble_system();
-                        
+//                         
                         //VectorTools::interpolate (dof_handler, solution, solution);
                         
                         std::cout << "   Number of active cells:       "
@@ -800,7 +800,7 @@ void Opzione<dim>::solve_onetimestep(double time){
         Vector<double> J;
         J.reinit(solution.size());
         Levy_integral_part2(J);
-        
+        /*
 		cout<< "Grid points are \n";
 		for (unsigned i=0;i<grid_points.size();++i)
 		  cout << grid_points[i]<< "\t";
@@ -808,7 +808,7 @@ void Opzione<dim>::solve_onetimestep(double time){
         
         cout<< "Sol is \n"<< solution<< endl;
         cout<< "J is \n" <<  J << endl;
-         
+         */
         ff_matrix.vmult(system_rhs, J);
         Vector<double> temp;
         temp.reinit(dof_handler.n_dofs());
@@ -986,7 +986,7 @@ void Opzione<dim>::assemble_system() {
                                 
                                 dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
                                 fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
-                                ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
+//                                 ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
                                 
                         }
                 
@@ -1129,7 +1129,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 50, 6, 0.5, 0.2);
+        Opzione<1> Call(par, 50, 8, 0.5, 0.2);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
