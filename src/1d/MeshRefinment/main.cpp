@@ -618,9 +618,8 @@ void Opzione<dim>::refine_grid (bool refine){
                                             solution,
                                             estimated_error_per_cell);
         
-        GridRefinement::refine_and_coarsen_fixed_number (triangulation,
-                                                         estimated_error_per_cell,
-                                                         0.3, 0.001);
+        GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.0, 0.05);
+//         GridRefinement::coarsen(triangulation, estimated_error_per_cell, 0.3 );
         /*
         GridRefinement::refine_and_coarsen_optimize (triangulation,
                                                      estimated_error_per_cell);
@@ -1129,7 +1128,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 50, 8, 0.5, 0.2);
+        Opzione<1> Call(par, 100, 8, 0.5, 0.2);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
