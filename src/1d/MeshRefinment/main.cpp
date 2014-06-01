@@ -618,7 +618,7 @@ void Opzione<dim>::refine_grid (bool refine){
                                             solution,
                                             estimated_error_per_cell);
         
-        GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.0, 0.05);
+        GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.03, 0.05);
 //         GridRefinement::coarsen(triangulation, estimated_error_per_cell, 0.3 );
         /*
         GridRefinement::refine_and_coarsen_optimize (triangulation,
