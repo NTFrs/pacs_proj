@@ -49,6 +49,12 @@
 #include <cmath>
 #include <algorithm>
 
+#include <deal.II/grid/grid_refinement.h>
+#include <deal.II/numerics/error_estimator.h>
+#include <deal.II/fe/mapping_q1.h>
+#include <deal.II/numerics/derivative_approximation.h>
+#include <deal.II/numerics/solution_transfer.h>
+
 #include <omp.h>
 
 # include <cstdlib>
@@ -220,7 +226,9 @@ private:
 	void make_grid();
 	void setup_system ();
 	void assemble_system ();
-	void solve ();
+	void solve_one_step(double time);
+	void refine_grid ();
+// 	void solve ();
 	void output_results () const {};
         
 	Kou_Density<dim>				k_x;
@@ -239,6 +247,8 @@ private:
 	SparseMatrix<double>            fd_matrix;
 	SparseMatrix<double>            ff_matrix;
         
+	ConstraintMatrix                constraints;
+    
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
         
@@ -274,13 +284,7 @@ public:
         
 	double get_price();
         
-	double run(){
-                make_grid();
-                setup_system();
-                assemble_system();
-                solve();
-                return get_price();
-        };
+	double run();
 };
 
 
@@ -364,7 +368,7 @@ void Opzione<dim>::Levy_integral_part1() {
                         }
                 }
                 
-                cout<< "alpha_x is "<< alpha_x<< endl;
+                cout<< "alpha_y is "<< alpha_y<< endl;
         }
 	
 	
@@ -375,101 +379,133 @@ void Opzione<dim>::Levy_integral_part1() {
 
 template<int dim>
 void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y) {
-        
-        
-	//TODO define grid_tol
+	
 	double grid_tol(1.0e-6);
 	J_x.reinit(solution.size());
 	J_y.reinit(solution.size());
-        
+
 	unsigned int N(solution.size());
-        
+
 	QGauss<1> quad1D(3);    
-        FEFaceValues<dim> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
-        
-        
-	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
-        
-	Functions::FEFieldFunction<dim> func(dof_handler, solution);
+	FEFaceValues<dim> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
+
 	const unsigned int n_q_points=quad1D.size();
-        // 	MappingQ1<dim> mapping;
 	
 	Point<dim> z, karg;
-        
-	//we do a loop on cells
-	for (;cell !=endc;++cell)
-        {
-                // 	  fe_values.reinit(cell);
-                
-		//on each cell we reset the fefield func to know where we are.
-                func.set_active_cell(cell);
-                
-                //then we cicle on faces
-                {
-                        unsigned face(3);
-                        /*
-                         // if we are on upper face we create a quadrature on this face. It returns values on the reference cell so we have to map them using a Q1 bilinear mapping.
-                         Quadrature<dim> quad2D=QProjector<dim>::project_to_face(quad1D, face);
-                         */
-                        
-                        //for every node of the grid on that line (thus the need for an if)
-                        fe_face.reinit(cell, face);
-                        vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
-                        
-                        vector<double> sol_values(n_q_points);
-                        fe_face.get_function_values(solution,  sol_values);
-                        
-                        //                                 cout<< "x values on cell:\n";
-                        //                                 for (unsigned j=0;j<n_q_points;++j)
-                        //                                 cout<< sol_values[j]<< "\t";
-                        //                                 cout<< endl;
-                        for (unsigned int i=0;i<N;++i)
-                                if (fabs(quad_points[0](1)-grid_points[i](1))<grid_tol) {
-                                        //for every quadrature point on this face we calculate it's contribute to J_x in that node
-                                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                                                //we need to use the mapping!		
-                                                z=quad_points[q_point];
-                                                karg(0)=log(z(0)/grid_points[i](0));
-                                                //                                                         double a, b, c;
-                                                //                                                         a=fe_face.JxW(q_point);
-                                                //                                                         b=k_x.value(karg);
-                                                //                                                         c=sol_values[]
-                                                //here is the final add to J_x (weight*value*density divided by z)
-                                                J_x[i]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[q_point]/z(0);
-                                        }
-                                }
-                }
-                // se la faccia è a destra sommiamo i contributi a J_y per ogni nodo
-                {
-                        unsigned face(1);
-                        
-                        fe_face.reinit(cell, face);
-                        vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
-                        
-                        vector<double> sol_values(n_q_points);
-                        fe_face.get_function_values(solution,  sol_values);
-                        
-                        // 							cout<< "y values on cell:\n";
-                        // 							for (unsigned j=0;j<n_q_points;++j)
-                        // 							cout<< sol_values[j]<< "\t";
-                        // 							cout<< endl;
-                        
-                        
-                        for (unsigned int i=0;i<N;++i)
-                                if (fabs(quad_points[0](0)-grid_points[i](0))<grid_tol) {
-                                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                                                z=quad_points[q_point];
-                                                karg(1)=log(z(1)/grid_points[i](1));
-                                                //here is the final add to J_x (weight*value*density divided by z)
-                                                J_y[i]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[q_point]/z(1);
-                                                
-                                        }
-                                }
-                        
-                }
-        }	
+	
+	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
+	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
+	vector<bool> used(N, false);
+	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+	
+	for (; cell !=endc;++cell) {
+
+	 cell->get_dof_indices(local_dof_indices);
+
+	 for (unsigned int j=0;j<dofs_per_cell;++j) {
+	  unsigned int it=local_dof_indices[j];
+	  //                 cout << "Nodo globale "<< it<< endl;
+	  if (used[it]==false)
+	  {
+	   
+	   used[it]=true;
+	   Point<dim> actual_vertex=cell->vertex(j);
+// 		cout<< "At point N "<< it<<" wich is "<<  actual_vertex<< endl;
+	   typename DoFHandler<dim>::active_cell_iterator inner_cell=dof_handler.begin_active();
+	   bool left(false),  bottom(false);
+	   if (fabs(actual_vertex[0]-Smin[0])<grid_tol) {
+		left=true;
+// 		cout<< "it's a left node\n";
+		}
+	   if (fabs(actual_vertex[1]-Smin[1])<grid_tol) {
+	    bottom=true;
+// 	    cout<< "it's a bottom node \n";
+		}
+	   for (;inner_cell !=endc;++inner_cell)
+		{
+		if (left && inner_cell->face(0)->at_boundary())
+		{
+// 		  cout<< "\t boundary cell left\n";
+		   unsigned actual_face(0);
+		   fe_face.reinit(inner_cell, actual_face);
+		   vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
+		   
+		   vector<double> sol_values(n_q_points);
+		   fe_face.get_function_values(solution,  sol_values);
+		   
+		   for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+			 z=quad_points[q_point];
+			 karg(1)=log(z(1)/actual_vertex(1));
+			 J_y[it]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[q_point]/z(1);
+		   }
+		   
+		}
+		
+		if (bottom && inner_cell->face(2)->at_boundary())
+		{
+// 		  cout<< "\t boundary cell bottom\n";
+		   unsigned actual_face(2);
+		   fe_face.reinit(inner_cell, actual_face);
+		   vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
+
+		   vector<double> sol_values(n_q_points);
+		   fe_face.get_function_values(solution,  sol_values);
+
+		   for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+			z=quad_points[q_point];
+			karg(0)=log(z(0)/actual_vertex(0));
+			J_x[it]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[q_point]/z(0);
+		  }
+
+		}
+		
+	 
+		if (fabs(inner_cell->face(3)->center()(1)-actual_vertex(1))<grid_tol) 
+		{
+// 		  cout<< "\t\t operating on upper face\n";
+		  unsigned face(3);
+		  fe_face.reinit(inner_cell, face);
+		  vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
+
+		  vector<double> sol_values(n_q_points);
+		  fe_face.get_function_values(solution,  sol_values);
+		  
+		  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+		  z=quad_points[q_point];
+		  karg(0)=log(z(0)/actual_vertex(0));
+		  
+		  J_x[it]+=fe_face.JxW(q_point)*k_x.value(karg)*sol_values[q_point]/z(0);
+		}
+	  
+		}
+		
+		if (fabs(inner_cell->face(1)->center()(0)-actual_vertex(0))<grid_tol) 
+		  {
+// 			cout<< "\t\t Operating on right face\n";
+		   unsigned face(1);
+		   fe_face.reinit(inner_cell, face);
+		   vector<Point <dim> > quad_points=fe_face.get_quadrature_points();
+
+		   vector<double> sol_values(n_q_points);
+		   fe_face.get_function_values(solution,  sol_values);
+
+		   for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+			z=quad_points[q_point];
+			karg(1)=log(z(1)/actual_vertex(1));
+
+			J_y[it]+=fe_face.JxW(q_point)*k_y.value(karg)*sol_values[q_point]/z(1);
+		  }
+
+	   }
+	   
+	   
+	   }
+}
 
 }
+}
+}
+
 
 template<int dim>
 void Opzione<dim>::make_grid() {
@@ -493,7 +529,11 @@ void Opzione<dim>::make_grid() {
         
 	GridGenerator::subdivided_hyper_rectangle(triangulation, refinement,Smin, Smax);
 	
-	grid_points=triangulation.get_vertices();
+	Levy_integral_part1();
+	
+	std::ofstream out ("grid.eps");
+	GridOut grid_out;
+	grid_out.write_eps (triangulation, out);
 }
 
 template<int dim>
@@ -505,6 +545,12 @@ void Opzione<dim>::setup_system() {
 	std::cout << "   Number of degrees of freedom: "
 	<< dof_handler.n_dofs()
 	<< std::endl;
+        
+    constraints.clear();
+	DoFTools::make_hanging_node_constraints (dof_handler,
+	 constraints);
+        
+        constraints.close();
         
 	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
 	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
@@ -537,7 +583,7 @@ void Opzione<dim>::setup_system() {
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
-        
+	grid_points=triangulation.get_vertices();
 }
 
 
@@ -546,7 +592,6 @@ void Opzione<dim>::setup_system() {
 template<int dim>
 void Opzione<dim>::assemble_system() {
         
-	Levy_integral_part1();
         
 	QGauss<dim> quadrature_formula(4);
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values   | update_gradients |
@@ -627,127 +672,143 @@ void Opzione<dim>::assemble_system() {
 }
 
 template<int dim>
-void Opzione<dim>::solve() {
-        
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K), solution);
-        
-	{
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (dof_handler);
-                data_out.add_data_vector (solution, "begin");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("plot/begin.gpl");
-                data_out.write_gnuplot (output);
-        }
-        
-	unsigned int Step=Nsteps;
-        
+void Opzione<dim>::solve_one_step(double time) {
+	
 	Boundary_Right_Side<dim> right_bound(par.K, par.T, par.r);
-	cout<< "time step is"<< time_step<< endl;
-        
-	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-                
-                Vector<double> J_x, J_y;
-                Levy_integral_part2(J_x, J_y);
-                
-                system_M2.vmult(system_rhs, solution);
-                {
-                        Vector<double> temp;
-                        temp.reinit(dof_handler.n_dofs());
-                        ff_matrix.vmult(temp, J_x);
-                        
-                        system_rhs+=temp;
-                        
-                        temp.reinit(dof_handler.n_dofs());
-                        ff_matrix.vmult(temp, J_y);
-                        
-                        system_rhs+=temp;
-                }
-                
-                
-                right_bound.set_time(time);
-                
-                {
-                        
-                        std::map<types::global_dof_index,double> boundary_values;
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  0,
-                                                                  right_bound, 
-                                                                  boundary_values);
-                        
-                        
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  1,
-                                                                  right_bound,
-                                                                  boundary_values);
-                        
-                        MatrixTools::apply_boundary_values (boundary_values,
-                                                            system_matrix,
-                                                            solution,
-                                                            system_rhs, false);
-                        
-                }
-                
-                SparseDirectUMFPACK solver;
-                solver.initialize(sparsity_pattern);
-                solver.factorize(system_matrix);
-                solver.solve(system_rhs);
-                
-                solution=system_rhs;
-                
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (dof_handler);
-                data_out.add_data_vector (solution, "step");
-                
-                data_out.build_patches ();
-                
-                std::string name("plot/step-");
-                name.append(to_string(Step));
-                name.append(".gpl");
-                std::ofstream output (name);
-                data_out.write_gnuplot (output);  
-        }
-        
+
+	Vector<double> J_x, J_y;
+	Levy_integral_part2(J_x, J_y);
+
+	system_M2.vmult(system_rhs, solution);
 	{
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (dof_handler);
-                data_out.add_data_vector (solution, "end");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("plot/end.gpl");
-                data_out.write_gnuplot (output);
-        }
-        
-	ran=true;
-        
-#ifdef __MATLAB__
-	ofstream print;
-	print.open("solution.m");
-	vector<Point<dim> > grid_points(triangulation.get_vertices());
-	if (print.is_open()) {
-                print<<"x=[ ";
-                for (int i=0; i<grid_points.size()-1; ++i) {
-                        print<<grid_points[i][0]<<"; ";
-                }
-                print<<grid_points[grid_points.size()-1][0]<<" ];\n";
-                
-                print<<"sol=[ ";
-                for (int i=0; i<solution.size()-1; ++i) {
-                        print<<solution(i)<<"; ";
-                }
-                print<<solution(solution.size()-1)<<" ];\n";
-        }
-        
-	print.close();
-#endif
+	 Vector<double> temp;
+	 temp.reinit(dof_handler.n_dofs());
+	 ff_matrix.vmult(temp, J_x);
+
+	 system_rhs+=temp;
+
+	 temp.reinit(dof_handler.n_dofs());
+	 ff_matrix.vmult(temp, J_y);
+
+	 system_rhs+=temp;
+ }
+
+
+	right_bound.set_time(time);
+
+	{
+
+	 std::map<types::global_dof_index,double> boundary_values;
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  0,
+	  right_bound, 
+	  boundary_values);
+
+
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  1,
+	  right_bound,
+	  boundary_values);
+
+	 MatrixTools::apply_boundary_values (boundary_values,
+	  system_matrix,
+	  solution,
+	  system_rhs, false);
+
+ }
+
+	SparseDirectUMFPACK solver;
+	solver.initialize(sparsity_pattern);
+	solver.factorize(system_matrix);
+	solver.solve(system_rhs);
+
+	solution=system_rhs;
+
+	constraints.distribute (solution);
+
 }
+
+template<int dim>
+double Opzione<dim>::run() {
+	
+	make_grid();
+	setup_system();
+	assemble_system();
+	
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K), solution);
+	
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "begin");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("plot/begin.gpl");
+	 data_out.write_gnuplot (output);
+	 }
+	 
+	unsigned int Step=Nsteps;
+	
+	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
+	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+	 
+	 if (/*!(Step%20) && !(Step==Nsteps)*/false) {
+	  refine_grid();
+	  solve_one_step(time);
+	 }
+	 else
+	  {
+	  solve_one_step(time);
+	  }
+	 }
+	  
+	  {
+	   DataOut<dim> data_out;
+
+	   data_out.attach_dof_handler (dof_handler);
+	   data_out.add_data_vector (solution, "end");
+
+	   data_out.build_patches ();
+
+	   std::ofstream output ("plot/end.gpl");
+	   data_out.write_gnuplot (output);
+	   }
+
+	  ran=true;
+	  
+	  return get_price();
+}
+
+	  template <int dim>
+	  void Opzione<dim>::refine_grid (){
+	   
+	   Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
+
+	   KellyErrorEstimator<dim>::estimate (dof_handler,
+		QGauss<dim-1>(3),
+		typename FunctionMap<dim>::type(),
+		solution,
+		estimated_error_per_cell);
+	   
+// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
+		
+	   GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.3, 0.05);
+		
+	   SolutionTransfer<dim> solution_trans(dof_handler);
+	   Vector<double> previous_solution;
+	   previous_solution = solution;
+	   triangulation.prepare_coarsening_and_refinement();
+		   solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
+
+	   triangulation.execute_coarsening_and_refinement ();
+	   setup_system ();
+
+	   solution_trans.interpolate(previous_solution, solution);
+	   assemble_system();
+	  }
+
 
 template<int dim>
 double Opzione<dim>::get_price() {
@@ -788,7 +849,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<2> Call(par, 100, 7);
+	Opzione<2> Call(par, 100, 6);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
         
