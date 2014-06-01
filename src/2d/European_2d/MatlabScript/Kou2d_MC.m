@@ -40,8 +40,8 @@ S2=zeros(Nsim, Nstep+1);
 S1(:,1)=S01;
 S2(:,1)=S02;
 
-NT1=icdf('Poisson', rand(Nsim,1), 1/lambda1);
-NT2=icdf('Poisson', rand(Nsim,1), 1/lambda2);
+NT1=icdf('Poisson', rand(Nsim,1), lambda1*T);
+NT2=icdf('Poisson', rand(Nsim,1), lambda2*T);
 
 for i=1:Nsim
     
@@ -54,13 +54,16 @@ for i=1:Nsim
     istante_salto1=t(indexes1+1);
     
     istante_salto2=sort(rand(NT2(i),1));
-    indexes1=zeros(NT2(i),1);
+    indexes2=zeros(NT2(i),1);
     for j=1:NT2(i)
         [~, indice]=min(abs(istante_salto2(j)-t(2:end)));
         indexes2(j)=indice(1);
     end
     istante_salto2=t(indexes2+1);
         
+    u_intens_1=rand(NT1(i),1);
+    u_intens_2=rand(NT2(i),1);
+    
     for j=1:Nstep
         S1(i,j+1)=S1(i,j)*exp((r-sigma1^2/2)*dt+sqrt(dt)*sigma1*(rho*rnd1(i,j)+sqrt(1-rho^2)*rnd2(i,j)));
         S2(i,j+1)=S2(i,j)*exp((r-sigma2^2/2)*dt+sqrt(dt)*sigma2*(rho*rnd2(i,j)+sqrt(1-rho^2)*rnd1(i,j)));
@@ -68,9 +71,9 @@ for i=1:Nsim
         for k=1:NT1(i)
             if istante_salto1(k)==t(j+1)
                 if rand<p1
-                    S1(i,j+1)=S1(i,j+1)*exp(icdf('exp', rand, 1/lambda_piu_1));
+                    S1(i,j+1)=S1(i,j+1)*exp(icdf('exp', u_intens_1(k), 1/lambda_piu_1));
                 else
-                    S1(i,j+1)=S1(i,j+1)*exp(-icdf('exp', rand, 1/lambda_meno_1));
+                    S1(i,j+1)=S1(i,j+1)*exp(-icdf('exp', u_intens_1(k), 1/lambda_meno_1));
                 end
             end
         end
@@ -78,9 +81,9 @@ for i=1:Nsim
         for k=1:NT2(i)
             if istante_salto2(k)==t(j+1)
                 if rand<p2
-                    S2(i,j+1)=S2(i,j+1)*exp(icdf('exp', rand, 1/lambda_piu_2));
+                    S2(i,j+1)=S2(i,j+1)*exp(icdf('exp', u_intens_2(k), 1/lambda_piu_2));
                 else
-                    S2(i,j+1)=S2(i,j+1)*exp(-icdf('exp', rand, 1/lambda_meno_2));
+                    S2(i,j+1)=S2(i,j+1)*exp(-icdf('exp', u_intens_2(k), 1/lambda_meno_2));
                 end
             end
         end
