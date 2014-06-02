@@ -390,7 +390,6 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
         
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
         
-	Functions::FEFieldFunction<dim> func(dof_handler, solution);
 	const unsigned int n_q_points=quad1D.size();
         // 	MappingQ1<dim> mapping;
 	
@@ -402,7 +401,6 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
                 // 	  fe_values.reinit(cell);
                 
 		//on each cell we reset the fefield func to know where we are.
-                func.set_active_cell(cell);
                 
                 //then we cicle on faces
                 {
