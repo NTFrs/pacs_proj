@@ -961,7 +961,7 @@ int main() {
          par.lambda_piu_2=2.;
          */
 	// tempo // spazio
-	Opzione<2> Call(par, 50, 6);
+	Opzione<2> Call(par, 10, 6);
 	double prezzo=Call.run();
         
 	cout<<"Prezzo "<<prezzo<<"\n";

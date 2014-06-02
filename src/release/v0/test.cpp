@@ -23,7 +23,6 @@ int main(){
         //mickey.run();
         
         cout<<foo.get_price()<<"\n";
-        
         cout<<goofy.get_price()<<"\n";
         cout<<minnie.get_price()<<"\n";
         
