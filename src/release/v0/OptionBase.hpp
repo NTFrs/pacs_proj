@@ -23,7 +23,7 @@
 #include "OptionTypes.hpp"
 #include "models.hpp"
 #include "constants.hpp"
-#include "IntegralLevy.hpp"
+#include "LevyIntegral.hpp"
 
 using namespace dealii;
 using namespace std;
