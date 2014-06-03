@@ -370,39 +370,39 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
 	
 	vector<double> sol_cell(n_q_points);
+	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
 	
 	vector< Point <dim> > quad_points(n_q_points);
 	Point<dim> logz(0.);
+	vector<bool> used(solution.size(), false);
+	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
         //  cout<< "densità\n";
-        
-	for(unsigned int iter=0;iter<N;++iter) {
+    typename DoFHandler<dim>::active_cell_iterator outer_cell=dof_handler.begin_active();
+    
+    for (;outer_cell !=endc;++outer_cell){
+				outer_cell->get_dof_indices(local_dof_indices);
                 // 	 cerr << "iter is " <<  iter << endl;
+                for (unsigned int j=0;j<dofs_per_cell;++j) {
+					unsigned int iter=local_dof_indices[j];
+				if (used[iter]==false) {
+				used[iter]=true;
+				Point<dim> actual_vertex=outer_cell->vertex(j);
+				
                 cell=dof_handler.begin_active();
                 for (; cell!=endc;++cell) {
                         // 	  cout<< "switching cell\n";
                         fe_values.reinit(cell);
                         quad_points=fe_values.get_quadrature_points();
-                        fe_values.get_function_values(solution, sol_cell);
-                        double a, b, c, d;
-                        
+                        fe_values.get_function_values(solution, sol_cell);                        
                         for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                                // 	   cout << "iter is " <<  iter << endl;
-                                // 	   cout<< "At grid point\t"<< grid_points[iter]<< "\tand z\t" << quad_points[q_point](0);
-                                logz(0)=log(quad_points[q_point](0)/grid_points[iter](0));
-                                a=fe_values.JxW(q_point);
-                                b=sol_cell[q_point];
-                                c=k.value(logz);
-                                d=quad_points[q_point](0);
-                                // 	   cout<< "\tthe density value is\t"<< c<< "\tpeso:\t"<< a<< "\tfunzione:\t"<< b;
-                                // 	   cout<<c<< "\t";
-                                
-                                J[iter]+=a*b*c/d;
-                                // 	   cout<< "\tcon un contributo a J di\t"<< iter << "\tdi\t" << a*b*c<< endl;
-                                // 	   J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(logz);
+                                logz(0)=log(quad_points[q_point](0)/actual_vertex(0));
+								J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*k.value(logz)/quad_points[q_point](0);
                         }
                 }
         }
         
+}
+	}
 }
 
 template<int dim>
@@ -693,7 +693,7 @@ int main() {
 	
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<1> Call(par, 100, 10);
+	Opzione<1> Call(par, 100, 7);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 	
