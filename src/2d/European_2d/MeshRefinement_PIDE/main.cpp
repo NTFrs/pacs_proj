@@ -553,7 +553,7 @@ void Opzione<dim>::setup_system() {
 	constraints.close();
 
 	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, constraints, true);
+	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, constraints, false);
 
 	sparsity_pattern.copy_from(c_sparsity);
 
@@ -657,14 +657,16 @@ void Opzione<dim>::assemble_system() {
 	}
 
 	 cell->get_dof_indices (local_dof_indices);
+	 constraints.distribute_local_to_global(cell_mat, local_dof_indices, system_matrix);
+	 constraints.distribute_local_to_global(cell_ff, local_dof_indices, ff_matrix);
+// 	 for (unsigned int i=0; i<dofs_per_cell;++i)
+// 	 for (unsigned int j=0; j< dofs_per_cell; ++j) {
 
-	 for (unsigned int i=0; i<dofs_per_cell;++i)
-	 for (unsigned int j=0; j< dofs_per_cell; ++j) {
+	 
+// 	  system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
+// 	  ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
 
-	  system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
-	  ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-
-	}
+// 	}
    }
 
 	system_M2.add(1/time_step, ff_matrix);
