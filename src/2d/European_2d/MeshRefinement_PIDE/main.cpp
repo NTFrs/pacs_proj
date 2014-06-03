@@ -553,7 +553,7 @@ void Opzione<dim>::setup_system() {
 	constraints.close();
 
 	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, constraints, true);
 
 	sparsity_pattern.copy_from(c_sparsity);
 
@@ -849,7 +849,7 @@ int main() {
 
 	cout<<"eps "<<eps<<"\n";
 
-	Opzione<2> Call(par, 100, 6);
+	Opzione<2> Call(par, 100, 5);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 
