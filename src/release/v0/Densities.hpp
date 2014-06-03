@@ -3,7 +3,7 @@
 
 #include "deal_ii.hpp"
 
-template<int dim>
+template <unsigned dim>
 class Kou_Density: public Function<dim>
 {
 public:
@@ -27,7 +27,7 @@ private:
         double lambda_minus;
 };
 
-template<int dim>
+template<unsigned dim>
 double Kou_Density<dim>::value(const Point<dim> &p_,  const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
@@ -40,7 +40,7 @@ double Kou_Density<dim>::value(const Point<dim> &p_,  const unsigned int compone
 
 
 
-template<int dim>
+template<unsigned dim>
 void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
 {
 	Assert (values.size() == points.size(),
