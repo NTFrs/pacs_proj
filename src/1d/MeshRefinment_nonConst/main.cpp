@@ -25,6 +25,12 @@
 
 #include <deal.II/numerics/fe_field_function.h>
 
+#include <deal.II/grid/grid_refinement.h>
+#include <deal.II/numerics/error_estimator.h>
+#include <deal.II/fe/mapping_q1.h>
+#include <deal.II/numerics/derivative_approximation.h>
+#include <deal.II/numerics/solution_transfer.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -251,7 +257,8 @@ private:
 	void make_grid();
 	void setup_system ();
 	void assemble_system ();
-	void solve ();
+	void solve_one_step(double time);
+	void refine_grid();
 	void output_results () const {};
 	
 	Kou_Density<dim>				k;
@@ -267,6 +274,8 @@ private:
 	SparseMatrix<double>            dd_matrix;
 	SparseMatrix<double>            fd_matrix;
 	SparseMatrix<double>            ff_matrix;
+	
+	ConstraintMatrix				constraints;
 	
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
@@ -301,13 +310,7 @@ public:
         
 	double get_price();
         
-	double run(){
-                make_grid();
-                setup_system();
-                assemble_system();
-                solve();
-                return get_price();
-        };
+	double run();
 };
 
 
@@ -359,8 +362,6 @@ template<int dim>
 void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
         
 	J.reinit(solution.size());
-	unsigned int N(solution.size());
-        // 	cout << " N IS "<< N << endl;
 	
 	QGauss<dim> quadrature_formula(5);
 	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
@@ -430,9 +431,15 @@ void Opzione<dim>::setup_system() {
 	std::cout << "   Number of degrees of freedom: "
 	<< dof_handler.n_dofs()
 	<< std::endl;
-        
+    
+	constraints.clear();
+	DoFTools::make_hanging_node_constraints (dof_handler,
+	 constraints);
+
+	constraints.close();
+    
 	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, constraints, false);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
@@ -531,138 +538,151 @@ void Opzione<dim>::assemble_system() {
                 
                 cell->get_dof_indices (local_dof_indices);
                 
-                for (unsigned int i=0; i<dofs_per_cell;++i)
-                        for (unsigned int j=0; j< dofs_per_cell; ++j) {
-                                
-                                system_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
-                                ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                                
-                        }
+				 constraints.distribute_local_to_global(cell_mat, local_dof_indices, system_matrix);
+				 constraints.distribute_local_to_global(cell_ff, local_dof_indices, ff_matrix);
+                
         }
         
 	system_M2.add(1/time_step, ff_matrix);
         
 }
 
+
 template<int dim>
-void Opzione<dim>::solve() {
-        
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K), solution);
-        
-	{
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (dof_handler);
-                data_out.add_data_vector (solution, "begin");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("begin.gpl");
-                data_out.write_gnuplot (output);
-        }
-	
-	unsigned int Step=Nsteps;
-        
+void Opzione<dim>::solve_one_step(double time) {
+
 	Boundary_Right_Side<dim> right_bound(par.K, par.T, par.r);
-	cout<< "time step is"<< time_step<< endl;
+
+	Vector<double> J;
+	Levy_integral_part2(J);
 	
-	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-                
-                Vector<double> J;
-                Levy_integral_part2(J);
-                
-                // 	 if (Step==100)
-                // 	  cout<< "vector J \n"<< J << endl;
-                
-                ff_matrix.vmult(system_rhs, J);
-                Vector<double> temp;
-                
-                temp.reinit(dof_handler.n_dofs());
-                system_M2.vmult(temp,solution);
-                
-                system_rhs+=temp;
-                
-                
-                right_bound.set_time(time);
-                
-                {
-                        
-                        std::map<types::global_dof_index,double> boundary_values;
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  0,
-                                                                  Boundary_Left_Side<dim>(),
-                                                                  boundary_values);
-                        
-                        
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  1,
-                                                                  right_bound,
-                                                                  boundary_values);
-                        
-                        MatrixTools::apply_boundary_values (boundary_values,
-                                                            system_matrix,
-                                                            solution,
-                                                            system_rhs, false);
-                        
-                }
-                
-                SparseDirectUMFPACK solver;
-                solver.initialize(sparsity_pattern);
-                solver.factorize(system_matrix);
-                solver.solve(system_rhs);
-                
-                solution=system_rhs;
-                
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (dof_handler);
-                data_out.add_data_vector (solution, "step");
-                
-                data_out.build_patches ();
-                
-                std::string name("plot/step-");
-                name.append(to_string(Step));
-                name.append(".gpl");
-                std::ofstream output (name);
-                data_out.write_gnuplot (output);  
-        }
-        
+	ff_matrix.vmult(system_rhs, J);
 	{
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (dof_handler);
-                data_out.add_data_vector (solution, "end");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("end.gpl");
-                data_out.write_gnuplot (output);
-        }
-        
+	Vector<double> temp;
+
+	temp.reinit(dof_handler.n_dofs());
+	system_M2.vmult(temp,solution);
+
+	system_rhs+=temp;
+	 }
+
+	right_bound.set_time(time);
+		
+	{
+
+	 std::map<types::global_dof_index,double> boundary_values;
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  0,
+	  Boundary_Left_Side<dim>(), 
+	  boundary_values);
+
+
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  1,
+	  right_bound,
+	  boundary_values);
+
+	 MatrixTools::apply_boundary_values (boundary_values,
+	  system_matrix,
+	  solution,
+	  system_rhs, false);
+
+ }
+
+	SparseDirectUMFPACK solver;
+	solver.initialize(sparsity_pattern);
+	solver.factorize(system_matrix);
+	solver.solve(system_rhs);
+
+	solution=system_rhs;
+
+	constraints.distribute (solution);
+
+  }
+		
+
+template<int dim>
+double Opzione<dim>::run() {
+
+	make_grid();
+	setup_system();
+	assemble_system();
+
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K), solution);
+
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "begin");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("plot/begin.gpl");
+	 data_out.write_gnuplot (output);
+ }
+
+	unsigned int Step=Nsteps;
+
+	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
+	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+
+	 if (!(Step%20) && !(Step==Nsteps)) {
+	  refine_grid();
+	  solve_one_step(time);
+	}
+	 else
+	 {
+	  solve_one_step(time);
+  }
+   }
+
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "end");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("plot/end.gpl");
+	 data_out.write_gnuplot (output);
+ }
+
 	ran=true;
-        
-#ifdef __MATLAB__
-	ofstream print;
-	print.open("solution.m");
-	vector<Point<dim> > grid_points(triangulation.get_vertices());
-	if (print.is_open()) {
-                print<<"x=[ ";
-                for (int i=0; i<grid_points.size()-1; ++i) {
-                        print<<grid_points[i][0]<<"; ";
-                }
-                print<<grid_points[grid_points.size()-1][0]<<" ];\n";
-                
-                print<<"sol=[ ";
-                for (int i=0; i<solution.size()-1; ++i) {
-                        print<<solution(i)<<"; ";
-                }
-                print<<solution(solution.size()-1)<<" ];\n";
-        }
-        
-	print.close();
-#endif
-}
+
+	return get_price();
+  }
+
+template <int dim>
+void Opzione<dim>::refine_grid (){
+
+	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
+
+	KellyErrorEstimator<dim>::estimate (dof_handler,
+	 QGauss<dim-1>(3),
+	 typename FunctionMap<dim>::type(),
+	 solution,
+	 estimated_error_per_cell);
+
+	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
+
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.03, 0.1);
+
+	SolutionTransfer<dim> solution_trans(dof_handler);
+	Vector<double> previous_solution;
+	previous_solution = solution;
+	triangulation.prepare_coarsening_and_refinement();
+	solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
+
+	triangulation.execute_coarsening_and_refinement ();
+	setup_system ();
+
+	solution_trans.interpolate(previous_solution, solution);
+	assemble_system();
+  }
+
+
 
 template<int dim>
 double Opzione<dim>::get_price() {
