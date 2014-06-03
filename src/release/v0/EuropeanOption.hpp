@@ -14,7 +14,7 @@ private:
 public:
         // Constructor 1d
         EuropeanOption(OptionType type_,
-                       BlackScholesModel const &model,
+                       Model * const model,
                        double r_,
                        double T_,
                        double K_,
@@ -28,8 +28,8 @@ public:
         
         // Cosntructor 2d
         EuropeanOption(OptionType type_,
-                       BlackScholesModel const &model1,
-                       BlackScholesModel const &model2,
+                       Model * const model1,
+                       Model * const model2,
                        double rho_,
                        double r_,
                        double T_,

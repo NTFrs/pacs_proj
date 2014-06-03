@@ -9,6 +9,7 @@ SET(TARGET "test")
 SET(TARGET_SRC
   ${TARGET}.cpp
   # You can specify additional files here!
+  QuadratureRule.cpp
   )
 
 # Usually, you will not need to modify anything beyond this point...

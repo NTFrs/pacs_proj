@@ -12,7 +12,7 @@ private:
         virtual void solve();
 public:
         // Constructor 1d
-        AmericanOption(BlackScholesModel const &model,
+        AmericanOption(Model * const model,
                        double r_,
                        double T_,
                        double K_,
@@ -24,8 +24,8 @@ public:
         {};
         
         // Cosntructor 2d
-        AmericanOption(BlackScholesModel const &model1,
-                       BlackScholesModel const &model2,
+        AmericanOption(Model * const model1,
+                       Model * const model2,
                        double rho_,
                        double r_,
                        double T_,

@@ -23,6 +23,7 @@
 #include "OptionTypes.hpp"
 #include "models.hpp"
 #include "constants.hpp"
+#include "IntegralLevy.hpp"
 
 using namespace dealii;
 using namespace std;
@@ -33,7 +34,7 @@ class OptionBase
 protected:
         // Model and Option parameters
         ExerciseType            type;
-        std::vector<BlackScholesModel>       models;
+        std::vector<Model *>    models;
         double                  rho;
         double                  r;
         double                  T;
@@ -83,7 +84,7 @@ protected:
 public:
         // Constructor 1d
         OptionBase(ExerciseType type_,
-                   BlackScholesModel const &model,
+                   Model * const model,
                    double r_,
                    double T_,
                    double K_,
@@ -92,8 +93,8 @@ public:
         
         // Cosntructor 2d
         OptionBase(ExerciseType type_,
-                   BlackScholesModel const &model1,
-                   BlackScholesModel const &model2,
+                   Model * const model1,
+                   Model * const model2,
                    double rho_,
                    double r_,
                    double T_,
@@ -120,7 +121,7 @@ public:
 // Constructor 1d
 template <unsigned dim>
 OptionBase<dim>::OptionBase(ExerciseType type_,
-                            BlackScholesModel const &model,
+                            Model * const model,
                             double r_,
                             double T_,
                             double K_,
@@ -133,7 +134,7 @@ OptionBase<dim>::OptionBase(ExerciseType type_,
 // Constructor 1d specialized
 template <>
 OptionBase<1>::OptionBase(ExerciseType type_,
-                          BlackScholesModel const &model,
+                          Model * const model,
                           double r_,
                           double T_,
                           double K_,
@@ -152,14 +153,14 @@ dt(T/static_cast<double>(time_step_)),
 price(0.),
 ran(false)
 {
-        models.emplace_back(model);
+        models.push_back(model);
 }
 
 // Constructor 2d
 template <unsigned dim>
 OptionBase<dim>::OptionBase(ExerciseType type_,
-                            BlackScholesModel const &model1,
-                            BlackScholesModel const &model2,
+                            Model * const model1,
+                            Model * const model2,
                             double rho_,
                             double r_,
                             double T_,
@@ -173,8 +174,8 @@ OptionBase<dim>::OptionBase(ExerciseType type_,
 // Constructor 2d specialized
 template <>
 OptionBase<2>::OptionBase(ExerciseType type_,
-                          BlackScholesModel const &model1,
-                          BlackScholesModel const &model2,
+                          Model * const model1,
+                          Model * const model2,
                           double rho_,
                           double r_,
                           double T_,
@@ -196,8 +197,8 @@ price(0.),
 ran(false)
 {
         // check model1==model2
-        models.emplace_back(model1);
-        models.emplace_back(model2);
+        models.push_back(model1);
+        models.push_back(model2);
 }
 
 // make grid
@@ -207,14 +208,12 @@ void OptionBase<dim>::make_grid(){
         std::vector<unsigned> refinement(dim);
         
         for (unsigned i=0; i<dim; ++i) {
-                Smin[i]=models[i].get_spot()*exp((r-models[i].get_vol()*models[i].get_vol()/2)*T
-                                                 -models[i].get_vol()*sqrt(T)*6);
-                Smax[i]=models[i].get_spot()*exp((r-models[i].get_vol()*models[i].get_vol()/2)*T
-                                                 +models[i].get_vol()*sqrt(T)*6);
+                Smin[i]=(*models[i]).get_spot()*exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
+                                                 -(*models[i]).get_vol()*sqrt(T)*6);
+                Smax[i]=(*models[i]).get_spot()*exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
+                                                 +(*models[i]).get_vol()*sqrt(T)*6);
                 refinement[i]=pow(2, refs);
         }
-        
-        cout<<"Smin "<<Smin<<" Smax "<<Smax<<"\n";
         
         GridGenerator::subdivided_hyper_rectangle (triangulation, refinement, Smin, Smax);
         
@@ -299,28 +298,28 @@ void OptionBase<dim>::assemble_system()
                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                         
                         if (dim==1) {
-                                trasp[0]=(r-models[0].get_vol()*models[0].get_vol())*quad_points[q_point][0];
-                                sig_mat[0][0]=0.5*models[0].get_vol()*models[0].get_vol()
+                                trasp[0]=(r-(*models[0]).get_vol()*(*models[0]).get_vol())*quad_points[q_point][0];
+                                sig_mat[0][0]=0.5*(*models[0]).get_vol()*(*models[0]).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
                         }
                         
                         else if (dim==2) {
                                 
-                                trasp[0]=models[0].get_vol()*models[0].get_vol()
+                                trasp[0]=-((*models[0]).get_vol()*(*models[0]).get_vol()
                                 *quad_points[q_point][0]
-                                +0.5*rho*models[0].get_vol()*models[1].get_vol()
-                                *quad_points[q_point][0]-r*quad_points[q_point][0];
+                                +0.5*rho*(*models[0]).get_vol()*(*models[1]).get_vol()
+                                *quad_points[q_point][0]-r*quad_points[q_point][0]);
                                 
-                                trasp[1]=models[1].get_vol()*models[1].get_vol()*
-                                quad_points[q_point][1]+0.5*rho*models[0].get_vol()*
-                                models[1].get_vol()*quad_points[q_point][1]
-                                -r*quad_points[q_point][1];
+                                trasp[1]=-((*models[1]).get_vol()*(*models[1]).get_vol()*
+                                quad_points[q_point][1]+0.5*rho*(*models[0]).get_vol()*
+                                (*models[1]).get_vol()*quad_points[q_point][1]
+                                -r*quad_points[q_point][1]);
                                 
-                                sig_mat[0][0]=0.5*models[0].get_vol()*models[0].get_vol()
+                                sig_mat[0][0]=0.5*(*models[0]).get_vol()*(*models[0]).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
-                                sig_mat[1][1]=0.5*models[1].get_vol()*models[1].get_vol()
+                                sig_mat[1][1]=0.5*(*models[1]).get_vol()*(*models[1]).get_vol()
                                 *quad_points[q_point][1]*quad_points[q_point][1];
-                                sig_mat[0][1]=0.5*rho*models[0].get_vol()*models[1].get_vol()*
+                                sig_mat[0][1]=0.5*rho*(*models[0]).get_vol()*(*models[1]).get_vol()*
                                 quad_points[q_point][0]*quad_points[q_point][1];
                                 sig_mat[1][0]=sig_mat[0][1];
                         }
@@ -342,7 +341,7 @@ void OptionBase<dim>::assemble_system()
                                                 (
                                                  (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
                                                  +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
-                                                 +fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
+                                                 -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
                                                  );
                                         
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
@@ -377,7 +376,7 @@ double OptionBase<dim>::get_price() {
         Point<dim> p;
         
         for (unsigned i=0; i<dim; ++i) {
-                p(i)=models[i].get_spot();
+                p(i)=(*models[i]).get_spot();
         }
         
 	Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);

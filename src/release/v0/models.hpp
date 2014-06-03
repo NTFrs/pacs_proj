@@ -3,26 +3,38 @@
 
 #include <iostream>
 
-class BlackScholesModel
+class Model
 {
 private:
         double S0;
         double sigma;
         
 public:
-        BlackScholesModel(double S0_,
+        Model(double S0_,
                           double sigma_):
         S0(S0_),
         sigma(sigma_)
         {};
         
-        virtual inline double get_spot() {return S0;}
-        virtual inline double get_vol()  {return sigma;}        
+        virtual inline double get_spot()        const   {return S0;};
+        virtual inline double get_vol()         const   {return sigma;};
+        virtual inline Model* get_pointer()             {return this;};
 
+        virtual std::ostream& operator<<(std::ostream& OS)=0;
+};
+
+class BlackScholesModel: public Model
+{
+public:
+        BlackScholesModel(double S0_,
+                          double sigma_):
+        Model(S0_, sigma_)
+        {};
+        
         virtual std::ostream& operator<<(std::ostream& OS){return OS;};
 };
 
-class KouModel: public BlackScholesModel
+class KouModel: public Model
 {
 private:
         double p;
@@ -38,7 +50,7 @@ public:
                  double lambda_plus_,
                  double lambda_minus_)
         :
-        BlackScholesModel(S0_, sigma_),
+        Model(S0_, sigma_),
         p(p_),
         lambda(lambda_),
         lambda_plus(lambda_plus_),
@@ -53,7 +65,7 @@ public:
         virtual std::ostream& operator<<(std::ostream& OS){return OS;};
 };
 
-class MertonModel: public BlackScholesModel
+class MertonModel: public Model
 {
 private:
         double nu;
@@ -67,7 +79,7 @@ public:
                     double delta_,
                     double C_)
         :
-        BlackScholesModel(S0_, sigma_),
+        Model(S0_, sigma_),
         nu(nu_),
         delta(delta_),
         C(C_)
