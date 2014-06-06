@@ -18,6 +18,7 @@ int main(){
         
         BlackScholesModel model1(80., 0.1256);
         BlackScholesModel model2(120., 0.2);
+        //KouModel model2(120, 0.2, 0, 0, 0, 0);
         
         EuropeanOption<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
                                  -0.2, 0.1, 1., 200., 7, 100);

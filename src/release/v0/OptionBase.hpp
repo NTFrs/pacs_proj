@@ -16,6 +16,7 @@
 #include <ctime>
 #include <string>
 #include <memory>
+#include <exception>
 
 #include "boundary_conditions.hpp"
 #include "BoundaryConditions.hpp"
@@ -39,6 +40,15 @@ protected:
         double                  r;
         double                  T;
         double                  K;
+        
+        enum class ModelType
+        {
+                BlackScholes,
+                Merton,
+                Kou
+        };
+        
+        ModelType               model_type;
         
         // Triangulation and fe objects
         Triangulation<dim>      triangulation;
@@ -72,6 +82,9 @@ protected:
         double                  dt;
         double                  price;
 	bool                    ran;
+        
+        // Integral Part
+        LevyIntegral<dim>       levy;
         
         // Private methods
         virtual void make_grid();
@@ -154,6 +167,23 @@ price(0.),
 ran(false)
 {
         models.push_back(model);
+        
+        BlackScholesModel       *     bs(dynamic_cast<BlackScholesModel *> (model));
+        KouModel                *     kou(dynamic_cast<KouModel *> (model));
+        MertonModel             *     mer(dynamic_cast<MertonModel *> (model));
+        
+        if (bs) 
+                model_type=ModelType::BlackScholes;
+        
+        else if (kou) 
+                model_type=ModelType::Kou;
+        
+        else if (mer)
+                model_type=ModelType::Merton;
+        
+        else    
+                throw(std::logic_error("Error! Unknown models.\n"));
+        
 }
 
 // Constructor 2d
@@ -196,9 +226,34 @@ dt(T/static_cast<double>(time_step_)),
 price(0.),
 ran(false)
 {
-        // check model1==model2
         models.push_back(model1);
         models.push_back(model2);
+        
+        BlackScholesModel       *     bs(dynamic_cast<BlackScholesModel *> (model1));
+        KouModel                *     kou(dynamic_cast<KouModel *> (model1));
+        MertonModel             *     mer(dynamic_cast<MertonModel *> (model1));
+        
+        if (bs) {
+                model_type=ModelType::BlackScholes;
+                BlackScholesModel * bs2(dynamic_cast<BlackScholesModel *> (model2));
+                if (!bs2)
+                        throw(std::logic_error("Error! Different types of model.\n"));
+        }
+        else if (kou) { 
+                model_type=ModelType::Kou;
+                KouModel * kou2(dynamic_cast<KouModel *> (model2));
+                if (!kou2)
+                        throw(std::logic_error("Error! Different types of model.\n"));
+        }
+        else if (mer) {
+                model_type=ModelType::Merton;
+                MertonModel * mer2(dynamic_cast<MertonModel *> (model2));
+                if (!mer2)
+                        throw(std::logic_error("Error! Different types of model.\n"));
+        }
+        else    
+                throw(std::logic_error("Error! Unknown models.\n"));
+        
 }
 
 // make grid
@@ -209,9 +264,9 @@ void OptionBase<dim>::make_grid(){
         
         for (unsigned i=0; i<dim; ++i) {
                 Smin[i]=(*models[i]).get_spot()*exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                                                 -(*models[i]).get_vol()*sqrt(T)*6);
+                                                    -(*models[i]).get_vol()*sqrt(T)*6);
                 Smax[i]=(*models[i]).get_spot()*exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                                                 +(*models[i]).get_vol()*sqrt(T)*6);
+                                                    +(*models[i]).get_vol()*sqrt(T)*6);
                 refinement[i]=pow(2, refs);
         }
         
@@ -306,14 +361,14 @@ void OptionBase<dim>::assemble_system()
                         else if (dim==2) {
                                 
                                 trasp[0]=-((*models[0]).get_vol()*(*models[0]).get_vol()
-                                *quad_points[q_point][0]
-                                +0.5*rho*(*models[0]).get_vol()*(*models[1]).get_vol()
-                                *quad_points[q_point][0]-r*quad_points[q_point][0]);
+                                           *quad_points[q_point][0]
+                                           +0.5*rho*(*models[0]).get_vol()*(*models[1]).get_vol()
+                                           *quad_points[q_point][0]-r*quad_points[q_point][0]);
                                 
                                 trasp[1]=-((*models[1]).get_vol()*(*models[1]).get_vol()*
-                                quad_points[q_point][1]+0.5*rho*(*models[0]).get_vol()*
-                                (*models[1]).get_vol()*quad_points[q_point][1]
-                                -r*quad_points[q_point][1]);
+                                           quad_points[q_point][1]+0.5*rho*(*models[0]).get_vol()*
+                                           (*models[1]).get_vol()*quad_points[q_point][1]
+                                           -r*quad_points[q_point][1]);
                                 
                                 sig_mat[0][0]=0.5*(*models[0]).get_vol()*(*models[0]).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
@@ -327,22 +382,13 @@ void OptionBase<dim>::assemble_system()
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
-                                        if ( dim==1 )
-                                                
-                                                cell_mat(i, j)+=fe_values.JxW(q_point)*
-                                                (
-                                                 (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
-                                                 +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
-                                                 -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
-                                                 );
                                         
-                                        else 
-                                                cell_mat(i, j)+=fe_values.JxW(q_point)*
-                                                (
-                                                 (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
-                                                 +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
-                                                 -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
-                                                 );
+                                        cell_mat(i, j)+=fe_values.JxW(q_point)*
+                                        (
+                                         (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
+                                         +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
+                                         -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
+                                         );
                                         
                                         cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
                                         

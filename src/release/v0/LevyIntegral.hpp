@@ -12,6 +12,7 @@ protected:
         Point<dim>              Smin, Smax;
         double                  toll;
 public:
+        LevyIntegral():density(NULL){};
         LevyIntegral(dealii::Function<dim> * density_,
                      Point<dim> Smin_,
                      Point<dim> Smax_,
@@ -100,49 +101,55 @@ void LevyIntegral<dim>::get_part2(dealii::Vector<double> &J,
         using namespace dealii;
         
         J.reinit(solution.size());
-	unsigned N(solution.size());
-        
-        std::vector<Point<dim> > grid_points(N, 0.);
 	
 	QGauss<dim> quadrature_formula(5);
-        
 	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
 	
-	const unsigned n_q_points(quadrature_formula.size());
+	const unsigned int n_q_points(quadrature_formula.size());
 	
 	typename DoFHandler<dim>::active_cell_iterator
         cell=dof_handler.begin_active(),
         endc=dof_handler.end();
 	
 	vector<double> sol_cell(n_q_points);
+	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
 	
 	vector< Point <dim> > quad_points(n_q_points);
 	Point<dim> logz(0.);
+	vector<bool> used(solution.size(), false);
+	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
         
-	for(unsigned int iter=0;iter<N;++iter) {
+        typename DoFHandler<dim>::active_cell_iterator outer_cell=dof_handler.begin_active();
+        
+        for (;outer_cell !=endc;++outer_cell){
                 
-                cell=dof_handler.begin_active();
-                for (; cell!=endc;++cell) {
+                outer_cell->get_dof_indices(local_dof_indices);
+                
+                for (unsigned int j=0;j<dofs_per_cell;++j) {
                         
-                        fe_values.reinit(cell);
-                        quad_points=fe_values.get_quadrature_points();
-                        fe_values.get_function_values(solution, sol_cell);
-                        double a, b, c, d;
+                        unsigned iter=local_dof_indices[j];
                         
-                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                                logz(0)=log(quad_points[q_point](0)/grid_points[iter](0));
-                                a=fe_values.JxW(q_point);
-                                b=sol_cell[q_point];
-                                c=(*density).value(logz);
-                                d=quad_points[q_point](0);
-                                J[iter]+=a*b*c/d;
+                        if (used[iter]==false) {
+				used[iter]=true;
+				Point<dim> actual_vertex=outer_cell->vertex(j);
+				
+                                cell=dof_handler.begin_active();
+                                
+                                for (; cell!=endc;++cell) {
+                                        fe_values.reinit(cell);
+                                        quad_points=fe_values.get_quadrature_points();
+                                        fe_values.get_function_values(solution, sol_cell);                        
+                                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+                                                logz(0)=log(quad_points[q_point](0)/actual_vertex(0));
+                                                J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*(*density).value(logz)/quad_points[q_point](0);
+                                        }
+                                }
                         }
                         
                 }
-        }
+	}
         
         return;
-        
 }
 
 #endif

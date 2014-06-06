@@ -10,11 +10,14 @@ private:
         double sigma;
         
 public:
+        Model()=default;
         Model(double S0_,
-                          double sigma_):
+              double sigma_):
         S0(S0_),
         sigma(sigma_)
         {};
+        
+        virtual ~Model()=default;
         
         virtual inline double get_spot()        const   {return S0;};
         virtual inline double get_vol()         const   {return sigma;};
@@ -26,6 +29,8 @@ public:
 class BlackScholesModel: public Model
 {
 public:
+        BlackScholesModel()=default;
+        
         BlackScholesModel(double S0_,
                           double sigma_):
         Model(S0_, sigma_)
@@ -43,6 +48,8 @@ private:
         double lambda_minus;
         
 public:
+        KouModel()=default;
+        
         KouModel(double S0_,
                  double sigma_,
                  double p_,
@@ -73,6 +80,8 @@ private:
         double C;
 
 public:
+        MertonModel()=default;
+        
         MertonModel(double S0_,
                     double sigma_,
                     double nu_,
