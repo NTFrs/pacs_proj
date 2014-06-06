@@ -276,6 +276,8 @@ void OptionBase<dim>::make_grid(){
         
         std::vector<unsigned> refinement(dim);
         
+        f=0;
+        
         for (unsigned i=0; i<dim; ++i) {
                 
                 Smin[i]=(1-f)*(*models[i]).get_spot()*

@@ -51,8 +51,7 @@ void EuropeanOption<dim>::solve ()
         VectorTools::interpolate (this->dof_handler,
                                   FinalCondition<dim>(this->K, this->type),
                                   this->solution);
-                
-        
+             
         {
                 DataOut<dim> data_out;
                 
@@ -67,8 +66,6 @@ void EuropeanOption<dim>::solve ()
         
 	unsigned Step=this->time_step;
         
-        Vector<double> J;
-        
         BoundaryCondition<dim> bc(this->K, this->T,  this->r, this->type);
         
 	cout<< "time step is"<< this->time_step << endl;
@@ -80,11 +77,12 @@ void EuropeanOption<dim>::solve ()
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
-                        this->levy->get_part2(J, this->solution, this->fe, this->dof_handler);
+                        Vector<double> J;
+                        Vector<double> temp;
+                        
+                        (this->levy)->get_part2(J, this->solution, this->fe, this->dof_handler);
                         
                         (this->ff_matrix).vmult(this->system_rhs, J);
-                        
-                        Vector<double> temp;
                                 
                         temp.reinit(this->dof_handler.n_dofs());
                         
@@ -98,6 +96,7 @@ void EuropeanOption<dim>::solve ()
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
                 //
+                
                 bc.set_time(time);
                 
                 {

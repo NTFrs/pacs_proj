@@ -405,7 +405,6 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 }
 	}
         
-        cout<<J<<"\n";
 }
 
 template<int dim>
@@ -612,6 +611,8 @@ double Opzione<dim>::run() {
         
 	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K), solution);
         
+        cout<<this->solution<<"\n";
+        
 	{
                 DataOut<dim> data_out;
                 
@@ -715,7 +716,7 @@ int main() {
 	
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<1> Call(par, 10, 3);
+	Opzione<1> Call(par, 100, 8);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 	

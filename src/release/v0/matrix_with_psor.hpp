@@ -19,7 +19,7 @@ public:
         // Inheriting needed typedef
         using typename SparseMatrix<number>::size_type;
         
-        
+        virtual ~SparseMatrix_withProjectedSOR(){};
         
         // Adding a new SOR_Step
         void ProjectedSOR_step (Vector<number> &v,                          // Solution

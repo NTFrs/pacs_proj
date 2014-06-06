@@ -24,7 +24,9 @@ public:
         toll(toll_)
         {};
         
-        virtual ~LevyIntegral() {};
+        virtual ~LevyIntegral() {
+                delete density;
+        };
         
         virtual double  get_part1();
         virtual void    get_part2(dealii::Vector<double> &J,
@@ -150,8 +152,6 @@ void LevyIntegral<dim>::get_part2(dealii::Vector<double> &J,
                         
                 }
 	}
-        
-        cout<<J<<"\n";
         
         return;
 }
