@@ -56,4 +56,13 @@ void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::v
                         values[i]=(1-p)*lambda*lambda_minus*exp(lambda_minus*points[i][0]);
 }
 
+template<unsigned dim>
+class Merton_Density: public Function<dim> {
+public:
+        Merton_Density():Function<dim>(){
+                cerr<<"Densità di Merton non ancora implementata!\n";
+        };
+        
+};
+
 #endif

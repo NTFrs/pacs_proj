@@ -24,6 +24,8 @@ public:
         toll(toll_)
         {};
         
+        virtual ~LevyIntegral() {};
+        
         virtual double  get_part1();
         virtual void    get_part2(dealii::Vector<double> &J,
                                   dealii::Vector<double> const &solution,
@@ -148,6 +150,8 @@ void LevyIntegral<dim>::get_part2(dealii::Vector<double> &J,
                         
                 }
 	}
+        
+        cout<<J<<"\n";
         
         return;
 }

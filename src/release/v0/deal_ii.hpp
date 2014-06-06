@@ -40,4 +40,6 @@
 #include <deal.II/lac/precondition.h>
 #include <boost/graph/graph_concepts.hpp>
 
+#include <iostream>
+
 #endif

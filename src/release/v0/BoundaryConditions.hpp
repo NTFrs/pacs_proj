@@ -42,7 +42,7 @@ double BoundaryCondition<dim>::value(const Point<dim> &p, const unsigned int com
                 return  (K*exp(-r*(T-this->get_time()))-point>0.)?
                         (K*exp(-r*(T-this->get_time()))-point):0.;
         else
-                return  (point-K*exp(-r*(T-this->get_time())))?
+                return  (point-K*exp(-r*(T-this->get_time()))>0.)?
                         (point-K*exp(-r*(T-this->get_time()))):0.;
         
 }

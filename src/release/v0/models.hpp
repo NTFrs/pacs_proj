@@ -23,11 +23,28 @@ public:
         virtual inline double get_vol()         const   {return sigma;};
         virtual inline Model* get_pointer()             {return this;};
 
-        virtual std::ostream& operator<<(std::ostream& OS)=0;
+        virtual inline double get_lambda()      const   =0;
+        
+        virtual inline double get_p()           const   =0;
+        virtual inline double get_lambda_p()    const   =0;
+        virtual inline double get_lambda_m()    const   =0;
+
+        virtual inline double get_nu()          const   =0;
+        virtual inline double get_delta()       const   =0;
+        
 };
 
 class BlackScholesModel: public Model
 {
+private:
+        virtual inline double get_p()           const   { return 0.; };
+        virtual inline double get_lambda()      const   { return 0.; };
+        virtual inline double get_lambda_p()    const   { return 0.; };
+        virtual inline double get_lambda_m()    const   { return 0.; };
+        
+        virtual inline double get_nu()          const   { return 0.; };
+        virtual inline double get_delta()       const   { return 0.; };
+        
 public:
         BlackScholesModel()=default;
         
@@ -36,12 +53,15 @@ public:
         Model(S0_, sigma_)
         {};
         
-        virtual std::ostream& operator<<(std::ostream& OS){return OS;};
 };
 
 class KouModel: public Model
 {
 private:
+        
+        virtual inline double get_nu()          const   { return 0.; };
+        virtual inline double get_delta()       const   { return 0.; };
+        
         double p;
         double lambda;
         double lambda_plus;
@@ -64,20 +84,24 @@ public:
         lambda_minus(lambda_minus_)
         {};
         
-        virtual inline double get_p()           {return p;}
-        virtual inline double get_lambda()      {return lambda;}
-        virtual inline double get_lambda_p()    {return lambda_plus;}
-        virtual inline double get_lambda_m()    {return lambda_minus;}
+        virtual inline double get_p()           const   {return p;}
+        virtual inline double get_lambda()      const   {return lambda;}
+        virtual inline double get_lambda_p()    const   {return lambda_plus;}
+        virtual inline double get_lambda_m()    const   {return lambda_minus;}
         
-        virtual std::ostream& operator<<(std::ostream& OS){return OS;};
 };
 
 class MertonModel: public Model
 {
 private:
+        
+        virtual inline double get_p()           const   { return 0.; };
+        virtual inline double get_lambda_p()    const   { return 0.; };
+        virtual inline double get_lambda_m()    const   { return 0.; };
+        
         double nu;
         double delta;
-        double C;
+        double lambda;
 
 public:
         MertonModel()=default;
@@ -86,15 +110,18 @@ public:
                     double sigma_,
                     double nu_,
                     double delta_,
-                    double C_)
+                    double lambda_)
         :
         Model(S0_, sigma_),
         nu(nu_),
         delta(delta_),
-        C(C_)
+        lambda(lambda_)
         {};
         
-        virtual std::ostream& operator<<(std::ostream& OS){return OS;};
+        virtual inline double get_nu()          const   { return nu; };
+        virtual inline double get_delta()       const   { return delta; };
+        virtual inline double get_lambda()      const   { return lambda; }
+        
 };
 
 #endif

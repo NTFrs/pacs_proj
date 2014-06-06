@@ -404,6 +404,8 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                         
                 }
 	}
+        
+        cout<<J<<"\n";
 }
 
 template<int dim>
@@ -713,7 +715,7 @@ int main() {
 	
 	cout<<"eps "<<eps<<"\n";
         
-	Opzione<1> Call(par, 100, 7);
+	Opzione<1> Call(par, 10, 3);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 	

@@ -24,6 +24,7 @@
 #include "OptionTypes.hpp"
 #include "models.hpp"
 #include "constants.hpp"
+#include "Densities.hpp"
 #include "LevyIntegral.hpp"
 
 using namespace dealii;
@@ -81,10 +82,11 @@ protected:
         unsigned                time_step; // time
         double                  dt;
         double                  price;
+        double                  f;
 	bool                    ran;
         
         // Integral Part
-        LevyIntegral<dim>       levy;
+        LevyIntegral<dim> *     levy;       
         
         // Private methods
         virtual void make_grid();
@@ -117,6 +119,7 @@ public:
         
         // Destructor
         virtual ~OptionBase(){
+                delete levy;
                 delete system_matrix;
         };
         
@@ -126,6 +129,14 @@ public:
                 setup_system();
                 assemble_system();
                 solve();
+        };
+        
+        virtual void set_scale_factor(double f_) {
+                if (f_<=0. && f_>=1.) {
+                        throw(std::logic_error("Error! The scale factor must be in ]0,1[.\n"));
+                }
+                else
+                        f=f_;
         };
         
         virtual inline double get_price();
@@ -164,6 +175,7 @@ refs(refs_),
 time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
+f(0.5),
 ran(false)
 {
         models.push_back(model);
@@ -175,8 +187,9 @@ ran(false)
         if (bs) 
                 model_type=ModelType::BlackScholes;
         
-        else if (kou) 
+        else if (kou) {
                 model_type=ModelType::Kou;
+        }
         
         else if (mer)
                 model_type=ModelType::Merton;
@@ -224,6 +237,7 @@ refs(refs_),
 time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
+f(0.5),
 ran(false)
 {
         models.push_back(model1);
@@ -263,10 +277,15 @@ void OptionBase<dim>::make_grid(){
         std::vector<unsigned> refinement(dim);
         
         for (unsigned i=0; i<dim; ++i) {
-                Smin[i]=(*models[i]).get_spot()*exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                                                    -(*models[i]).get_vol()*sqrt(T)*6);
-                Smax[i]=(*models[i]).get_spot()*exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                                                    +(*models[i]).get_vol()*sqrt(T)*6);
+                
+                Smin[i]=(1-f)*(*models[i]).get_spot()*
+                exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
+                -(*models[i]).get_vol()*sqrt(T)*6);
+                
+                Smax[i]=(1+f)*(*models[i]).get_spot()*
+                exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
+                +(*models[i]).get_vol()*sqrt(T)*6);
+                
                 refinement[i]=pow(2, refs);
         }
         
@@ -302,6 +321,25 @@ void OptionBase<dim>::setup_system()
                 matrix_with_sor=NULL;
         }
         
+        if (model_type==ModelType::Kou) {
+                
+                Function<dim> * k=new Kou_Density<dim>(models[0]->get_p(),
+                                                       models[0]->get_lambda(),
+                                                       models[0]->get_lambda_p(),
+                                                       models[0]->get_lambda_m());
+                
+                levy=new LevyIntegral<dim>(k, Smin, Smax);
+                                      
+        }
+        
+        else if (model_type==ModelType::Merton) {
+                
+                Function<dim> * m=new Merton_Density<dim>();
+                
+                levy=new LevyIntegral<dim>(m, Smin, Smax);
+                
+        }
+        
         dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);
@@ -319,6 +357,14 @@ void OptionBase<dim>::setup_system()
 template<unsigned dim>
 void OptionBase<dim>::assemble_system()
 {
+        double alpha(0.);
+        double lambda(0.);
+        
+        if (model_type!=ModelType::BlackScholes) {
+                alpha=levy->get_part1();
+                lambda=models[0]->get_lambda();
+        }
+        
         QGauss<dim> quadrature_formula(2*dim);
 	FEValues<dim> fe_values (fe, quadrature_formula, update_values | update_gradients |
                                  update_JxW_values | update_quadrature_points);
@@ -353,7 +399,7 @@ void OptionBase<dim>::assemble_system()
                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                         
                         if (dim==1) {
-                                trasp[0]=(r-(*models[0]).get_vol()*(*models[0]).get_vol())*quad_points[q_point][0];
+                                trasp[0]=(r-(*models[0]).get_vol()*(*models[0]).get_vol()-alpha)*quad_points[q_point][0];
                                 sig_mat[0][0]=0.5*(*models[0]).get_vol()*(*models[0]).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
                         }
@@ -385,7 +431,7 @@ void OptionBase<dim>::assemble_system()
                                         
                                         cell_mat(i, j)+=fe_values.JxW(q_point)*
                                         (
-                                         (1/dt+r)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
+                                         (1/dt+r+lambda)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
                                          +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
                                          -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
                                          );
