@@ -21,10 +21,13 @@ lambda2=0.330966;
 lambda_piu_2=9.65997;
 lambda_meno_2=3.13868;
 
+b1=-(sigma1^2/2+lambda1*(p1/(lambda_piu_1-1)-(1-p1)/(lambda_meno_1+1)));
+b2=-(sigma2^2/2+lambda2*(p2/(lambda_piu_2-1)-(1-p2)/(lambda_meno_2+1)));
+
 %% parametri simulazione
 
-Nsim=10000;
-Nstep=100;
+Nsim=50000;
+Nstep=252;
 
 dt=T/(Nstep+1);
 t=linspace(0,T,Nstep+1);
@@ -34,11 +37,11 @@ t=linspace(0,T,Nstep+1);
 rnd1=randn(Nsim, Nstep+1);
 rnd2=randn(Nsim, Nstep+1);
 
+X1=zeros(Nsim, Nstep+1);
+X2=zeros(Nsim, Nstep+1);
+
 S1=zeros(Nsim, Nstep+1);
 S2=zeros(Nsim, Nstep+1);
-
-S1(:,1)=S01;
-S2(:,1)=S02;
 
 NT1=icdf('Poisson', rand(Nsim,1), lambda1*T);
 NT2=icdf('Poisson', rand(Nsim,1), lambda2*T);
@@ -65,15 +68,15 @@ for i=1:Nsim
     u_intens_2=rand(NT2(i),1);
     
     for j=1:Nstep
-        S1(i,j+1)=S1(i,j)*exp((r-sigma1^2/2)*dt+sqrt(dt)*sigma1*(rho*rnd1(i,j)+sqrt(1-rho^2)*rnd2(i,j)));
-        S2(i,j+1)=S2(i,j)*exp((r-sigma2^2/2)*dt+sqrt(dt)*sigma2*(rho*rnd2(i,j)+sqrt(1-rho^2)*rnd1(i,j)));
+        X1(i,j+1)=X1(i,j)+b1*dt+sqrt(dt)*sigma1*(rho*rnd1(i,j)+sqrt(1-rho^2)*rnd2(i,j));
+        X2(i,j+1)=X2(i,j)+b2*dt+sqrt(dt)*sigma2*(rho*rnd2(i,j)+sqrt(1-rho^2)*rnd1(i,j));
         
         for k=1:NT1(i)
             if istante_salto1(k)==t(j+1)
                 if rand<p1
-                    S1(i,j+1)=S1(i,j+1)*exp(icdf('exp', u_intens_1(k), 1/lambda_piu_1));
+                    X1(i,j+1)=X1(i,j+1)+icdf('exp', u_intens_1(k), 1/lambda_piu_1);
                 else
-                    S1(i,j+1)=S1(i,j+1)*exp(-icdf('exp', u_intens_1(k), 1/lambda_meno_1));
+                    X1(i,j+1)=X1(i,j+1)-icdf('exp', u_intens_1(k), 1/lambda_meno_1);
                 end
             end
         end
@@ -81,19 +84,21 @@ for i=1:Nsim
         for k=1:NT2(i)
             if istante_salto2(k)==t(j+1)
                 if rand<p2
-                    S2(i,j+1)=S2(i,j+1)*exp(icdf('exp', u_intens_2(k), 1/lambda_piu_2));
+                    X2(i,j+1)=X2(i,j+1)+icdf('exp', u_intens_2(k), 1/lambda_piu_2);
                 else
-                    S2(i,j+1)=S2(i,j+1)*exp(-icdf('exp', u_intens_2(k), 1/lambda_meno_2));
+                    X2(i,j+1)=X2(i,j+1)-icdf('exp', u_intens_2(k), 1/lambda_meno_2);
                 end
             end
         end
-        
     end
 end
 
-% figure;
-% plot(t,S1);
-% figure;
-% plot(t,S2);
+S1=S01*exp(ones(Nsim,1)*r*t+X1);
+S2=S02*exp(ones(Nsim,1)*r*t+X2);
+
+figure;
+plot(t,S1);
+figure;
+plot(t,S2);
 
 [prezzo, ~, IC]=normfit(exp(-r*T)*max(S1(:,end)+S2(:,end)-K,0))
