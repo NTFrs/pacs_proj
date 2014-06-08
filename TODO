@@ -1,12 +1,18 @@
 Cose da fare ora:
 
 -) Sistemare Mesh Adaptivity 		  (N)
+ -) In linea di principio funziona il refinement
+ -) Tuttavia non coarsena. Possibilità
+  -)Cambiare flaggamento celle 
+  -)Cambiare stima errore
 -) Iniziare organizzazione classi + doxy  (G)
 
 Cosa rimane da fare (N/G):
 -) Pensare una possibile parallelizzazione
 -) Adattamento dell'integrale (?) (forse solo per \alpha, \lambda)
 -) Benchmark PIDE 2d con MonteCarlo
+-) Classe Quadratura integrale
+-) Divisione fra Sexpy+refinement
 
 ###############################################################################
 A grandi linee:
