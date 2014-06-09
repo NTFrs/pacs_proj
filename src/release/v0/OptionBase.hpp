@@ -176,7 +176,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false)
+ran(false),
+levy(NULL)
 {
         models.push_back(model);
         
@@ -238,7 +239,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false)
+ran(false),
+levy(NULL)
 {
         models.push_back(model1);
         models.push_back(model2);
@@ -275,8 +277,6 @@ template<unsigned dim>
 void OptionBase<dim>::make_grid(){
         
         std::vector<unsigned> refinement(dim);
-        
-        f=0;
         
         for (unsigned i=0; i<dim; ++i) {
                 
@@ -325,13 +325,9 @@ void OptionBase<dim>::setup_system()
         
         if (model_type==ModelType::Kou) {
                 
-                Function<dim> * k=new Kou_Density<dim>(models[0]->get_p(),
-                                                       models[0]->get_lambda(),
-                                                       models[0]->get_lambda_p(),
-                                                       models[0]->get_lambda_m());
-                
-                levy=new LevyIntegral<dim>(k, Smin, Smax);
-                                      
+                levy=new KouIntegral<dim>(dynamic_cast<KouModel *> (models[0]->get_pointer()),
+                                          Smin, Smax);
+                                        
         }
         
         else if (model_type==ModelType::Merton) {

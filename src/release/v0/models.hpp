@@ -23,11 +23,11 @@ public:
         virtual inline double get_vol()         const   {return sigma;};
         virtual inline Model* get_pointer()             {return this;};
 
-        virtual inline double get_lambda()      const   =0;
+        virtual inline double get_lambda()      const   { return 0.; };
         
-        virtual inline double get_p()           const   =0;
-        virtual inline double get_lambda_p()    const   =0;
-        virtual inline double get_lambda_m()    const   =0;
+        virtual inline double get_p()           const   { return 0.; };
+        virtual inline double get_lambda_p()    const   { return 0.; };
+        virtual inline double get_lambda_m()    const   { return 0.; };
 
         virtual inline double get_nu()          const   =0;
         virtual inline double get_delta()       const   =0;

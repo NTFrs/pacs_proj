@@ -269,7 +269,7 @@ namespace quadrature {
                 double pi = 3.14159265358979323846264338327950;
                 double temp;
                 double temp2;
-                double zemu;
+                double zemu = 0.;
                 
                 temp = r8_epsilon ( );
                 
@@ -502,7 +502,7 @@ namespace quadrature {
                 int j;
                 int k;
                 int l;
-                int m;
+                int m = 0;
                 int mml;
                 double p;
                 double prec;
@@ -1089,14 +1089,14 @@ namespace quadrature {
         //    Input, double A, B, the interval endpoints.
         //
         {
-                double al;
-                double be;
+                double al = 0.;
+                double be = 0.;
                 int i;
                 int k;
                 int l;
                 double p;
-                double shft;
-                double slp;
+                double shft = 0.;
+                double slp = 0.;
                 double temp;
                 double tmp;
                 

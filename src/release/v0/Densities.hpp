@@ -15,6 +15,11 @@ public:
 	lambda_plus(lambda_plus_),
         lambda_minus(lambda_minus_)
         {};
+        
+        virtual inline double get_p() const { return p; };
+        virtual inline double get_lambda () const { return lambda; };
+        virtual inline double get_lambda_p () const { return lambda_plus; };
+        virtual inline double get_lambda_m () const { return lambda_minus; };
 	
         virtual double  value           (const Point<dim> &p_,  const unsigned int component=0) const;
         virtual void    value_list      (const std::vector<Point<dim> > &points,
