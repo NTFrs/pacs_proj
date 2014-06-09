@@ -7,15 +7,19 @@
 
 template <unsigned dim>
 class LevyIntegral {
+};
+
+template <>
+class LevyIntegral<1> {
 protected:
-        dealii::Function<dim> * density;
-        Point<dim>              Smin, Smax;
+        dealii::Function<1> * density;
+        Point<1>              Smin, Smax;
         double                  toll;
 public:
         LevyIntegral():density(NULL){};
-        LevyIntegral(dealii::Function<dim> * density_,
-                     Point<dim> Smin_,
-                     Point<dim> Smax_,
+        LevyIntegral(dealii::Function<1> * density_,
+                     Point<1> Smin_,
+                     Point<1> Smax_,
                      double toll_=constants::light_toll)
         :
         density(density_),
@@ -31,14 +35,46 @@ public:
         virtual double  get_part1();
         virtual void    get_part2(dealii::Vector<double> &J,
                                   dealii::Vector<double> const &solution,
-                                  dealii::FE_Q<dim> const &fe,
-                                  dealii::DoFHandler<dim> const &dof_handler);
+                                  dealii::FE_Q<1> const &fe,
+                                  dealii::DoFHandler<1> const &dof_handler);
+};
+
+// WRONG! Just to compile it!
+template <>
+class LevyIntegral<2> {
+protected:
+        dealii::Function<1> * density;
+        Point<2>              Smin, Smax;
+        double                toll;
+public:
+        LevyIntegral():density(NULL){};
+        
+        LevyIntegral(dealii::Function<1> * density_,
+                     Point<2> Smin_,
+                     Point<2> Smax_,
+                     double toll_=constants::light_toll){};
+        
+        virtual ~LevyIntegral() {
+                delete density;
+        };
+        
+        virtual double  get_part1(){ return 0.; };
+        virtual void    get_part2(dealii::Vector<double> &J,
+                                  dealii::Vector<double> const &solution,
+                                  dealii::FE_Q<2> const &fe,
+                                  dealii::DoFHandler<2> const &dof_handler){};
+        
 };
 
 // classe Kou -> calcola alpha, calcola J
 
 template <unsigned dim>
 class KouIntegral: public LevyIntegral<dim> {
+        
+};
+
+template <>
+class KouIntegral<1>: public LevyIntegral<1> {
 private:
         
         std::vector<KouModel *> models;
@@ -50,7 +86,7 @@ private:
         std::vector<double> right_quad_nodes, left_quad_nodes;
         std::vector<double> right_quad_weights, left_quad_weights;
         
-        std::vector<Point<dim> > quadrature_points;
+        std::vector<Point<1> > quadrature_points;
         
         void setup_quadrature_rigth(unsigned n);
         void setup_quadrature_left(unsigned n);
@@ -60,12 +96,23 @@ public:
         
         // 1d constructor
         KouIntegral(KouModel * const p,
-                    dealii::Point<dim> Smin_,
-                    dealii::Point<dim> Smax_,
+                    dealii::Point<1> Smin_,
+                    dealii::Point<1> Smax_,
                     bool adapting_=true,
                     double toll_=constants::light_toll);
         
         virtual double get_part1();
+        
+};
+
+template <>
+class KouIntegral<2>: public LevyIntegral<2> {
+public:
+        KouIntegral(KouModel * const p,
+                    dealii::Point<2> Smin_,
+                    dealii::Point<2> Smax_,
+                    bool adapting_=true,
+                    double toll_=constants::light_toll){};
         
 };
 
@@ -77,7 +124,7 @@ class MertonIntegral: public LevyIntegral<dim> {
 };
 
 // LevyIntegral -> implementazione
-template <>
+// template <>
 double LevyIntegral<1>::get_part1() {
         
         using namespace dealii;
@@ -124,7 +171,7 @@ double LevyIntegral<1>::get_part1() {
         
 }
 
-template <>
+// template <>
 void LevyIntegral<1>::get_part2(dealii::Vector<double> &J,
                                 dealii::Vector<double> const &solution,
                                 dealii::FE_Q<1> const &fe,
@@ -184,23 +231,9 @@ void LevyIntegral<1>::get_part2(dealii::Vector<double> &J,
         return;
 }
 
-template <>
-double LevyIntegral<2>::get_part1()
-{
-        return 0.;
-}
-
-template <>
-void LevyIntegral<2>::get_part2(dealii::Vector<double> &J,
-                                dealii::Vector<double> const &solution,
-                                dealii::FE_Q<2> const &fe,
-                                dealii::DoFHandler<2> const &dof_handler)
-{}
-
-
 // KouIntegral implementation
 
-template <>
+// template <>
 void KouIntegral<1>::setup_quadrature_rigth(unsigned n){
         right_quad=Quadrature_Laguerre(n, models[0]->get_lambda_p());
         right_quad_nodes=right_quad.get_nodes();
@@ -208,7 +241,7 @@ void KouIntegral<1>::setup_quadrature_rigth(unsigned n){
         return;
 }
 
-template <>
+// template <>
 void KouIntegral<1>::setup_quadrature_left(unsigned n){
         left_quad =Quadrature_Laguerre(n, models[0]->get_lambda_m());
         left_quad_nodes=left_quad.get_nodes();
@@ -216,7 +249,7 @@ void KouIntegral<1>::setup_quadrature_left(unsigned n){
         return;
 }
 
-template <>
+// template <>
 void KouIntegral<1>::setup_quadrature_points(){
         quadrature_points=std::vector<Point<1> > (left_quad.get_order()+right_quad.get_order());
         // Building one vector for nodes and weights
@@ -230,7 +263,7 @@ void KouIntegral<1>::setup_quadrature_points(){
 }
 
 // 1d constructor
-template <>
+// template <>
 KouIntegral<1>::KouIntegral(KouModel * const p,
                             dealii::Point<1> Smin_,
                             dealii::Point<1> Smax_,
@@ -260,7 +293,7 @@ adapting(adapting_)
         setup_quadrature_points();
         
 }
-
+/*
 // 2d constructor (to do)
 template <unsigned dim>
 KouIntegral<dim>::KouIntegral(KouModel * const p,
@@ -281,8 +314,8 @@ void KouIntegral<dim>::setup_quadrature_left(unsigned n){}
 
 template <unsigned dim>
 void KouIntegral<dim>::setup_quadrature_points(){}
-
-template <>
+*/
+// template <>
 double KouIntegral<1>::get_part1()
 {
         double alpha=0.;

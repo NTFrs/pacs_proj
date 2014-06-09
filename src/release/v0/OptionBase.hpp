@@ -282,11 +282,11 @@ void OptionBase<dim>::make_grid(){
                 
                 Smin[i]=(1-f)*(*models[i]).get_spot()*
                 exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                -(*models[i]).get_vol()*sqrt(T)*6);
+                    -(*models[i]).get_vol()*sqrt(T)*6);
                 
                 Smax[i]=(1+f)*(*models[i]).get_spot()*
                 exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                +(*models[i]).get_vol()*sqrt(T)*6);
+                    +(*models[i]).get_vol()*sqrt(T)*6);
                 
                 refinement[i]=pow(2, refs);
         }
@@ -325,17 +325,20 @@ void OptionBase<dim>::setup_system()
         
         if (model_type==ModelType::Kou) {
                 
-                levy=new KouIntegral<dim>(dynamic_cast<KouModel *> (models[0]->get_pointer()),
-                                          Smin, Smax);
-                                        
+                if (dim==1) {
+                        levy=new KouIntegral<dim>(dynamic_cast<KouModel *> (models[0]->get_pointer()),
+                                                  Smin, Smax);
+                }
+                
         }
         
         else if (model_type==ModelType::Merton) {
                 
-                Function<dim> * m=new Merton_Density<dim>();
+                Function<1> * m=new Merton_Density<1>();
                 
-                levy=new LevyIntegral<dim>(m, Smin, Smax);
-                
+                if (dim==1) {
+                        levy=new LevyIntegral<dim>(m, Smin, Smax);
+                }
         }
         
         dd_matrix.reinit(sparsity_pattern);
@@ -358,7 +361,7 @@ void OptionBase<dim>::assemble_system()
         double alpha(0.);
         double lambda(0.);
         
-        if (model_type!=ModelType::BlackScholes) {
+        if (model_type!=ModelType::BlackScholes && dim==1) {
                 alpha=levy->get_part1();
                 lambda=models[0]->get_lambda();
         }

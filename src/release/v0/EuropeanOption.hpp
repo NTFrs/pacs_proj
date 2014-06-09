@@ -75,7 +75,7 @@ void EuropeanOption<dim>::solve ()
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
         
                 //
-                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
+                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes && dim==1) {
                         
                         Vector<double> J;
                         Vector<double> temp;
