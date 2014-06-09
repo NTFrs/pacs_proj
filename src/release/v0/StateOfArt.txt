@@ -1,0 +1,12 @@
+CoeffNonCostanti:
+	-> BS 1d, 2d
+	-> Kou 1d
+	-> Americana 1d
+
+TODO
+CoeffNonCostanti
+	-> Kou 2d
+	-> Merton 1d, 2d
+	-> Americana 2d
+	-> MeshAdapting
+	-> Sistemare US
