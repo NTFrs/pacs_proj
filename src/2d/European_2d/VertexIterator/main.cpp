@@ -223,85 +223,72 @@ private:
 	std::vector<bool> _used;
 	unsigned _j;
 	unsigned _nd;
-	
+	unsigned _counted;
+
 public:
 	Vertex_Iterator()=delete;
-	Vertex_Iterator(dealii::DoFHandler<dim> const & _dof);
-	
+	Vertex_Iterator(dealii::DoFHandler<dim> const & dof): _used(dof.n_dofs(), false), _j(0),  _counted(1) {
+
+	 _nd=dof.get_fe().dofs_per_cell;
+	 _cells=dof.begin_active();
+   }
+
 	dealii::types::global_dof_index get_global_index();
-	
-	static Vertex_Iterator last_vertex(dealii::DoFHandler<dim> const & dof);
-	
+
 	bool at_end();
-	
+
 	//opertors
 	bool operator== (Vertex_Iterator<dim> const & rhs);
 	bool operator!= (Vertex_Iterator<dim> const & rhs);
 	Vertex_Iterator & operator++ ();
+	Point<dim> & operator* () { return _cells->vertex(_j);}
 
-};
+  };
 
-
-template<int dim>
-Vertex_Iterator<dim>::Vertex_Iterator(dealii::DoFHandler<dim> const & dof) : _used(dof.n_dofs(), false), _j(0) {
-	
-	_nd=dof.get_fe().dofs_per_cell;
-	_cells=dof.begin_active();
-}
 
 template<int dim>
 dealii::types::global_dof_index Vertex_Iterator<dim>::get_global_index() {
 	std::vector<dealii::types::global_dof_index> local_ind(_nd);
-	
 	_cells->get_dof_indices(local_ind);
-	
 	return local_ind[_j];
-}
+  }
 
 template<int dim>
 Vertex_Iterator<dim> & Vertex_Iterator<dim>::operator++() {
-	
-	do{
-	 if (_j<_nd)
+	if (_counted<_used.size())
+	{
+	 do{
+	  if (_j<_nd-1)
 	  _j++;
-	else {
-	 ++_cells;
-	 _j=0;
+	  else {
+	   ++_cells;
+	   _j=0;
 	 }
-   
+
 	} while (_used[get_global_index()]);
-	
-	_used[get_global_index()]=true;
-	
+	 _used[get_global_index()]=true;
+
+ }
+	_counted++;
+
 	return * this;
-}
+  }
 
 template<int dim>
 bool Vertex_Iterator<dim>::operator== (Vertex_Iterator<dim> const & rhs) {
 	return (_cells==rhs._cells && _j==rhs._j);
-}
+  }
 
 
 template<int dim>
 bool Vertex_Iterator<dim>::operator != (Vertex_Iterator<dim> const & rhs) {
 	return (_cells !=rhs._cells or _j !=rhs._j);
-}
-
-template<int dim>
-Vertex_Iterator<dim> Vertex_Iterator<dim>::last_vertex(dealii::DoFHandler<dim> const & dof) {
-	
-	Vertex_Iterator<dim> last(dof);
-	last._cells=dof.end();
-	last._j=last._nd-1;
-	
-	return last;
-	
-}
+  }
 
 template<int dim>
 bool Vertex_Iterator<dim>::at_end() {
-	
-}
+	return _counted>_used.size();
+  }
 
 template<int dim>
 class Opzione{
@@ -479,37 +466,19 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
 
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
 	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
-	vector<bool> used(N, false);
+
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 	
 	Vertex_Iterator<dim> verts(dof_handler);
-	Vertex_Iterator<dim> last=Vertex_Iterator<dim>::last_vertex(dof_handler);
-	
-	Vertex_Iterator<dim> last2=Vertex_Iterator<dim>::last_vertex(dof_handler);
 
-// 	if (verts==last)
-// 	 cout<< "differents at start\n";
-	if (last !=last2)
-	 cout<< "really different\n";
-	for (unsigned i=0;verts !=last;++verts) {
-	 i++;
-	 cout<< " i is \t"<< i<< endl;
-	 }
-	for (; cell !=endc;++cell) {
+	for (; !verts.at_end();++verts) {
 
-	 cell->get_dof_indices(local_dof_indices);
-
-	 for (unsigned int j=0;j<dofs_per_cell;++j) {
-	  unsigned int it=local_dof_indices[j];
-	  //                 cout << "Nodo globale "<< it<< endl;
-	  if (used[it]==false)
-	  {
-
-	   used[it]=true;
-	   Point<dim> actual_vertex=cell->vertex(j);
-	   // 		cout<< "At point N "<< it<<" wich is "<<  actual_vertex<< endl;
+	   Point<dim> actual_vertex=*verts;
+	   unsigned it=verts.get_global_index();
+	   
 	   typename DoFHandler<dim>::active_cell_iterator inner_cell=dof_handler.begin_active();
 	   bool left(false),  bottom(false);
+	   
 	   if (fabs(actual_vertex[0]-Smin[0])<grid_tol) {
 		left=true;
 	  // 		cout<< "it's a left node\n";
@@ -600,8 +569,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J_x, Vector<double> &J_y)
    }
 
 	}
-   }
-  }
+
 
 
 template<int dim>
@@ -948,7 +916,7 @@ int main() {
 
 	cout<<"eps "<<eps<<"\n";
 
-	Opzione<2> Call(par, 100, 4);
+	Opzione<2> Call(par, 100, 5);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 
