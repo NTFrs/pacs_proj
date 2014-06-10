@@ -50,3 +50,6 @@ makefile
 
 #plot folders
 plot
+
+#doc folder
+doc
