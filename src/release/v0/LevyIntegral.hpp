@@ -4,6 +4,7 @@
 #include "deal_ii.hpp"
 #include "Quadrature.hpp"
 #include "Densities.hpp"
+#include "tools.hpp"
 
 template <unsigned dim>
 class LevyIntegral {
@@ -176,7 +177,6 @@ void LevyIntegral<1>::get_part2(dealii::Vector<double> &J,
                                 dealii::Vector<double> const &solution,
                                 dealii::FE_Q<1> const &fe,
                                 dealii::DoFHandler<1> const &dof_handler) {
-        
         using namespace dealii;
         
         J.reinit(solution.size());
@@ -195,22 +195,14 @@ void LevyIntegral<1>::get_part2(dealii::Vector<double> &J,
 	
 	vector< Point <1> > quad_points(n_q_points);
 	Point<1> logz(0.);
-	vector<bool> used(solution.size(), false);
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-        
-        typename DoFHandler<1>::active_cell_iterator outer_cell=dof_handler.begin_active();
-        
-        for (;outer_cell !=endc;++outer_cell){
-                
-                outer_cell->get_dof_indices(local_dof_indices);
-                
-                for (unsigned int j=0;j<dofs_per_cell;++j) {
+
+	tools::Vertex_Iterator<1> verts(dof_handler);
+	
+	for (; !verts.at_end();++verts) {
                         
-                        unsigned iter=local_dof_indices[j];
-                        
-                        if (used[iter]==false) {
-				used[iter]=true;
-				Point<1> actual_vertex=outer_cell->vertex(j);
+	  Point<1> actual_vertex=*verts;
+	  unsigned it=verts.get_global_index();
 				
                                 cell=dof_handler.begin_active();
                                 
@@ -220,13 +212,10 @@ void LevyIntegral<1>::get_part2(dealii::Vector<double> &J,
                                         fe_values.get_function_values(solution, sol_cell);                        
                                         for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                                 logz(0)=log(quad_points[q_point](0)/actual_vertex(0));
-                                                J[iter]+=fe_values.JxW(q_point)*sol_cell[q_point]*(*density).value(logz)/quad_points[q_point](0);
+                                                J[it]+=fe_values.JxW(q_point)*sol_cell[q_point]*(*density).value(logz)/quad_points[q_point](0);
                                         }
                                 }
                         }
-                        
-                }
-	}
         
         return;
 }
