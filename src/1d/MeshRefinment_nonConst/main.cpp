@@ -258,6 +258,7 @@ private:
 	void setup_system ();
 	void assemble_system ();
 	void solve_one_step(double time);
+	void estimate_doubling(double time, Vector< float >& errors);
 	void refine_grid();
 	void output_results () const {};
 	
@@ -661,16 +662,18 @@ template <int dim>
 void Opzione<dim>::refine_grid (){
         
 	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
-        
+	Vector<float> estimated_error_per_cell2 (triangulation.n_active_cells());   
 	KellyErrorEstimator<dim>::estimate (dof_handler,
                                             QGauss<dim-1>(3),
                                             typename FunctionMap<dim>::type(),
                                             solution,
                                             estimated_error_per_cell);
+    double time=1.;
+    estimate_doubling(time, estimated_error_per_cell2);
         
 	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
         
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.03, 0.1);
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell2, 0.03, 0.1);
         
 	SolutionTransfer<dim> solution_trans(dof_handler);
 	Vector<double> previous_solution;
@@ -685,6 +688,58 @@ void Opzione<dim>::refine_grid (){
 	assemble_system();
 }
 
+template<int dim>
+void Opzione<dim>::estimate_doubling(double time,  Vector<float> & errors) {
+	
+	Triangulation<dim> old_tria;
+	old_tria.copy_triangulation(triangulation);
+	FE_Q<dim> old_fe(1);
+	DoFHandler<dim> old_dof(old_tria);
+	old_dof.distribute_dofs(old_fe);
+	Vector<double> old_solution=solution;
+	{
+	Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
+	
+	triangulation.refine_global(1);
+	setup_system();
+	VectorTools::interpolate(dof_handler, moveSol, solution);
+	 }
+	assemble_system();
+	solve_one_step(time);
+	{
+	 Functions::FEFieldFunction<dim> moveSol(dof_handler, solution); 
+	 cerr<< "dof size "<< dof_handler.n_dofs()<< " solution size "<< solution.size()<< endl;
+	 cerr<< "olddof size "<< old_dof.n_dofs()<< " oldsolution size "<< old_solution.size()<< endl;
+
+	 Vector<double> temp(old_dof.n_dofs());
+	 cerr<< "this one2\n";
+	 VectorTools::interpolate(old_dof, moveSol, temp);
+	 cerr<< "this one2\n";
+	 solution=temp;
+	}
+	triangulation.clear();
+	triangulation.copy_triangulation(old_tria);
+	setup_system();
+	assemble_system();
+	
+	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
+	vector<types::global_dof_index> local_dof_indices(fe.dofs_per_cell);
+	errors.reinit(old_tria.n_active_cells());
+	double err(0);
+	unsigned ind(0),  count(0);
+	for (;cell !=endc;++cell) {
+	 err=0;
+	 cell->get_dof_indices(local_dof_indices);
+	 for (unsigned i=0;i<fe.dofs_per_cell;++i) {
+	  ind=local_dof_indices[i];
+	  err+=(solution[ind]-old_solution[ind])*(solution[ind]-old_solution[ind]);
+	 }
+	 errors[count]=(err);
+	 count++;
+	 }
+	 
+	solution=old_solution;
+}
 
 
 template<int dim>
