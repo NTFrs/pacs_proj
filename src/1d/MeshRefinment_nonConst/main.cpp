@@ -368,29 +368,19 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	FEValues<dim> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
 	
 	const unsigned int n_q_points(quadrature_formula.size());
-	
-	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
+	typename DoFHandler<dim>::active_cell_iterator endc=dof_handler.end();
 	
 	vector<double> sol_cell(n_q_points);
-	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
 	
 	vector< Point <dim> > quad_points(n_q_points);
 	Point<dim> logz(0.);
-	vector<bool> used(solution.size(), false);
-	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-        //  cout<< "densità\n";
-        typename DoFHandler<dim>::active_cell_iterator outer_cell=dof_handler.begin_active();
         
-        for (;outer_cell !=endc;++outer_cell){
-                outer_cell->get_dof_indices(local_dof_indices);
-                // 	 cerr << "iter is " <<  iter << endl;
-                for (unsigned int j=0;j<dofs_per_cell;++j) {
-                        unsigned int iter=local_dof_indices[j];
-                        if (used[iter]==false) {
-				used[iter]=true;
-				Point<dim> actual_vertex=outer_cell->vertex(j);
-				
-                                cell=dof_handler.begin_active();
+	std::map<types::global_dof_index, Point<dim> > vertices;
+	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
+
+	for (unsigned iter=0;iter<solution.size();++iter) {
+					Point<dim> actual_vertex=vertices[iter];
+							  typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active();
                                 for (; cell!=endc;++cell) {
                                         // 	  cout<< "switching cell\n";
                                         fe_values.reinit(cell);
@@ -404,9 +394,9 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                         }
                         
                 }
-	}
+// 	}
         
-}
+// }
 
 template<int dim>
 void Opzione<dim>::make_grid() {
@@ -662,18 +652,18 @@ template <int dim>
 void Opzione<dim>::refine_grid (){
         
 	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
-	Vector<float> estimated_error_per_cell2 (triangulation.n_active_cells());   
+// 	Vector<float> estimated_error_per_cell2 (triangulation.n_active_cells());   
 	KellyErrorEstimator<dim>::estimate (dof_handler,
                                             QGauss<dim-1>(3),
                                             typename FunctionMap<dim>::type(),
                                             solution,
                                             estimated_error_per_cell);
-    double time=1.;
-    estimate_doubling(time, estimated_error_per_cell2);
+//     double time=1.;
+//     estimate_doubling(time, estimated_error_per_cell2);
         
 	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
         
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell2, 0.03, 0.1);
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.03, 0.1);
         
 	SolutionTransfer<dim> solution_trans(dof_handler);
 	Vector<double> previous_solution;
