@@ -3,6 +3,11 @@
 
 namespace tools{
 
+
+//!An iterator used to cycle on verices of a triangulation
+/*!
+ * This class allows to cycle on the vertices of the triangulation, and allows to obtain both the point and the global index of that point
+ */
 template<int dim>
 class Vertex_Iterator {
 
@@ -14,20 +19,37 @@ private:
 	unsigned _counted;
 
 public:
+	//! Default constructor deleted
 	Vertex_Iterator()=delete;
+	//! Constructor from a DoFHandler
+	/*!
+     * Construct the iterator from a DoFHandler connected to a triangulation. This creates a Vertex_Iterator and initializes it at the first vertex of the first cell of the DoFHandler.
+     */
 	Vertex_Iterator(dealii::DoFHandler<dim> const & dof): _used(dof.n_dofs(), false), _vert_index(0),  _counted(1) {
 	 _ndofs_cell=dof.get_fe().dofs_per_cell;
 	 _cells=dof.begin_active();
    }
 
+   //! Returns the global index of the current vertex
 	dealii::types::global_dof_index get_global_index();
 
+	//! Returns True if all vertices have been visited
 	bool at_end();
 
-	//opertors
+	//! Comparison operator
 	bool operator== (Vertex_Iterator<dim> const & rhs);
+	//! Not equal operator
 	bool operator!= (Vertex_Iterator<dim> const & rhs);
+	
+	//!Forward advance operator
+	/*!
+     * Advance the iterator to a new vertex. If all vertices have been visited, it (throw exception or do nothing? ).
+     */
 	Vertex_Iterator & operator++ ();
+	//!Dereferencing operator
+	/*!
+     * Derefences the interator returning the point corresponding to the vertex
+     */
 	dealii::Point<dim> & operator* () { return _cells->vertex(_vert_index);}
 
   };
