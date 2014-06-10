@@ -45,6 +45,9 @@ makefile
 *.out
 *.synctex.gz
 
+#doxy
+@ONLY
+
 #matlab generated files
 *.m
 
