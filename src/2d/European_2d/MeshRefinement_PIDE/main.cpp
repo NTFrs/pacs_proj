@@ -800,15 +800,9 @@ template <int dim>
 void Opzione<dim>::refine_grid (){
 
 	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
-
-	KellyErrorEstimator<dim>::estimate (dof_handler,
-	 QGauss<dim-1>(3),
-	 typename FunctionMap<dim>::type(),
-	 solution,
-	 estimated_error_per_cell);
-	 
+	KellyErrorEstimator<dim>::estimate (dof_handler, QGauss<dim-1>(3), typename FunctionMap<dim>::type(),	 solution,	 estimated_error_per_cell);
 // 	estimate_doubling(1., estimated_error_per_cell);
-	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
+// 	GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
 	/*
 	auto minimum=*std::min_element(estimated_error_per_cell.begin(), estimated_error_per_cell.end());    
 	auto maximum=*std::max_element(estimated_error_per_cell.begin(), estimated_error_per_cell.end());    
@@ -831,7 +825,7 @@ void Opzione<dim>::refine_grid (){
 // 	else if (estimated_error_per_cell[i]>up)
 // 	cell->set_refine_flag();
 // 	
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
+// 	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
 
 	SolutionTransfer<dim> solution_trans(dof_handler);
 	Vector<double> previous_solution;
