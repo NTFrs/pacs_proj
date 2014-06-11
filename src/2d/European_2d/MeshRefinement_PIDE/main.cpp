@@ -526,10 +526,10 @@ void Opzione<dim>::make_grid() {
 
 	cout<< "Smin= "<< Smin<< "\t e Smax= "<< Smax<< endl;
 
-	std::vector<unsigned> refinement={static_cast<unsigned>(pow(2,refs))+3, static_cast<unsigned>(pow(2,refs))+3};
+	std::vector<unsigned> refinement={static_cast<unsigned>(pow(2,refs-2))+3, static_cast<unsigned>(pow(2,refs))+3};
 
 	GridGenerator::subdivided_hyper_rectangle(triangulation, refinement,Smin, Smax);
-
+	triangulation.refine_global();
 	Levy_integral_part1();
 
 	std::ofstream out ("grid.eps");
@@ -758,7 +758,7 @@ double Opzione<dim>::run() {
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
 	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
 
-	 if (!(Step%20) && !(Step==Nsteps)) {
+	 if (!(Step%20) && !(Step==Nsteps)/*&&false*/) {
 	  refine_grid();
 	  counter++;
 	  
@@ -800,17 +800,38 @@ template <int dim>
 void Opzione<dim>::refine_grid (){
 
 	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
-/*
+
 	KellyErrorEstimator<dim>::estimate (dof_handler,
 	 QGauss<dim-1>(3),
 	 typename FunctionMap<dim>::type(),
 	 solution,
 	 estimated_error_per_cell);
-	 */
-	estimate_doubling(1., estimated_error_per_cell);
+	 
+// 	estimate_doubling(1., estimated_error_per_cell);
 	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
-
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.03, 0.1);
+	/*
+	auto minimum=*std::min_element(estimated_error_per_cell.begin(), estimated_error_per_cell.end());    
+	auto maximum=*std::max_element(estimated_error_per_cell.begin(), estimated_error_per_cell.end());    
+	auto low=0.5*(maximum+minimum);
+	auto upp=0.25*minimum+0.75*maximum;
+	*/
+// 	unsigned upper_q=estimated_error_per_cell.size()*0.9;
+// 	unsigned lower_q=estimated_error_per_cell.size()*0.25;
+// 	std::nth_element(estimated_error_per_cell.begin(), estimated_error_per_cell.begin()+lower_q, estimated_error_per_cell.end());
+// 	std::nth_element(estimated_error_per_cell.begin(), estimated_error_per_cell.begin()+upper_q, estimated_error_per_cell.end());
+// 	
+// 	auto low=*(estimated_error_per_cell.begin()+lower_q);
+// 	auto up=*(estimated_error_per_cell.begin()+upper_q);
+// 	
+// 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(), endc=dof_handler.end();
+// 
+// 	for (unsigned i=0;cell !=endc;++cell, ++i)
+// 	if (estimated_error_per_cell[i]<low)
+// 	cell->set_coarsen_flag();
+// 	else if (estimated_error_per_cell[i]>up)
+// 	cell->set_refine_flag();
+// 	
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
 
 	SolutionTransfer<dim> solution_trans(dof_handler);
 	Vector<double> previous_solution;
@@ -917,7 +938,7 @@ int main() {
 
 	cout<<"eps "<<eps<<"\n";
 
-	Opzione<2> Call(par, 100, 4);
+	Opzione<2> Call(par, 100, 5);
 	double Prezzo=Call.run();
 	cout<<"Prezzo "<<Prezzo<<"\n";
 
