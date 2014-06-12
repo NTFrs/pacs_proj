@@ -350,7 +350,7 @@ private:
 	void assemble_system ();
 	void solve_one_step(double time);
 	void estimate_doubling(double time, Vector< float >& errors);
-	void refine_grid();
+	void refine_grid(double time);
 	void output_results () const {};
         
 	
@@ -515,9 +515,11 @@ void Opzione<dim>::make_grid() {
                 Bmax[0]+=dx;
         
 	cout<<"Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
+    
+	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs-3)+3, xmin[0],xmax[0]);
         
-	GridGenerator::hyper_cube(triangulation, xmin[0],xmax[0]);
-    triangulation.refine_global(refs);    
+// 	GridGenerator::hyper_cube(triangulation, xmin[0],xmax[0]);
+    triangulation.refine_global(3);    
 	
 	// Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
 	right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
@@ -727,7 +729,59 @@ void Opzione<dim>::solve_one_step(double time) {
 
   }
 
+template<int dim>
+void Opzione<dim>::estimate_doubling(double time,  Vector<float> & errors) {
 
+	Triangulation<dim> old_tria;
+	old_tria.copy_triangulation(triangulation);
+	FE_Q<dim> old_fe(1);
+	DoFHandler<dim> old_dof(old_tria);
+	old_dof.distribute_dofs(old_fe);
+	Vector<double> old_solution=solution;
+	{
+	 Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
+
+	 triangulation.refine_global(1);
+	 setup_system();
+	 VectorTools::interpolate(dof_handler, moveSol, solution);
+ }
+	assemble_system();
+	solve_one_step(time);
+	{
+	 Functions::FEFieldFunction<dim> moveSol(dof_handler, solution); 
+	 cerr<< "dof size "<< dof_handler.n_dofs()<< " solution size "<< solution.size()<< endl;
+	 cerr<< "olddof size "<< old_dof.n_dofs()<< " oldsolution size "<< old_solution.size()<< endl;
+
+	 Vector<double> temp(old_dof.n_dofs());
+	 cerr<< "this one2\n";
+	 VectorTools::interpolate(old_dof, moveSol, temp);
+	 cerr<< "this one2\n";
+	 solution=temp;
+ }
+	triangulation.clear();
+	triangulation.copy_triangulation(old_tria);
+	setup_system();
+	assemble_system();
+
+	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
+	vector<types::global_dof_index> local_dof_indices(fe.dofs_per_cell);
+	errors.reinit(old_tria.n_active_cells());
+	double err(0);
+	unsigned ind(0),  count(0);
+	for (;cell !=endc;++cell) {
+	 err=0;
+	 cell->get_dof_indices(local_dof_indices);
+	 for (unsigned i=0;i<fe.dofs_per_cell;++i) {
+	  ind=local_dof_indices[i];
+	  err+=(solution[ind]-old_solution[ind])*(solution[ind]-old_solution[ind]);
+	}
+	 errors[count]=(err);
+	 count++;
+   }
+
+	solution=old_solution;
+  }
+  
 template<int dim>
 double Opzione<dim>::run() {
 
@@ -756,8 +810,8 @@ double Opzione<dim>::run() {
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
 	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
 
-	 if (!(Step%20) && !(Step==Nsteps)&&false) {
-	  refine_grid();
+	 if (!(Step%20) && !(Step==Nsteps)) {
+	  refine_grid(time);
 	  solve_one_step(time);
 	}
 	 else
@@ -784,17 +838,16 @@ double Opzione<dim>::run() {
   }
 
 template <int dim>
-void Opzione<dim>::refine_grid (){
+void Opzione<dim>::refine_grid (double time){
 
 	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
-// 	Vector<float> estimated_error_per_cell2 (triangulation.n_active_cells());   
+	Vector<float> estimated_error_per_cell2 (triangulation.n_active_cells());   
 	KellyErrorEstimator<dim>::estimate (dof_handler,
 	 QGauss<dim-1>(3),
 	 typename FunctionMap<dim>::type(),
 	 solution,
 	 estimated_error_per_cell);
-	double time=1.;
-// 	estimate_doubling(time, estimated_error_per_cell2);
+	estimate_doubling(time, estimated_error_per_cell2);
 
 	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
 // 	auto minimum=*std::min_element(estimated_error_per_cell2.begin(), estimated_error_per_cell2.end());    
@@ -809,7 +862,8 @@ void Opzione<dim>::refine_grid (){
 // 	else if (estimated_error_per_cell2[i]>third)
 // 	cell->set_refine_flag();
 
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.2);
+// 	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.2);
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell2, 0.15, 0.15);
 
 	SolutionTransfer<dim> solution_trans(dof_handler);
 	Vector<double> previous_solution;
@@ -873,7 +927,7 @@ int main() {
         
 	cout<<"eps "<<eps<<"\n";
         
-        Opzione<1> Call(par, 100, 7);
+        Opzione<1> Call(par, 100, 9);
         double Prezzo=Call.run();
         cout<<"Prezzo "<<Prezzo<<"\n";
         
