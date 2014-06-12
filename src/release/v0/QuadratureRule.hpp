@@ -9,8 +9,10 @@
 #include <ctime>
 #include <string>
 
-// Code found on http://people.sc.fsu.edu/~jburkardt/cpp_src/laguerre_rule/laguerre_rule.cpp
-// This code is distributed under the GNU LGPL license.
+//! This functions are used to calculate Laguerre and Hermite integration nodes and weights.
+/*!
+ * This code is been found on http://people.sc.fsu.edu/~jburkardt/cpp_src/laguerre_rule/laguerre_rule.cpp and is distributed under the GNU LGPL license.
+ */
 
 namespace quadrature {
         

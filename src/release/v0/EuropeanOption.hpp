@@ -3,6 +3,10 @@
 
 #include "OptionBase.hpp"
 
+//! A class for evaluation of European Options
+/*!
+ * This class evaluates the price of European Option, of type Put, Call, Basket Put and Basket Call.
+ */
 template <unsigned dim>
 class EuropeanOption final: public OptionBase<dim>
 {
@@ -12,7 +16,17 @@ private:
         
         virtual void solve();
 public:
-        // Constructor 1d
+        //! 1d Constructor
+        /*!
+         * Constructor for European Option with payoff max(S_T-K,0) and max(K-S_T,0).
+         * \param type_         Option Type, Call or Put
+         * \param model         Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
+         * \param r_            Interest rate
+         * \param T_            Time to Maturity
+         * \param K_            Strike Price
+         * \param refs_         Refinement of the grid (e.g. insert 10 for 2^10=1024 cells)
+         * \param time_step_    Number of TimeStep
+         */
         EuropeanOption(OptionType type_,
                        Model * const model,
                        double r_,
@@ -26,7 +40,20 @@ public:
         eu(ExerciseType::EU)
         {};
         
-        // Cosntructor 2d
+        //! 1d Constructor
+        /*!
+         * Constructor for European Option with payoff max(S^1_T+S^2_T-K,0) and max(K-S^1_T-S^2_T,0).
+         * \param type_         Option Type, Call or Put
+         * \param model1        Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
+         * \param model2        Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
+         * \param rho_          Correlation between Stocks
+         * \param r_            Interest rate
+         * \param T_            Time to Maturity
+         * \param K_            Strike Price
+         * \param refs_         Refinement of the grid (e.g. insert 8 for 2^(2*6)=4096 cells)
+         * \param time_step_    Number of TimeStep
+         * \note                model1 and model2 MUST be of the same type.
+         */
         EuropeanOption(OptionType type_,
                        Model * const model1,
                        Model * const model2,

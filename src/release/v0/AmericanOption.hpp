@@ -3,6 +3,10 @@
 
 #include "OptionBase.hpp"
 
+//! A class for evaluation of American Options
+/*!
+ * This class evaluates the price of American Option, of type Put and Basket Put
+ */
 template <unsigned dim>
 class AmericanOption final: public OptionBase<dim>
 {
@@ -11,7 +15,16 @@ private:
         
         virtual void solve();
 public:
-        // Constructor 1d
+        //! 1d Constructor
+        /*!
+         * Constructor for American Option with payoff max(K-S_T,0).
+         * \param model         Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
+         * \param r_            Interest rate
+         * \param T_            Time to Maturity
+         * \param K_            Strike Price
+         * \param refs_         Refinement of the grid (e.g. insert 10 for 2^10=1024 cells)
+         * \param time_step_    Number of TimeStep
+         */
         AmericanOption(Model * const model,
                        double r_,
                        double T_,
@@ -23,7 +36,19 @@ public:
         us(ExerciseType::US)
         {};
         
-        // Cosntructor 2d
+        //! 1d Constructor
+        /*!
+         * Constructor for American Option with payoff max(K-S^1_T-S^2_T,0).
+         * \param model1        Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
+         * \param model2        Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
+         * \param rho_          Correlation between Stocks
+         * \param r_            Interest rate
+         * \param T_            Time to Maturity
+         * \param K_            Strike Price
+         * \param refs_         Refinement of the grid (e.g. insert 8 for 2^(2*6)=4096 cells)
+         * \param time_step_    Number of TimeStep
+         * \note                model1 and model2 MUST be of the same type.
+         */
         AmericanOption(Model * const model1,
                        Model * const model2,
                        double rho_,
