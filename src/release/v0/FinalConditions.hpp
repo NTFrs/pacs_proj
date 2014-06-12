@@ -4,10 +4,19 @@
 #include "deal_ii.hpp"
 #include "OptionTypes.hpp"
 
+//! Class of Final Condititions
+/*!
+ * This class is used to set the final conditions of our problems. It works in 1d and 2d and needs to know if the option is a Put or a Call.
+ */
 template<unsigned dim>
 class FinalCondition : public Function<dim>
 {
 public:
+        //! Constructor
+        /*!
+         * \param K_    Strike Price
+         * \param type_ Option type (Put or Call)
+         */
 	FinalCondition (double K_, OptionType type_)
         :
         Function<dim>(),
@@ -15,6 +24,7 @@ public:
         type(type_)
         {};
         
+        //! Function needed by dealii
 	virtual double value (const Point<dim>   &p,
                               // scalar function, return the first component, label 0
                               const unsigned int  component = 0) const;

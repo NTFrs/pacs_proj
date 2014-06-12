@@ -97,7 +97,10 @@ protected:
         virtual void solve() = 0;
         
 public:
-        // Constructor 1d
+        //! Constructor 1d
+        /*!
+         * Constructor 1d called by inherited classes.
+         */
         OptionBase(ExerciseType type_,
                    Model * const model,
                    double r_,
@@ -106,7 +109,10 @@ public:
                    unsigned refs_,
                    unsigned time_step_);
         
-        // Cosntructor 2d
+        //! Cosntructor 2d
+        /*!
+         * Constructor 2d called by inherited classes.
+         */
         OptionBase(ExerciseType type_,
                    Model * const model1,
                    Model * const model2,
@@ -117,12 +123,16 @@ public:
                    unsigned refs_,
                    unsigned time_step_);
         
-        // Destructor
+        //! Destructor
         virtual ~OptionBase(){
                 delete levy;
                 delete system_matrix;
         };
         
+        //! 
+        /*!
+         * This function creates the system and solves it.
+         */
         virtual void run()
         {
                 make_grid();
@@ -131,6 +141,11 @@ public:
                 solve();
         };
         
+        //! SISTEMAREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        /*!
+         * This function is used to set the scale factor of the grid boundary.
+         * \param f_    is set by default to 0.5. The user can specify it in ]0,1[.
+         */
         virtual void set_scale_factor(double f_) {
                 if (f_<=0. && f_>=1.) {
                         throw(std::logic_error("Error! The scale factor must be in ]0,1[.\n"));
@@ -139,6 +154,10 @@ public:
                         f=f_;
         };
         
+        //!
+        /*!
+         * This function returns the price of the option
+         */
         virtual inline double get_price();
 };
 
@@ -152,7 +171,7 @@ OptionBase<dim>::OptionBase(ExerciseType type_,
                             unsigned refs_,
                             unsigned time_step_)
 {
-        // error!
+        throw(std::logic_error("Error! Dimension must be 1 or 2.\n"));
 }
 
 // Constructor 1d specialized
@@ -212,7 +231,7 @@ OptionBase<dim>::OptionBase(ExerciseType type_,
                             unsigned refs_,
                             unsigned time_step_)
 {
-        // error!
+        throw(std::logic_error("Error! Dimension must be 1 or 2.\n"));
 }
 
 // Constructor 2d specialized

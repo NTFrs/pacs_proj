@@ -2,7 +2,10 @@
 #define __models_hpp
 
 #include <iostream>
-
+//! Abstract class Model
+/*!
+ * This class gives the idea of how we intend a model class.
+ */
 class Model
 {
 private:
@@ -10,7 +13,13 @@ private:
         double sigma;
         
 public:
+        //! Sintetic Constructor
         Model()=default;
+        //! Default Constructor
+        /*!
+         * \param S0_           Spot Price
+         * \param sigma_        Volatility
+         */
         Model(double S0_,
               double sigma_):
         S0(S0_),
@@ -19,8 +28,11 @@ public:
         
         virtual ~Model()=default;
         
+        //! Returns the Spot Price
         virtual inline double get_spot()        const   {return S0;};
+        //! Returns the Volatility
         virtual inline double get_vol()         const   {return sigma;};
+        //! Returns the pointer to che class (needed in OptionBase<dim> constructors)
         virtual inline Model* get_pointer()             {return this;};
 
         virtual inline double get_lambda()      const   { return 0.; };
@@ -34,6 +46,10 @@ public:
         
 };
 
+//! Black&Scholes Model
+/*!
+ * This is the simplest and the most used model. With this model, the object OptionBase<dim> will solve the the Black&Scholes' PDE, without the integral part.
+ */
 class BlackScholesModel: public Model
 {
 private:
@@ -46,8 +62,14 @@ private:
         virtual inline double get_delta()       const   { return 0.; };
         
 public:
+        //! Sintetic Constructor
         BlackScholesModel()=default;
         
+        //! Default Constructor
+        /*!
+         * \param S0_           Spot Price
+         * \param sigma_        Volatility
+         */
         BlackScholesModel(double S0_,
                           double sigma_):
         Model(S0_, sigma_)
@@ -55,6 +77,10 @@ public:
         
 };
 
+//! Kou Model
+/*!
+ * This class describes the Kou Model, which describes the classic geometric brownian motion with jumps. The pdf of jumps is modeled as an exponential.
+ */
 class KouModel: public Model
 {
 private:
@@ -68,8 +94,18 @@ private:
         double lambda_minus;
         
 public:
+        //! Sintetic Constructor
         KouModel()=default;
         
+        //! Default Constructor
+        /*!
+         * \param S0_           Spot Price
+         * \param sigma_        Volatility
+         * \param p_            Probability of positives jumps
+         * \param lambda_       Intensity of jumps
+         * \param lambda_plus_  Intensity of positive jumps
+         * \param lambda_minus_ Intensity of negative jumps
+         */
         KouModel(double S0_,
                  double sigma_,
                  double p_,
@@ -91,6 +127,10 @@ public:
         
 };
 
+//! Merton Model
+/*!
+ * This class describes the Merton Model, which describes the classic geometric brownian motion with jumps. The pdf of jumps is modeled as a gaussian function.
+ */
 class MertonModel: public Model
 {
 private:
