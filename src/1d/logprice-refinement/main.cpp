@@ -19,7 +19,17 @@
 
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
-#include <deal.II/base/logstream.h>
+#include <deal.II/base/logstream.h>#include <deal.II/grid/grid_refinement.h>
+#include <deal.II/numerics/error_estimator.h>
+#include <deal.II/fe/mapping_q1.h>
+#include <deal.II/numerics/derivative_approximation.h>
+#include <deal.II/numerics/solution_transfer.h>
+
+#include <deal.II/grid/grid_refinement.h>
+#include <deal.II/numerics/error_estimator.h>
+#include <deal.II/fe/mapping_q1.h>
+#include <deal.II/numerics/derivative_approximation.h>
+#include <deal.II/numerics/solution_transfer.h>
 
 #include <deal.II/numerics/data_out.h>
 
@@ -338,7 +348,9 @@ private:
 	void make_grid();
 	void setup_system ();
 	void assemble_system ();
-	void solve ();
+	void solve_one_step(double time);
+	void estimate_doubling(double time, Vector< float >& errors);
+	void refine_grid();
 	void output_results () const {};
         
 	
@@ -348,32 +360,20 @@ private:
 	Triangulation<dim>              triangulation;
 	FE_Q<dim>                       fe;
 	DoFHandler<dim>                 dof_handler;
-        
-	Triangulation<dim>              integral_triangulation;
-	//     Triangulation<dim>              integral_triangulation2;
-        
-	FE_Q<dim>                       fe2;
-	DoFHandler<dim>                 dof_handler_2;
-        
+                
 	SparsityPattern                 sparsity_pattern;
 	SparseMatrix<double>            system_matrix;
 	SparseMatrix<double>            system_M2;
 	SparseMatrix<double>            dd_matrix;
 	SparseMatrix<double>            fd_matrix;
 	SparseMatrix<double>            ff_matrix;
+	
+	ConstraintMatrix				constraints;
         
 	Vector<double>                  solution;
 	Vector<double>                  system_rhs;
         
-        // 	std::vector<unsigned int>       index;
-        // 	std::vector<double>             u_array;
-        // 	double *                        x_array;
-        
-	std::vector< Point<dim> >       grid_points;
-        // 	std::vector< Point<dim> >       integral_grid_points;
-        
-        // 	std::vector< double >           integral_weights;
-        // 	std::vector< Point<dim> >       integral_points;
+		std::map< dealii::types::global_dof_index , Point<dim> >       vertices;
         
         // quadrature di laguerre
         Quadrature_Laguerre right_quad;
@@ -411,8 +411,6 @@ public:
 	k(par.p, par.lambda, par.lambda_piu, par.lambda_meno),
 	fe (1),
 	dof_handler (triangulation),
-	fe2 (1),
-	dof_handler_2 (integral_triangulation),
 	refs(refinement), 
 	Nsteps(Nsteps_), 
 	time_step (par.T/double(Nsteps_)),
@@ -422,14 +420,7 @@ public:
         
 	double get_price();
         
-	double run(){
-                make_grid();
-                setup_system();
-                assemble_system();
-                solve();
-                return get_price();
-                
-        };
+	double run();
 };
 
 
@@ -460,9 +451,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
 
-	std::map<types::global_dof_index, Point<dim> > vertices;
-	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
-	
+
 #pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
@@ -527,12 +516,31 @@ void Opzione<dim>::make_grid() {
         
 	cout<<"Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
         
-	GridGenerator::subdivided_hyper_cube(triangulation,pow(2,refs)+3, xmin[0],xmax[0]);
-        
-	grid_points=triangulation.get_vertices();
+	GridGenerator::hyper_cube(triangulation, xmin[0],xmax[0]);
+    triangulation.refine_global(refs);    
 	
-	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, refs-3), Bmin[0], Bmax[0]);
-	
+	// Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
+	right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
+	left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
+
+	// Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
+	right_quad_nodes=right_quad.get_nodes();
+	right_quad_weights=right_quad.get_weights();
+
+	left_quad_nodes=left_quad.get_nodes();
+	left_quad_weights=left_quad.get_weights();
+
+	quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
+
+	// Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
+	for (int i=0; i<left_quad.get_order(); ++i) {
+	 quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
+   }
+	for (int i=0; i<right_quad.get_order(); ++i) {
+	 quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
+   }
+   
+	Levy_integral_part1();
         
 }
 
@@ -540,15 +548,20 @@ template<int dim>
 void Opzione<dim>::setup_system() {
         
 	dof_handler.distribute_dofs(fe);
-        
-	dof_handler_2.distribute_dofs(fe2);
+    
         
 	std::cout << "   Number of degrees of freedom: "
 	<< dof_handler.n_dofs()
 	<< std::endl;
-        
+    
+	constraints.clear();
+	DoFTools::make_hanging_node_constraints (dof_handler,
+	 constraints);
+	 
+	 constraints.close();
+    
 	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, constraints, true);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
@@ -578,33 +591,14 @@ void Opzione<dim>::setup_system() {
         
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
-        
-        // Costruisco punti e nodi di Laguerre una volta per tutte (tanto non cambiano)
-        right_quad=Quadrature_Laguerre(static_cast<unsigned>(round(Bmax[0]/dx)), par.lambda_piu);
-        left_quad=Quadrature_Laguerre(static_cast<unsigned>(round(-Bmin[0]/dx)), par.lambda_meno);
-        
-        // Costruisco i vettori dei nodi e dei pesi per la parte destra e sinistra
-        right_quad_nodes=right_quad.get_nodes();
-        right_quad_weights=right_quad.get_weights();
-        
-        left_quad_nodes=left_quad.get_nodes();
-        left_quad_weights=left_quad.get_weights();
-        
-        quadrature_points=std::vector<Point<dim> > (left_quad.get_order()+right_quad.get_order());
-        
-        // Costruisco un unico vettore con tutti i nodi di quadratura (quelli di sinistra cambiati di segno)
-        for (int i=0; i<left_quad.get_order(); ++i) {
-                quadrature_points[i]=static_cast< Point<dim> > (-left_quad_nodes[i]);
-        }
-        for (int i=0; i<right_quad.get_order(); ++i) {
-                quadrature_points[i+left_quad.get_order()]=static_cast< Point<dim> > (right_quad_nodes[i]);
-        }
+	vertices.clear();
+	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
+
 }
 
 template<int dim>
 void Opzione<dim>::assemble_system() {
         
-	Levy_integral_part1();
         
 	cout<<"alpha "<<alpha<<" Bmin "<<Bmin<<" Bmax "<<Bmax<<"\n";
         
@@ -651,14 +645,9 @@ void Opzione<dim>::assemble_system() {
                 
                 cell->get_dof_indices (local_dof_indices);
                 
-                for (unsigned int i=0; i<dofs_per_cell;++i)
-                        for (unsigned int j=0; j< dofs_per_cell; ++j) {
-                                
-                                dd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_dd(i, j));
-                                fd_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_fd(i, j));
-                                ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                                
-                        }
+				constraints.distribute_local_to_global(cell_dd, local_dof_indices, dd_matrix);
+				constraints.distribute_local_to_global(cell_fd, local_dof_indices, fd_matrix);
+				constraints.distribute_local_to_global(cell_ff, local_dof_indices, ff_matrix);                
                 
         }
         
@@ -687,86 +676,153 @@ void Opzione<dim>::assemble_system() {
 }
 
 template<int dim>
-void Opzione<dim>::solve() {
-        
-	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
-        
-	unsigned int Step=Nsteps;
-        
+void Opzione<dim>::solve_one_step(double time) {
+
 	Boundary_Right_Side<dim> right_bound(par.S0, par.K, par.T, par.r);
-	cout<< "time step is"<< time_step<< endl;
+
+	Vector<double> J;
+	Levy_integral_part2(J);
+
+	ff_matrix.vmult(system_rhs, J);
+	{
+	 Vector<double> temp;
+
+	 temp.reinit(dof_handler.n_dofs());
+	 system_M2.vmult(temp,solution);
+
+	 system_rhs+=temp;
+ }
+
+	right_bound.set_time(time);
+
+	{
+
+	 std::map<types::global_dof_index,double> boundary_values;
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  0,
+	  Boundary_Left_Side<dim>(), 
+	  boundary_values);
+
+
+	 VectorTools::interpolate_boundary_values (dof_handler,
+	  1,
+	  right_bound,
+	  boundary_values);
+
+	 MatrixTools::apply_boundary_values (boundary_values,
+	  system_matrix,
+	  solution,
+	  system_rhs, false);
+
+ }
+
+	SparseDirectUMFPACK solver;
+	solver.initialize(sparsity_pattern);
+	solver.factorize(system_matrix);
+	solver.solve(system_rhs);
+
+	solution=system_rhs;
+
+	constraints.distribute (solution);
+
+  }
+
+
+template<int dim>
+double Opzione<dim>::run() {
+
+	make_grid();
+	setup_system();
+	assemble_system();
+
+	VectorTools::interpolate (dof_handler, PayOff<dim>(par.K, par.S0), solution);
+
+	cout<<this->solution<<"\n";
+
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "begin");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("plot/begin.gpl");
+	 data_out.write_gnuplot (output);
+ }
+
+	unsigned int Step=Nsteps;
+
 	for (double time=par.T-time_step;time >=0;time-=time_step, --Step) {
-                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-                
-#ifdef __PIDE__
-                Vector<double> J;
-                J.reinit(solution.size());
-                Levy_integral_part2(J);
-                
-                ff_matrix.vmult(system_rhs, J);
-                Vector<double> temp;
-                temp.reinit(dof_handler.n_dofs());
-                system_M2.vmult(temp,solution);
-                system_rhs+=temp;
-#else
-                system_M2.vmult(system_rhs, solution);
-#endif
-                right_bound.set_time(time);
-                
-                
-                {
-                        
-                        std::map<types::global_dof_index,double> boundary_values;
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  0,
-                                                                  Boundary_Left_Side<dim>(),
-                                                                  boundary_values);
-                        
-                        
-                        VectorTools::interpolate_boundary_values (dof_handler,
-                                                                  1,
-                                                                  right_bound,
-                                                                  boundary_values);
-                        
-                        MatrixTools::apply_boundary_values (boundary_values,
-                                                            system_matrix,
-                                                            solution,
-                                                            system_rhs, false);
-                        
-                }
-                
-                SparseDirectUMFPACK solver;
-                solver.initialize(sparsity_pattern);
-                solver.factorize(system_matrix);
-                solver.solve(system_rhs);
-                
-                solution=system_rhs;
-                
-        }
-        
+	 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+
+	 if (!(Step%20) && !(Step==Nsteps)&&false) {
+	  refine_grid();
+	  solve_one_step(time);
+	}
+	 else
+	 {
+	  solve_one_step(time);
+  }
+   }
+
+	{
+	 DataOut<dim> data_out;
+
+	 data_out.attach_dof_handler (dof_handler);
+	 data_out.add_data_vector (solution, "end");
+
+	 data_out.build_patches ();
+
+	 std::ofstream output ("plot/end.gpl");
+	 data_out.write_gnuplot (output);
+ }
+
 	ran=true;
-        
-#ifdef __MATLAB__
-	ofstream print;
-        print.open("solution.m");
-        
-        if (print.is_open()) {
-                print<<"x=[ ";
-                for (int i=0; i<grid_points.size()-1; ++i) {
-                        print<<par.S0*exp(grid_points[i][0])<<"; ";
-                }
-                print<<par.S0*exp(grid_points[grid_points.size()-1][0])<<" ];\n";
-                
-                print<<"sol=[ ";
-                for (int i=0; i<solution.size()-1; ++i) {
-                        print<<solution(i)<<"; ";
-                }
-                print<<solution(solution.size()-1)<<" ];\n";
-        }
-        
-        print.close();
-#endif
-}
+
+	return get_price();
+  }
+
+template <int dim>
+void Opzione<dim>::refine_grid (){
+
+	Vector<float> estimated_error_per_cell (triangulation.n_active_cells());
+// 	Vector<float> estimated_error_per_cell2 (triangulation.n_active_cells());   
+	KellyErrorEstimator<dim>::estimate (dof_handler,
+	 QGauss<dim-1>(3),
+	 typename FunctionMap<dim>::type(),
+	 solution,
+	 estimated_error_per_cell);
+	double time=1.;
+// 	estimate_doubling(time, estimated_error_per_cell2);
+
+	// 	   GridRefinement::refine_and_coarsen_optimize (triangulation,estimated_error_per_cell);
+// 	auto minimum=*std::min_element(estimated_error_per_cell2.begin(), estimated_error_per_cell2.end());    
+// 	auto maximum=*std::max_element(estimated_error_per_cell2.begin(), estimated_error_per_cell2.end());    
+// 	auto mid=0.5*(maximum+minimum);
+// 	auto third=0.25*minimum+0.75*maximum;
+// 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(), endc=dof_handler.end();
+
+// 	for (unsigned i=0;cell !=endc;++cell, ++i)
+// 	if (estimated_error_per_cell2[i]<mid)
+// 	cell->set_coarsen_flag();
+// 	else if (estimated_error_per_cell2[i]>third)
+// 	cell->set_refine_flag();
+
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.2);
+
+	SolutionTransfer<dim> solution_trans(dof_handler);
+	Vector<double> previous_solution;
+	previous_solution = solution;
+	triangulation.prepare_coarsening_and_refinement();
+	solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
+
+	triangulation.execute_coarsening_and_refinement ();
+	setup_system ();
+
+	solution_trans.interpolate(previous_solution, solution);
+	assemble_system();
+  }
 
 template<int dim>
 double Opzione<dim>::get_price() {
