@@ -460,7 +460,10 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
 	
 	Solution_Trimmer<dim> func(&leftie, &rightie, dof_handler, solution, xmin, xmax);
 
-//#pragma omp parallel for
+	std::map<types::global_dof_index, Point<dim> > vertices;
+	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
+	
+#pragma omp parallel for
         for (int it=0; it<J.size(); ++it) {
                 
                 std::vector< Point<dim> > quad_points(left_quad.get_order()+right_quad.get_order());
@@ -469,7 +472,7 @@ void Opzione<dim>::Levy_integral_part2(Vector<double> &J) {
                 
                 // Inserisco in quad_points tutti i punti di quadrature shiftati
                 for (int i=0; i<quad_points.size(); ++i) {
-                        quad_points[i]=quadrature_points[i] + grid_points[it];
+                        quad_points[i]=quadrature_points[i] + vertices[it];
                 }
                 
                 // valuto f_u in quad_points
