@@ -91,6 +91,9 @@ protected:
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
+// Al posto di passare al costruttore delle opzioni TUTTI i parametri del mercato
+// e dell'opzione, non è meglio creare un oggetto del genere e metterci dentro
+// spot, strike, tasso ecc ecc?
 class OptionParameter<dim> {
 private:
 	double K;
@@ -131,15 +134,15 @@ public:
 	OptionBase<2>* CreateOption(CoeffType coeff, ExerciseType type, model * m1, model * m2, OptionParameter * p) {
 		if (coeff==LogPrice){
 			if (type==US)
-				pointer=new AmericanOptionLogPrice<2>(...);
+				return new AmericanOptionLogPrice<2>(...);
 			else
-				pointer=new EuropeanOptionLogPrice<2>(...);
+				return new EuropeanOptionLogPrice<2>(...);
 		}
 		else {
 			if (type==US)
-				pointer=new AmericanOptionPrice<2>(...);
+				return new AmericanOptionPrice<2>(...);
 			else
-				pointer=new EuropeanOptionPrice<2>(...);
+				return new EuropeanOptionPrice<2>(...);
 		}
 	}
 };
