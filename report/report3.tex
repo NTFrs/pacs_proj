@@ -38,7 +38,7 @@
 Come gi\`a indicato negli altri report, l'obiettivo del progetto è creare un programma per prezzare una serie di opzioni utilizzando dei metodi basati su elementi finiti. Il valore di un'opzione al variare del sottostante (che supponiamo evolvere secondo un modello Jump-Diffusion) può essere in generale trovato come soluzione di un'equazione integro differenziale del tipo:
 
 \begin{multline}
-\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+rS\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)k(y)dy=0
 \label{eq:1d}
 \end{multline}
 
@@ -54,21 +54,24 @@ In due dimensioni, supponendo l'indipendenza delle componenti di salto dei due s
 \end{multline}
 su $[0,T]\times[0,+\infty]^2$ con opportune B.C. e valore finale.
 \\\\
-Ci siamo inoltre concentrati sul seguente problema di frontiera libera:
+Ci siamo inoltre concentrati sul seguente problema di frontiera libera (e sulla sua estensione 2d):
 
 \begin{multline}
-\der{P}{t}+\frac{\sigma^2}{2}S^2\dder{P}{S}+r\der{P}{S}-rC+\\+ \int_\mathbb{R}\left(P(t,Se^y)-P(t,S)-S(e^y-1)\der{P}{S}(t,S)\right)k(y)dy\leq0
+\der{P}{t}+\frac{\sigma^2}{2}S^2\dder{P}{S}+rS\der{P}{S}-rC+\\+ \int_\mathbb{R}\left(P(t,Se^y)-P(t,S)-S(e^y-1)\der{P}{S}(t,S)\right)k(y)dy\leq0
 \label{eq:usa1d}
 \end{multline}
 
-con le seguenti condizione: $$P(t,S)\geq max(K-S_T, 0).$$
+con la seguente condizione sulla soluzione $P(t,S)$: $$P(t,S)\geq max(K-S_T, 0).$$
+
+\section{Cosa \`e stato fatto}
+In quest'ultimo mese abbiamo esporato il cambio di variabile $z=Se^y$, che elimina il problema della non localit\`a dell'integrale. Abbiamo quindi riscritto il metodo \textsf{assemble\_system()} che crea le matrici di sistema, poich\'e con questo cambio di variabile l'equazione resta a coefficienti non costanti. Abbiamo poi creato le funzioni che calcolano l'integrale sfruttando gli strumenti forniti dalla libreria. Le prestazioni di questo secondo cambio di variabile sono molto buone, in generale migliori di $x=logS$. L'unico problema \`e che per ora non riusciamo ad aggiungere la parallelizzazione nel calcolo dell'integrale poich\'e alcune funzionalit\`a della libreria che utilizziamo non funzionano in un ambiente \textsf{openmp}.\\Abbiamo inoltre aggiunto l'adattivit\`a della griglia, utilizzando due metodi: abbiamo infatti usato lo stimatore di Kelly fornito dalla libreria, che valuta la differenza fra i gradienti in due celle vicine, e se questa differenza \`e troppo elevata raffina la griglia (o se questa differenza \`e sufficientemente piccola, esegue il \emph{coarsening}). Un altro metodo che stiamo esplorando \`e il calcolo di due soluzioni su due griglie distinte, una pi\`u lasca, l'altra pi\`u fitta; proiettando poi la soluzione della pi\`u fitta su quella pi\`u lasca \`e possibile calcolare un errore e raffinare la mesh di conseguenza.\\Abbiamo infine scritto un piccolo \emph{script} che calcola con un MonteCarlo il prezzo di un'opzione basket con un modello di Kou e abbiamo ottenuto il risultato atteso, validando in questo modo il lavoro svolto sull'equazione bidimensionale.
 
 \section{Problema con frontiera libera}
 In finanza il problema associato all'equazione (\ref{eq:usa1d}) \`e abbastanza comune. La pratica standard per risolverlo \`e implementare un solutore iterativo (come il SOR) e controllare in ogni punto che la soluzione stia sopra all'ostacolo, ottenendo cos\`i il Projected SOR. Siccome la classe \textsf{SparseMatrix} di Deal II non ha questo solutore, abbiamo deciso di estenderne le funzionalit\`a creando una classe \textsf{SparseMatrix\_withProjectedSOR} che eredita dalla classe \textsf{SparseMatrix}, aggiungendole il PSOR.
 
 \section{Strutturazione del codice}
 
-Abbiamo completato la scrittura dei codici per risolvere i vari problemi con cui ci siamo confrontati (anche validando con un MonteCarlo il risultato della PIDE 2d) e ora stiamo procedendo alla strutturazione del programma.\\Abbiamo creato le seguenti classi:
+Abbiamo completato la scrittura dei codici per risolvere i vari problemi con cui ci siamo confrontati e ora stiamo procedendo alla strutturazione del programma.\\Abbiamo creato le seguenti classi:
 \begin{itemize}
 \item{classi per gestire i vari modelli in esame: classe base astratta, da cui derivano i modelli utilizzati (Black\&Scholes, Kou, Merton);}
 \item{classi per gestire le condizioni al bordo e la condizione finale nei vari casi;}
@@ -80,10 +83,9 @@ Abbiamo completato la scrittura dei codici per risolvere i vari problemi con cui
 \end{itemize}
 
 \section{Problemi incontrati}
-Abbiamo riscontrato le seguenti problematiche:
+Per quanto riguarda l'architettura del codice, abbiamo riscontrato le seguenti problematiche:
 \begin{itemize}
 \item{il primo problema \`e la distinzione fra trasformazione in logprice, ovvero $x=log(S)$, che porta l'equazione a coefficienti costanti, e la trasformazione $z=Se^y$, che rende il calcolo dell'integrale pi\`u rapido. L'idea \`e quella di lasciar scegliere all'utente nel costruttore della classe opzione se adottare uno o l'altro cambio di variabile. Il codice tuttavia differisce molto fra una trasformazione e l'altra. \`E quindi conveniente mettere un semplice \textsf{if} e scrivere il codice per l'una e per l'altra in due blocchi distinti, oppure sarebbe meglio fare classi separate, il che significherebbe scrivere due oggetti distinti?}
-\item{Un altro problema incontrato \`e legato al mesh refinement. Durante il calcolo dell'integrale infatti, occorre conoscere quale elemento della mesh \`e associato alla riga i-esima della matrice, e dopo uno step di refining la corrispondenza fra elementi della matrice e punti della mesh si perde. Stiamo quindi cercando di trovare una funzione che mappi posizioni sulla matrice con punti della mesh in modo da risolvere il problema. Anche il solver per il PSOR \`e affetto da questo problema, poich\'e deve controllare che la soluzione stia sopra all'ostacolo, punto per punto.}
 \item{La classe \textsf{SparseMatrix} di Deal II, da cui facciamo ereditare la nostra classe con il PSOR, non ha i metodi \textsf{virtual}, perci\`o chiamando i metodi di \textsf{SparseMatrix} con \textsf{SparseMatrix\_withProjectedSOR} il compilatore dice che non trova le funzioni. Abbiamo risolto il problema creando due puntatori al medesimo oggetto, uno di tipo \textsf{SparseMatrix *}, l'altro di tipo \textsf{SparseMatrix\_withProjectedSOR *}, dereferenziando il primo per i metodi di \textsf{SparseMatrix}, il secondo per il PSOR. \`E una pratica corretta oppure c'\`e un altro modo?}
 \item{L'ultimo problema riguarda la gestione della parte integrale. Siccome un modello, Black\&Scholes, risolve la semplice PDE, abbiamo pensato di allocare dinamicamente la classe integrale qualora il modello non sia Black\&Scholes. Il problema \`e che le funzioni che calcolano l'integrale sono molto diverse fra 1d e 2d e fra le varie trasformazioni. In particolare, le funzioni 1d devono calcolare un numero e un vettore (con metodi differenti in base al modello), le funzioni 2d due numeri e due vettori. Come possiamo conciliare il tutto?}
 \end{itemize}
