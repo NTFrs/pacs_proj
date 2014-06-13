@@ -82,7 +82,7 @@ protected:
 /*
  * AmericanOptionPrice<dim> -> chiama PSOR
  */
-class AmericanOptionLogPrice: public OptionBasePrice<dim> {
+class AmericanOptionPrice: public OptionBasePrice<dim> {
 protected:
 	virtual void solve_one_step();		// da implementare qui
 };
