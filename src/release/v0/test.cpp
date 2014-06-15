@@ -14,6 +14,9 @@ int main(){
         
         EuropeanOptionPrice<1> foo(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
+        EuropeanOptionLogPrice<1> foo2
+        (OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        
         EuropeanOptionPrice<1> goofy(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 10, 100);
@@ -24,12 +27,14 @@ int main(){
         EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
         
         foo.run();
+        foo2.run();
         goofy.run();
         minnie.run();
         mickey.run();
         duffy.run();
         
         cout<<foo.get_price()<<"\n";
+        cout<<foo2.get_price()<<"\n";
         cout<<goofy.get_price()<<"\n";
         cout<<minnie.get_price()<<"\n";
         cout<<mickey.get_price()<<"\n";

@@ -90,7 +90,7 @@ protected:
         LevyIntegral<dim> *     levy;       
         
         // Private methods
-        virtual void make_grid();
+        virtual void make_grid() = 0;
         virtual void setup_system();
         // Pure abstract methods
         virtual void assemble_system() = 0;
@@ -158,7 +158,7 @@ public:
         /*!
          * This function returns the price of the option
          */
-        virtual inline double get_price();
+        virtual inline double get_price()=0;
 };
 
 // Constructor 1d
@@ -291,31 +291,6 @@ levy(NULL)
         
 }
 
-// make grid
-template<unsigned dim>
-void OptionBase<dim>::make_grid(){
-        
-        std::vector<unsigned> refinement(dim);
-        
-        for (unsigned i=0; i<dim; ++i) {
-                
-                Smin[i]=(1-f)*(*models[i]).get_spot()*
-                exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                    -(*models[i]).get_vol()*sqrt(T)*6);
-                
-                Smax[i]=(1+f)*(*models[i]).get_spot()*
-                exp((r-(*models[i]).get_vol()*(*models[i]).get_vol()/2)*T
-                    +(*models[i]).get_vol()*sqrt(T)*6);
-                
-                refinement[i]=pow(2, refs);
-        }
-        
-        GridGenerator::subdivided_hyper_rectangle (triangulation, refinement, Smin, Smax);
-        
-        grid_points=triangulation.get_vertices();
-        
-        return;
-}
 
 // setup system
 template<unsigned dim>
@@ -371,23 +346,6 @@ void OptionBase<dim>::setup_system()
         
         return;
         
-}
-
-template<unsigned dim>
-double OptionBase<dim>::get_price() {
-        
-	if (ran==false) {
-                this->run();
-        }
-        
-        Point<dim> p;
-        
-        for (unsigned i=0; i<dim; ++i) {
-                p(i)=(*models[i]).get_spot();
-        }
-        
-	Functions::FEFieldFunction<dim> fe_function (dof_handler, solution);
-	return fe_function.value(p);
 }
 
 #endif

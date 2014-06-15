@@ -6,6 +6,7 @@
 template <unsigned dim>
 class OptionBasePrice: public OptionBase<dim> {
 protected:
+        virtual void make_grid();
         virtual void assemble_system();
         virtual void solve()=0;
 public:
@@ -38,8 +39,37 @@ public:
                         unsigned time_step_)
         :
         OptionBase<dim>::OptionBase(type_, model1, model2, rho_, r_, T_, K_, refs_, time_step_)
-        {}; 
+        {};
+        
+        virtual inline double get_price();
 };
+
+
+template<unsigned dim>
+void OptionBasePrice<dim>::make_grid(){
+        
+        std::vector<unsigned> refinement(dim);
+        
+        for (unsigned i=0; i<dim; ++i) {
+                
+                this->Smin[i]=(1-this->f)*(*(this->models[i])).get_spot()*
+                exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*(this->T)
+                    -(*(this->models[i])).get_vol()*sqrt(this->T)*6);
+                
+                this->Smax[i]=(1+this->f)*(*(this->models[i])).get_spot()*
+                exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*(this->T)
+                    +(*(this->models[i])).get_vol()*sqrt(this->T)*6);
+                
+                refinement[i]=pow(2, this->refs);
+        }
+        
+        GridGenerator::subdivided_hyper_rectangle (this->triangulation, refinement,
+                                                   this->Smin, this->Smax);
+        
+        this->grid_points=this->triangulation.get_vertices();
+        
+        return;
+}
 
 template <unsigned dim>
 void OptionBasePrice<dim>::assemble_system()
@@ -144,5 +174,23 @@ void OptionBasePrice<dim>::assemble_system()
         return;
         
 }
+
+template<unsigned dim>
+double OptionBasePrice<dim>::get_price() {
+        
+	if (this->ran==false) {
+                this->run();
+        }
+        
+        Point<dim> p;
+        
+        for (unsigned i=0; i<dim; ++i) {
+                p(i)=(*(this->models[i])).get_spot();
+        }
+        
+	Functions::FEFieldFunction<dim> fe_function (this->dof_handler, this->solution);
+	return fe_function.value(p);
+}
+
 
 #endif
