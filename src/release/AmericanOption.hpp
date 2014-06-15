@@ -1,7 +1,7 @@
 #ifndef __american_option_hpp
 #define __american_option_hpp
 
-#include "OptionBase.hpp"
+#include "OptionBasePrice.hpp"
 
 //! A class for evaluation of American Options
 /*!

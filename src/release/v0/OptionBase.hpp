@@ -26,6 +26,7 @@
 #include "constants.hpp"
 #include "Densities.hpp"
 #include "LevyIntegral.hpp"
+#include "OptionParameters.hpp"
 
 using namespace dealii;
 using namespace std;
@@ -91,9 +92,8 @@ protected:
         // Private methods
         virtual void make_grid();
         virtual void setup_system();
-        virtual void assemble_system();
-        // solve method equal to 0, in order to make this class abstract
-        // we choose this method because it's very "option"-dependent
+        // Pure abstract methods
+        virtual void assemble_system() = 0;
         virtual void solve() = 0;
         
 public:
@@ -368,111 +368,6 @@ void OptionBase<dim>::setup_system()
         
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
-        
-        return;
-        
-}
-
-// assemble system
-template<unsigned dim>
-void OptionBase<dim>::assemble_system()
-{
-        double alpha(0.);
-        double lambda(0.);
-        
-        if (model_type!=ModelType::BlackScholes && dim==1) {
-                alpha=levy->get_part1();
-                lambda=models[0]->get_lambda();
-        }
-        
-        QGauss<dim> quadrature_formula(2*dim);
-	FEValues<dim> fe_values (fe, quadrature_formula, update_values | update_gradients |
-                                 update_JxW_values | update_quadrature_points);
-        
-	const unsigned int   dofs_per_cell = fe.dofs_per_cell;
-	const unsigned int   n_q_points    = quadrature_formula.size();
-        
-	cout<< "Assembling System\n";
-	cout<< "Degrees of freedom per cell: "<< dofs_per_cell<< endl;
-	cout<< "Quadrature points per cell: "<< n_q_points<< endl;
-        
-	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-        
-	FullMatrix<double> cell_ff(dofs_per_cell);
-	FullMatrix<double> cell_mat(dofs_per_cell);
-        
-	typename DoFHandler<dim>::active_cell_iterator
-	cell=dof_handler.begin_active(),
-	endc=dof_handler.end();
-	Tensor< 1 , dim, double > trasp;
-	Tensor< 2 , dim, double > sig_mat;
-	
-	vector<Point<dim> > quad_points(n_q_points);
-        
-        for (; cell !=endc;++cell) {
-                fe_values.reinit(cell);
-                cell_ff=0;
-                cell_mat=0;
-                
-                quad_points=fe_values.get_quadrature_points();
-                
-                for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                        
-                        if (dim==1) {
-                                trasp[0]=(r-(*models[0]).get_vol()*(*models[0]).get_vol()-alpha)*quad_points[q_point][0];
-                                sig_mat[0][0]=0.5*(*models[0]).get_vol()*(*models[0]).get_vol()
-                                *quad_points[q_point][0]*quad_points[q_point][0];
-                        }
-                        
-                        else if (dim==2) {
-                                
-                                trasp[0]=-((*models[0]).get_vol()*(*models[0]).get_vol()
-                                           *quad_points[q_point][0]
-                                           +0.5*rho*(*models[0]).get_vol()*(*models[1]).get_vol()
-                                           *quad_points[q_point][0]-r*quad_points[q_point][0]);
-                                
-                                trasp[1]=-((*models[1]).get_vol()*(*models[1]).get_vol()*
-                                           quad_points[q_point][1]+0.5*rho*(*models[0]).get_vol()*
-                                           (*models[1]).get_vol()*quad_points[q_point][1]
-                                           -r*quad_points[q_point][1]);
-                                
-                                sig_mat[0][0]=0.5*(*models[0]).get_vol()*(*models[0]).get_vol()
-                                *quad_points[q_point][0]*quad_points[q_point][0];
-                                sig_mat[1][1]=0.5*(*models[1]).get_vol()*(*models[1]).get_vol()
-                                *quad_points[q_point][1]*quad_points[q_point][1];
-                                sig_mat[0][1]=0.5*rho*(*models[0]).get_vol()*(*models[1]).get_vol()*
-                                quad_points[q_point][0]*quad_points[q_point][1];
-                                sig_mat[1][0]=sig_mat[0][1];
-                        }
-                        
-                        for (unsigned i=0;i<dofs_per_cell;++i)
-                                for (unsigned j=0; j<dofs_per_cell;++j) {
-                                        
-                                        
-                                        cell_mat(i, j)+=fe_values.JxW(q_point)*
-                                        (
-                                         (1/dt+r+lambda)*fe_values.shape_value(i, q_point)*fe_values.shape_value(j,q_point)
-                                         +fe_values.shape_grad(i, q_point)*sig_mat*fe_values.shape_grad(j, q_point)
-                                         -fe_values.shape_value(i, q_point)*trasp*fe_values.shape_grad(j, q_point)
-                                         );
-                                        
-                                        cell_ff(i, j)+=fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point)*fe_values.JxW(q_point);
-                                        
-                                }
-                }
-                
-                cell->get_dof_indices (local_dof_indices);
-                
-                for (unsigned int i=0; i<dofs_per_cell;++i)
-                        for (unsigned int j=0; j< dofs_per_cell; ++j) {
-                                
-                                (*system_matrix).add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
-                                ff_matrix.add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                                
-                        }
-        }
-        
-	system_M2.add(1/dt, ff_matrix);
         
         return;
         
