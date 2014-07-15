@@ -31,7 +31,7 @@ makefile
 .kdev4/*
 
 #images and data files
-*.eps
+#*.eps
 *.gpl
 
 #generic trash file
