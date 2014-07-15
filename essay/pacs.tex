@@ -113,19 +113,19 @@ In questo capitolo descriviamo i modelli basilari utilizzati per descrivere il m
 \begin{definition}
 Sia $(\Omega,\mathcal{F},\mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in [ 0,T ]}$ una filtrazione. Allora, il processo B descrive il valore di un titolo \emph{risk-free} se la sua dinamica \`e del tipo: $$dB(t)=r(t)B(t)dt,$$dove $r$ \`e un qualsiasi processo $\mathcal{F}_t$-adattato.
 \end{definition}
-La caratteristica pi\`u importante quindi dei processi \emph{risk-free} \`e l'assenza del termine $W(t)$, ovvero l'assenza di aleatoriet\`a data da un moto browniano. Integrando infatti l'equazione precedente, otteniamo $$B(t)=B(0)\int_0^tr(s)ds.$$ Un caso particolare \`e quello in cui $r$ \`e una costante deterministica, in tal modo $B$ descrive l'andamento di un'obbligazione.
-\\Assumiamo inoltre che la dinamica di $S$ sia data da: $$dS(t)=S(t)\alpha(t,S(t))dt+S(t)\sigma(t,S(t))dW(t),$$ in cui $W_t$ \`e un processo di Wiener (cio\`e, un moto browniano) e $\alpha$ e $\sigma$ due funzioni deterministiche. La funzione $\sigma$ \`e detta volatilit\`a del titolo, $\alpha$ \`e il \emph{local mean rate of return} ?!?!? di $S$.
+La caratteristica pi\`u importante quindi dei processi \emph{risk-free} \`e l'assenza del termine $W(t)$, ovvero l'assenza di aleatoriet\`a data da un moto browniano. Integrando infatti l'equazione precedente, otteniamo: $$B(t)=B(0)\int_0^tr(s)ds.$$ Un caso particolare \`e quello in cui $r$ \`e una costante deterministica, in tal modo $B$ descrive l'andamento di un'obbligazione.
+\\Assumiamo inoltre che la dinamica di $S$ sia data da: $$dS(t)=S(t)\mu(t,S(t))dt+S(t)\sigma(t,S(t))dW(t),$$ in cui $W_t$ \`e un processo di Wiener (cio\`e, un moto browniano) e $\mu$ e $\sigma$ due funzioni deterministiche. La funzione $\sigma$ \`e detta volatilit\`a del titolo, $\alpha$ \`e il \emph{local mean rate of return} ?!?!? di $S$.
 \begin{osservazione}
-Osserviamo la differenza fra il tasso di ritorno di un titolo \emph{risk-free} e quello di un titolo rischioso. Il tasso di $B$ \`e: $$\frac{dB(t)}{B(t)dt}=r(t),$$ ovvero totalmente deterministico, mentre quello di $S$ \`e dato da: $$\frac{dS(t)}{S(t)dt}=\alpha{t,S(t)}+\sigma \frac{dW(t)}{dt},$$ oggetto che non \`e osservabile al tempo $t$. Esso \`e infatti costituito dato da $\alpha$ e $\sigma$ che sono entrambi osservabili al tempo $t$, pi\`u un rumore bianco $W(t)$ che \`e del tutto casuale. Quindi, al contrario del titolo \emph{risk-free}, l'azione ha un tasso di ritorno stocastico, anche su una scala infinitesima.
+Osserviamo la differenza fra il tasso di ritorno di un titolo \emph{risk-free} e quello di un titolo rischioso. Il tasso di $B$ \`e: $$\frac{dB(t)}{B(t)dt}=r(t),$$ ovvero totalmente deterministico, mentre quello di $S$ \`e dato da: $$\frac{dS(t)}{S(t)dt}=\mu{t,S(t)}+\sigma \frac{dW(t)}{dt},$$ oggetto che non \`e osservabile al tempo $t$. Esso \`e infatti costituito dato da $\alpha$ e $\sigma$ che sono entrambi osservabili al tempo $t$, pi\`u un rumore bianco $W(t)$ che \`e del tutto casuale. Quindi, al contrario del titolo \emph{risk-free}, l'azione ha un tasso di ritorno stocastico, anche su una scala infinitesima.
 \end{osservazione}
 Passiamo ora a definire il modello di \emph{Black\&Scholes}.
 \begin{definition}
 Il modello di \emph{Black\&Scholes} consiste di due titoli con le seguenti dinamiche:
-\begin{align}
+\begin{align*}
 dB(t)&=B(t)r(t)dt,\\
-dS(t)&=\alpha S(t)dt+\sigma S(t)dW(t),
-\end{align}
-dove $r$, $\alpha$ e $\sigma$ sono costanti deterministiche.
+dS(t)&=\mu S(t)dt+\sigma S(t)dW(t),
+\end{align*}
+dove $r$, $\mu$ e $\sigma$ sono costanti deterministiche.
 \end{definition}
 
 \section{Strumenti derivati e Opzioni}
@@ -142,4 +142,54 @@ Un'opzione \emph{call} europea con prezzo di esercizio (o \emph{strike price}) $
 \item il diritto di acquistare un'azione del sottostante pu\`o essere esercitato solo al tempo $T$.
 \end{itemize}
 \end{definition}
+Osserviamo che la scadenza del contratto e il prezzo d'esercizio sono stabiliti alla stipula del contratto, che per noi sar\`a tipicamente $t=0$.\\Oltre alle opzioni \emph{call} europee, esistono opzioni \emph{put} europee, le quali danno al titolare del contratto il diritto a vendere (anzich\'e comprare) un dato titolo azionario a un prezzo fissato $K$. Le opzioni americane invece (\emph{call} o \emph{put} che siano), permettono di esercitare il diritto all'acquisto o alla vendita dell'azione in ogni istante di tempo $t\in[0,T]$.
+\begin{esempio}
+Supponiamo di possedere un'opzione \emph{call} con scadenza $T=1$ anno, \emph{strike price} $K=100$\officialeuro$ $ e un sottostante che al tempo $t=0$ vale $S_0=100$\officialeuro. Allora, se fra un anno $S_T=120$\officialeuro$ $, eserciteremo l'opzione, acquistando il sottostante per un prezzo pari a $K=100$\officialeuro$ $, e il sottoscrittore del contratto pagher\`a i rimenenti $S_T-K=20$\officialeuro$ $. Se invece $S_T=80$\officialeuro$ $ non eserciteremo l'opzione, ottenendo un guadagno pari a 0.
+\end{esempio}
+Osserviamo quindi che il valore a scadenza, cio\`e il \emph{payoff}, dell'opzione dipende soltanto dal valore del sottostante. Definiamo quindi il \emph{payoff} come processo stocastico in funzione di $S$.
+\begin{definition}
+Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, allora il \emph{payoff} di un'opzione con scadenza $T$ e \emph{strike} $K$ \`e un processo stocastico $\mathcal{X}\in\mathcal{F}_t$, e: $$\mathcal{X}=\Phi(S_T).$$
+\end{definition}
+Per esempio, il \emph{payoff} delle opzioni call e put europee \`e:
+\begin{align*}
+\Phi(S_T)&=max(S_T-K,0),\\
+\Phi(S_T)&=max(K-S_T,0).
+\end{align*}
+La domanda che ci poniamo ora \`e la seguente: qual \`e il prezzo equo di un'opzione? Ovvero, quanto occorre pagare oggi per avere il diritto ma non l'obbligo di acquistare a $T$ un'azione a un prezzo fissato $K$?
+
+\section{L'equazione di \emph{Black\&Scholes}}
+Prima di ricavare l'equazione di \emph{Black\&Scholes} spendiamo qualche riga per descrivere il concetto di neutralit\`a al rischio in finanza. Un operatore economico si dice neutrale al rischio quando le sue preferenze lo rendono indifferente al compiere un'azione il cui risultato \`e una quantit\`a aleatoria, oppure compiere un'azione il cui risultato \`e il valore atteso della quantit\`a aleatoria stessa.\\Per esempio, per un soggetto neutrale al rischio sono indifferenti le seguenti situazioni:
+\begin{itemize}
+\item avere $1$\officialeuro$ $ con probabilit\`a 1;
+\item giocare a una lotteria in cui il soggetto pu\`o ricevere $2$\officialeuro$ $ con probabilit\`a $\sfrac{1}{2}$ o $0$\officialeuro$ $ con probabilit\`a $\sfrac{1}{2}$.
+\end{itemize}
+Nel primo caso infatti, egli ottiene sempre $1$\officialeuro$ $, nel secondo ottiene in media $1$\officialeuro$ $. Perci\`o per un soggetto neutrale al rischio queste situazioni sono indifferenti.\\Quando ci occupiamo di \emph{pricing} di derivati, ci poniamo sempre nell'ipotesi di neutralit\`a al rischio. In particolare,
+\begin{enumerate}
+\item assumiamo che il termine di deriva $\mu$ del modello $S$ sia pari al tasso di interesse \emph{risk-free} $r$, cio\`e poniamo: $$dS(t)=rS(t)dt+\sigma S(t)dW(t);$$
+\item calcoliamo il valore atteso del \emph{payoff}, cio\`e $\mathbb{E}(\Phi(S_T))$;
+\item scontiamo il valore atteso del \emph{payoff} con il tasso di interesse $r$.
+\end{enumerate}
+Sia quindi $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S(t),t)$ il processo stocastico che descrive il valore di un'opzione. In particolare, se consideriamo una \emph{call} europea,
+$$C(S,t)=e^{(-r(T-t))}\mathbb{E}\left(max(S_T-K,0)\right).$$
+Applicando a questa quantit\`a il Lemma di It$\hat{o}$, otteniamo la seguente equazione: $$dC(S,t)=\left(\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}\right)dt+\sigma S \der{C}{S}dW(t).$$
+Dall'altro lato per\`o, per la \emph{risk-neutrality}, la deriva di $C$, come quella di ogni titolo finanziario, dovr\`a essere pari a $rC$, quindi:$$\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}=rC.$$
+Riassumendo, posti $C=C(S,t)$ e $P=P(S,t)$ i processi che descrivono il prezzo delle opzioni call e putt, otteniamo le seguenti equazioni alle derivate parziali con le rispettive condizioni finali:
+\begin{equation}
+\begin{cases}
+\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}=rC,\\
+C(S,T)=max(S_T-K,0),
+\end{cases}
+\end{equation}
+e
+\begin{equation}
+\begin{cases}
+\der{P}{t}+r S \der{P}{S} +\frac{1}{2}P^2\dder{P}{S}=rP,\\
+P(S,T)=max(K-S_T,0),
+\end{cases}
+\end{equation}
+
+\section{Opzioni Basket}
+
+\section{Opzioni Americane: il problema con l'ostacolo}
+
 \end{document}
