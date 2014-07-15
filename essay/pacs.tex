@@ -32,9 +32,9 @@
   
 \setlength{\parindent}{0pt}
 
-\newcommand{\der}[2]{\frac{\delta #1}{\delta #2}}
-\newcommand{\dder}[2]{\frac{\delta^2 #1}{\delta #2^2}}
-\newcommand{\dmix}[3]{\frac{\delta^2 #1}{\delta #2 \delta #3}}
+\newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dder}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\dmix}[3]{\frac{\partial^2 #1}{\partial #2 \partial #3}}
 
 \newtheorem{definition}{Definizione}[chapter]
 \newtheorem{theorem}{Teorema}[chapter]
@@ -74,7 +74,7 @@
 	%\color{white}
 	\vspace{2cm}
 	\begin{center}
-	{\LARGE{\textbf{Option Pricing per modelli Exponential-L\'evy in 1d e 2d.}}}
+	{\LARGE{\textbf{Metodo a elementi finiti per il pricing di opzioni multi-asset con modelli di L\'evy}}}
 	\end{center}
 	
 	%\color{black}
@@ -104,7 +104,7 @@
 
 \setcounter{secnumdepth}{0}
 
-\chapter{Introduzione}
+\chapter*{Introduzione}
 
 \chapter{Modello di Black \& Scholes}
 
@@ -113,16 +113,15 @@ In questo capitolo descriviamo i modelli basilari utilizzati per descrivere il m
 \begin{definition}
 Sia $(\Omega,\mathcal{F},\mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in [ 0,T ]}$ una filtrazione. Allora, il processo B descrive il valore di un titolo \emph{risk-free} se la sua dinamica \`e del tipo: $$dB(t)=r(t)B(t)dt,$$dove $r$ \`e un qualsiasi processo $\mathcal{F}_t$-adattato.
 \end{definition}
-La caratteristica pi\`u importante quindi dei processi \emph{risk-free} \`e l'assenza del termine $W(t)$, ovvero l'assenza di aleatoriet\`a data da un moto browniano. Integrando infatti l'equazione precedente, otteniamo: $$B(t)=B(0)\int_0^tr(s)ds.$$ Un caso particolare \`e quello in cui $r$ \`e una costante deterministica, in tal modo $B$ descrive l'andamento di un'obbligazione.
-\\Assumiamo inoltre che la dinamica di $S$ sia data da: $$dS(t)=S(t)\mu(t,S(t))dt+S(t)\sigma(t,S(t))dW(t),$$ in cui $W_t$ \`e un processo di Wiener (cio\`e, un moto browniano) e $\mu$ e $\sigma$ due funzioni deterministiche. La funzione $\sigma$ \`e detta volatilit\`a del titolo, $\alpha$ \`e il \emph{local mean rate of return} ?!?!? di $S$.
+La caratteristica pi\`u importante quindi dei processi \emph{risk-free} \`e l'assenza di aleatoriet\`a data da un processo stocastico casuale. Integrando l'equazione precedente, otteniamo: $$B(t)=B(0)\int_0^tr(s)ds.$$ Un caso particolare \`e quello in cui $r$ \`e una costante deterministica, in tal modo $B$ descrive l'andamento di un'obbligazione.\\\\Assumiamo poi che la dinamica di $S$ sia data da: $$dS(t)=S(t)\mu(t,S(t))dt+S(t)\sigma(t,S(t))dW(t),$$ in cui $W_t$ \`e un processo di Wiener (cio\`e, un moto browniano) e $\mu$ e $\sigma$ due funzioni deterministiche. La funzione $\sigma$ \`e detta volatilit\`a del titolo, $\mu$ \`e il \emph{local mean rate of return} ?!?!? di $S$.
 \begin{osservazione}
-Osserviamo la differenza fra il tasso di ritorno di un titolo \emph{risk-free} e quello di un titolo rischioso. Il tasso di $B$ \`e: $$\frac{dB(t)}{B(t)dt}=r(t),$$ ovvero totalmente deterministico, mentre quello di $S$ \`e dato da: $$\frac{dS(t)}{S(t)dt}=\mu{t,S(t)}+\sigma \frac{dW(t)}{dt},$$ oggetto che non \`e osservabile al tempo $t$. Esso \`e infatti costituito dato da $\alpha$ e $\sigma$ che sono entrambi osservabili al tempo $t$, pi\`u un rumore bianco $W(t)$ che \`e del tutto casuale. Quindi, al contrario del titolo \emph{risk-free}, l'azione ha un tasso di ritorno stocastico, anche su una scala infinitesima.
+Osserviamo la differenza fra il tasso di ritorno di un titolo \emph{risk-free} e quello di un titolo rischioso. Il tasso di $B$ \`e: $$\frac{dB(t)}{B(t)dt}=r(t),$$ ovvero totalmente deterministico, mentre quello di $S$ \`e dato da: $$\frac{dS(t)}{S(t)dt}=\mu(t,S(t))+\sigma(t,S(t)) \frac{dW(t)}{dt},$$ oggetto che non \`e osservabile al tempo $t$. Esso \`e infatti costituito da $\mu$ e $\sigma$ che sono entrambi osservabili al tempo $t$, pi\`u un rumore bianco $W(t)$ che \`e del tutto casuale. Quindi, al contrario del titolo \emph{risk-free}, l'azione ha un tasso di ritorno stocastico, anche su una scala infinitesima.
 \end{osservazione}
 Passiamo ora a definire il modello di \emph{Black\&Scholes}.
 \begin{definition}
 Il modello di \emph{Black\&Scholes} consiste di due titoli con le seguenti dinamiche:
 \begin{align*}
-dB(t)&=B(t)r(t)dt,\\
+dB(t)&=rB(t)dt,\\
 dS(t)&=\mu S(t)dt+\sigma S(t)dW(t),
 \end{align*}
 dove $r$, $\mu$ e $\sigma$ sono costanti deterministiche.
@@ -148,17 +147,17 @@ Supponiamo di possedere un'opzione \emph{call} con scadenza $T=1$ anno, \emph{st
 \end{esempio}
 Osserviamo quindi che il valore a scadenza, cio\`e il \emph{payoff}, dell'opzione dipende soltanto dal valore del sottostante. Definiamo quindi il \emph{payoff} come processo stocastico in funzione di $S$.
 \begin{definition}
-Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, allora il \emph{payoff} di un'opzione con scadenza $T$ e \emph{strike} $K$ \`e un processo stocastico $\mathcal{X}\in\mathcal{F}_t$, e: $$\mathcal{X}=\Phi(S_T).$$
+Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, allora il \emph{payoff} di un'opzione scritta su $S$ con scadenza $T$ e \emph{strike} $K$ \`e un processo stocastico $\mathcal{X}\in\mathcal{F}_t$, e: $$\mathcal{X}=\Phi(S_T).$$
 \end{definition}
 Per esempio, il \emph{payoff} delle opzioni call e put europee \`e:
 \begin{align*}
 \Phi(S_T)&=max(S_T-K,0),\\
 \Phi(S_T)&=max(K-S_T,0).
 \end{align*}
-La domanda che ci poniamo ora \`e la seguente: qual \`e il prezzo equo di un'opzione? Ovvero, quanto occorre pagare oggi per avere il diritto ma non l'obbligo di acquistare a $T$ un'azione a un prezzo fissato $K$?
+La domanda che ci poniamo ora \`e la seguente: qual \`e il prezzo equo di un'opzione? Ovvero, quanto occorre pagare oggi per avere il diritto ma non l'obbligo di acquistare al tempo $T$ un'azione a un prezzo fissato $K$?
 
 \section{L'equazione di \emph{Black\&Scholes}}
-Prima di ricavare l'equazione di \emph{Black\&Scholes} spendiamo qualche riga per descrivere il concetto di neutralit\`a al rischio in finanza. Un operatore economico si dice neutrale al rischio quando le sue preferenze lo rendono indifferente al compiere un'azione il cui risultato \`e una quantit\`a aleatoria, oppure compiere un'azione il cui risultato \`e il valore atteso della quantit\`a aleatoria stessa.\\Per esempio, per un soggetto neutrale al rischio sono indifferenti le seguenti situazioni:
+Vi sono molti modi per ricavare l'equazione di \emph{Black\&Scholes}: presentiamo qui il modo pi\`u semplice e veloce.\\\\Prima di ricavare l'equazione spendiamo qualche riga per descrivere il concetto di neutralit\`a al rischio in finanza. Un operatore economico si dice neutrale al rischio quando le sue preferenze lo rendono indifferente al compiere un'azione il cui risultato \`e una quantit\`a aleatoria, oppure compiere un'azione il cui risultato \`e il valore atteso della quantit\`a aleatoria stessa.\\Per esempio, per un soggetto neutrale al rischio sono indifferenti le seguenti situazioni:
 \begin{itemize}
 \item avere $1$\officialeuro$ $ con probabilit\`a 1;
 \item giocare a una lotteria in cui il soggetto pu\`o ricevere $2$\officialeuro$ $ con probabilit\`a $\sfrac{1}{2}$ o $0$\officialeuro$ $ con probabilit\`a $\sfrac{1}{2}$.
@@ -173,23 +172,50 @@ Sia quindi $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S(t),t)$ il 
 $$C(S,t)=e^{(-r(T-t))}\mathbb{E}\left(max(S_T-K,0)\right).$$
 Applicando a questa quantit\`a il Lemma di It$\hat{o}$, otteniamo la seguente equazione: $$dC(S,t)=\left(\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}\right)dt+\sigma S \der{C}{S}dW(t).$$
 Dall'altro lato per\`o, per la \emph{risk-neutrality}, la deriva di $C$, come quella di ogni titolo finanziario, dovr\`a essere pari a $rC$, quindi:$$\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}=rC.$$
-Riassumendo, posti $C=C(S,t)$ e $P=P(S,t)$ i processi che descrivono il prezzo delle opzioni call e putt, otteniamo le seguenti equazioni alle derivate parziali con le rispettive condizioni finali:
+Riassumendo, posti $C=C(S,t)$ e $P=P(S,t)$ i processi che descrivono il prezzo di opzioni \emph{call} e \emph{put}, otteniamo le seguenti equazioni alle derivate parziali con le rispettive condizioni finali e condizioni al bordo:
 \begin{equation}
 \begin{cases}
 \der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}=rC,\\
-C(S,T)=max(S_T-K,0),
+C(S,T)=max(S_T-K,0),\\
+C(0,t)=0,\qquad\qquad\forall t\in[0,T],\\
+\lim\limits_{S\to\infty}C(S,t)=\infty,\qquad\forall t\in[0,T],
 \end{cases}
+\label{callbs1d}
 \end{equation}
 e
 \begin{equation}
 \begin{cases}
 \der{P}{t}+r S \der{P}{S} +\frac{1}{2}P^2\dder{P}{S}=rP,\\
-P(S,T)=max(K-S_T,0),
+P(S,T)=max(K-S_T,0),\\
+P(0,t)=0,\qquad\qquad\forall t\in[0,T]\\
+\lim\limits_{S\to\infty}P(S,t)=0,\qquad\forall t\in[0,T].
 \end{cases}
+\label{putbs1d}
 \end{equation}
+Come possiamo osservare, si tratta di equazioni paraboliche \emph{backword} con dato finale. Il prezzo dell'opzione al tempo $t=0$ sar\`a dato dalla soluzione C o P, valutate in $S_t=S_0$, ovvero il valore dell'azione oggi e in $t=0$.
 
 \section{Opzioni Basket}
+Un altro tipo di opzioni scambiate sui mercati finanziari sono le opzioni basket, il cui \emph{payoff} dipende cio\`e da due o pi\`u sottostanti. In particolare, in questo progetto ci siamo concentrati sul \emph{pricing} di opzioni basket 2D, con i seguenti valori finali: $$C(S_1, S_2, T)=max(S_{1,T}+S_{2,T}-K,0)$$ per la \emph{call} e: $$P(S_1, S_2, T)=max(K-S_{1,T}-S_{2,T},0)$$ per la \emph{put}, dove $S_{1,T}$ e $S_{2,T}$ sono i valori al tempo $T$ dei due sottostanti $S_1$ e $S_2$.\\L'equazione che si ottiene con procedimenti analoghi a quelli mostrati nella sezione precedente \`e la seguente:$$\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}=rC,$$ in cui $C:\mathbb{R}^+\times\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_1(t), S_2(t),t)$, $\sigma_1$ e $\sigma_2$ sono le volatilit\`a dei due sottostanti e $\rho$ \`e il coefficiente di correlazione fra $S_1$ e $S_2$.
 
 \section{Opzioni Americane: il problema con l'ostacolo}
+Le opzioni americane differiscono dalle europee poich\'e consentono di esercitare l'opzione non solo in $T$, bens\`i in qualsiasi istante di tempo dalla stipula del contratto alla sua scadenza. In particolare, nel caso monodimensionale, occorre aggiungere ai problemi \ref{callbs1d} e \ref{putbs1d} rispettivamente i seguenti vincoli: $$C(S,t)\geq max(S_t-K,0), \qquad\forall t\in[0,T],$$ e $$P(S,t)\geq max(K-S_t,0),\qquad\forall t\in[0,T].$$
 
+\section{Difetti del modello di \emph{Black\&Scholes}}
+Il modello di \emph{Black\&Scholes}, nonostante sia molto utilizzato in finanza, presenta alcuni problemi e pu\`o essere pericoloso utilizzarlo per valutare strumenti derivati. In particolare, empiricamente, si evidenziano le seguenti problematiche:
+\begin{itemize}
+\item il valore di $S$ pu\`o essere discontinuo, ovvero \`e possibile che il sottostante presenti dei "salti";
+\item le code della distribuzione dei log-rendimenti dovrebbero essere normali, ma non lo sono: i valori delle code sono infatti pi\`u probabili di quanto ipotizzato dal modello, inoltre le code non sono simmetriche poich\'e presentano un'asimmetria verso i rendimenti negativi;
+\item i log-rendimenti inoltre non hanno distribuzioni indipendenti: nelle serie storiche si osservano infatti i cosiddetti \emph{cluster}, ovvero periodi in cui la volatilit\`a \`e alta e rimane alta oppure periodi con una volatilit\`a che rimane per ridotta per lungo tempo;
+\item in figura \ref{smile} \`e rappresentato il grafico volatilit\`a vs. \emph{moneyness}\footnote{La \emph{moneyness} di un'opzione \`e il rapporto fra prezzo del sottostante in $t=0$ e \emph{Strike}, ovvero $\sfrac{S_0}{K}$.}. In esso possiamo osservare che il valore della volatilit\`a non rimane costante al variare dei prezzi di esercizio, bens\`i presenta una forma convessa. Questo fenomeno \`e noto come \emph{smile} di volatilit\`a. 
+\end{itemize}
+\begin{figure}[htbp!]
+\begin{center}
+\includegraphics[width=11cm]{img/smile.jpg}
+\caption{\emph{Smile} di volatilit\`a}
+\label{smile}
+\end{center}
+\end{figure}
+Nel prossimo capitolo introdurremo una classe pi\`u ampia di processi stocastici, cio\`e i processi di L\'evy, e descriveremo dei modelli che permettono di risolvere alcuni dei problemi sopra descritti. Questi modelli danno luogo a equazioni simili a quella di \emph{Black\&Scholes} (PDE) con l'aggiunta per\`o di un termine integrale, per questo le chiameremo Equazioni Integro-Differenziali alle Derivate Parziali (PIDE).
+
+\chapter{Processi di L\'evy e Modelli di Kou e Merton}
 \end{document}
