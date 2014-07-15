@@ -44,6 +44,8 @@ makefile
 *.log
 *.out
 *.synctex.gz
+*.toc
+*converted-to*
 
 #doxy
 @ONLY
