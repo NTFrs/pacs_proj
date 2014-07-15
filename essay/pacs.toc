@@ -1,3 +1,0 @@
-\select@language {italian}
-\select@language {italian}
-\contentsline {chapter}{\numberline {1}Modello di Black \& Scholes}{4}{chapter.1}
