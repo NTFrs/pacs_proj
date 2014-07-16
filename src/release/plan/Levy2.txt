@@ -1,0 +1,22 @@
+LevyIntegral (astratta)
+-> calcolo alpha
+-> calcolo J=0
+
+LevyIntegralKou: public LevyIntegral
+-> calcolo alpha con nodi adatti
+
+LevyIntegralMerton: public LevyIntegral
+-> calcolo alpha con nodi adatti
+
+LevyIntegralKouPrice: public LevyIntegralKou
+-> calcolo J
+
+LevyIntegralKouLogPrice: public LevyIntegralKou
+-> calcolo J
+
+LevyIntegralMertonPrice: public LevyIntegralKou
+-> calcolo J
+
+LevyIntegralMertonLogPrice: public LevyIntegralKou
+-> calcolo J
+
