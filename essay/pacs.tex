@@ -175,9 +175,10 @@ Dall'altro lato per\`o, per la \emph{risk-neutrality}, la deriva di $C$, come qu
 Riassumendo, posti $C=C(S,t)$ e $P=P(S,t)$ i processi che descrivono il prezzo di opzioni \emph{call} e \emph{put}, otteniamo le seguenti equazioni alle derivate parziali con le rispettive condizioni finali e condizioni al bordo:
 \begin{equation}
 \begin{cases}
+\displaystyle
 \der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}=rC,\\
 C(S,T)=max(S_T-K,0),\\
-C(0,t)=0,\qquad\qquad\forall t\in[0,T],\\
+C(0,t)=0,\qquad\quad\qquad\forall t\in[0,T],\\
 \lim\limits_{S\to\infty}C(S,t)=\infty,\qquad\forall t\in[0,T],
 \end{cases}
 \label{callbs1d}
@@ -185,9 +186,10 @@ C(0,t)=0,\qquad\qquad\forall t\in[0,T],\\
 e
 \begin{equation}
 \begin{cases}
+\displaystyle
 \der{P}{t}+r S \der{P}{S} +\frac{1}{2}P^2\dder{P}{S}=rP,\\
 P(S,T)=max(K-S_T,0),\\
-P(0,t)=0,\qquad\qquad\forall t\in[0,T]\\
+P(0,t)=K,\qquad\qquad\forall t\in[0,T]\\
 \lim\limits_{S\to\infty}P(S,t)=0,\qquad\forall t\in[0,T].
 \end{cases}
 \label{putbs1d}
@@ -197,8 +199,32 @@ Come possiamo osservare, si tratta di equazioni paraboliche \emph{backword} con 
 \section{Opzioni Basket}
 Un altro tipo di opzioni scambiate sui mercati finanziari sono le opzioni basket, il cui \emph{payoff} dipende cio\`e da due o pi\`u sottostanti. In particolare, in questo progetto ci siamo concentrati sul \emph{pricing} di opzioni basket 2D, con i seguenti valori finali: $$C(S_1, S_2, T)=max(S_{1,T}+S_{2,T}-K,0)$$ per la \emph{call} e: $$P(S_1, S_2, T)=max(K-S_{1,T}-S_{2,T},0)$$ per la \emph{put}, dove $S_{1,T}$ e $S_{2,T}$ sono i valori al tempo $T$ dei due sottostanti $S_1$ e $S_2$.\\L'equazione che si ottiene con procedimenti analoghi a quelli mostrati nella sezione precedente \`e la seguente:$$\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}=rC,$$ in cui $C:\mathbb{R}^+\times\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_1(t), S_2(t),t)$, $\sigma_1$ e $\sigma_2$ sono le volatilit\`a dei due sottostanti e $\rho$ \`e il coefficiente di correlazione fra $S_1$ e $S_2$.
 
-\section{Opzioni Americane: il problema con l'ostacolo}
-Le opzioni americane differiscono dalle europee poich\'e consentono di esercitare l'opzione non solo in $T$, bens\`i in qualsiasi istante di tempo dalla stipula del contratto alla sua scadenza. In particolare, nel caso monodimensionale, occorre aggiungere ai problemi \ref{callbs1d} e \ref{putbs1d} rispettivamente i seguenti vincoli: $$C(S,t)\geq max(S_t-K,0), \qquad\forall t\in[0,T],$$ e $$P(S,t)\geq max(K-S_t,0),\qquad\forall t\in[0,T].$$
+\section{Opzioni Americane: il problema con frontiera libera}
+Le opzioni americane differiscono dalle europee poich\'e consentono di esercitare l'opzione non solo in $T$, bens\`i in qualsiasi istante di tempo dalla stipula del contratto alla sua scadenza. Quindi, proprio perch\'e danno al titolare del contratto dei diritti aggiuntivi, \`e facile capire che vale la seguente relazione: $$V^{Am}\geq V^{Eu},$$ ovvero il valore di un'opzione americana \`e sempre superiore al valore dell'europea corrispondente. In particolare, il valore dell'opzione americana \`e sempre pari o superiore al valore del \emph{payoff}. L'opzione europea infatti, pu\`o avere un valore inferiore al \emph{payoff}, ma questo non pu\`o succedere per le americane. Infatti, se cos\`i non fosse, potremmo acquistare un'azione e una \emph{put} su questa azione ed esercitare immediatamente, ottenendo un guadagno certo senza correre alcun rischio. Per questo valgono i seguenti vincoli:
+\begin{align}
+C^{Am}(S,t)&\geq max(S_T-K,0)\qquad\forall t\in[0,T],\\
+P^{Am}(S,t)&\geq max(K-S_T,0)\qquad\forall t\in[0,T].
+\label{putbound}
+\end{align}
+\textbf{disegnino 4.5 Seydel pag. 159}\\
+Consideriamo ora il comportamento della \emph{put} nella parte sinistra del grafico riportato in figura ***. Senza la possibilt\`a di esercizio anticipato, $P^{Eu}<K-S$, ma per la disuguaglianza \ref{putbound}, $P^{Am}=K-S$. Nella parte destra della curva, invece, vale $P^{Am}\geq max(K-S,0)$. Quindi, per la continuit\`a e la monotonia di $P^{Am}$, la curva dovr\`a toccare il \emph{payoff} in un punto $S_f(t)$, $0<S_f(t)<K$. Questo punto \`e definito da:
+\begin{align*}
+P^{Am}(S,t)&>max(K-S,0)\qquad S>S_f(t),\\
+P^{Am}(S,t)&=K-S\qquad\qquad\quad S<S_f(t).
+\end{align*}
+Quindi, $\forall t\in[0,T]$, dobbiamo determinare il punto $S_f(t)$, attraverso il quale passa la retta che separa l'area in cui $P^{Am}=$\emph{payoff} da qualla in cui $P^{Am}>$\emph{payoff}. Poich\'e a priori questa frontiera \`e ignota, questo problema \`e detto "a frontiera libera".\\\\Per le \emph{call} americane la situazione \`e differente, poich\'e $C^{Eu}\geq max(S_T-K,0)$\footnote{Questa relazione si calcola immediatamente sfruttando alcune semplici relazioni che legano $C$, $S$ e $K$. In particolare, nel qual caso: $C^{Am}\geq C^{Eu} \geq S-Ke^{-r(T-t)} > S-K$}. Perci\`o il prezzo di una \emph{call} americana \`e identico a quello di un'europea quindi non si pone in questo caso il problema con frontiera libera.\\\\Formalmente, l'equazione differenziale che occorre risolvere per trovare il prezzo di una \emph{put} americana \`e la seguente:
+\begin{equation}
+\begin{cases}
+\displaystyle
+\der{P}{t}+r S \der{P}{S} +\frac{1}{2}P^2\dder{P}{S}\leq rP,\\
+P(S,t)\geq max(K-S_T,0),\\
+P(S,T)=max(K-S_T,0),\\
+P(0,t)=K,\qquad\qquad\forall t\in[0,T]\\
+\lim\limits_{S\to\infty}P(S,t)=0,\qquad\forall t\in[0,T].
+\end{cases}
+\label{putam1d}
+\end{equation}
+%nel caso monodimensionale, occorre aggiungere ai problemi \ref{callbs1d} e \ref{putbs1d} rispettivamente i seguenti vincoli: $$C(S,t)\geq max(S_t-K,0), \qquad\forall t\in[0,T],$$ e $$P(S,t)\geq max(K-S_t,0),\qquad\forall t\in[0,T].$$
 
 \section{Difetti del modello di \emph{Black\&Scholes}}
 Il modello di \emph{Black\&Scholes}, nonostante sia molto utilizzato in finanza, presenta alcuni problemi e pu\`o essere pericoloso utilizzarlo per valutare strumenti derivati. In particolare, empiricamente, si evidenziano le seguenti problematiche:
