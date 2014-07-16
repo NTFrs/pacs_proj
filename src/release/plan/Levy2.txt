@@ -1,3 +1,16 @@
+Il modello deve contenere la sua densità e deve avere un metodo get_density
+che ritorni un * a densità.
+
+creiamo un metodo che instanzi questa classe.
+
+per la dimensione, specializziamo void evaluate_part1() e void
+evaluate_part2() in modo che calcolino solo un alpha o due alpha e  un solo o
+due J distinti in base alla dimensione.
+
+get_alpha ritorna un vector<dim> di double
+get_J ritorna un vector<dim> di * a Vector (non smart perché J1 e J2 vengono
+distrutti da LevyIntegral)
+
 LevyIntegral (astratta)
 -> calcolo alpha
 -> calcolo J=0
