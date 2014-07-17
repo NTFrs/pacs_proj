@@ -304,10 +304,35 @@ dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'ev
 \chapter{Metodi numerici per PDE e PIDE}
 %Di solito sempre FD, per\`o si possono usare FEM. Tuttavia per 2d non \`e mai stato fatto nulla da un punto di vista numerico. Perch\'e FEM? Possiamo raffinare, possiamo estendere in 3d (log price facile).
 \section{Introduzione}
-In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} non era mai stato tentato da nessuno (di cui noi siamo a conoscenza), tanto \`e vero che per validare i risultati ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile.
+In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} non era mai stato tentato da nessuno (di cui noi siamo a conoscenza), tanto \`e vero che per validare i risultati ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile. Il primo, che permette di portare le equazioni a coefficienti costanti presenta l'inconveniente di dover calcolare l'integrale fuori dalla \emph{mesh}. Il secondo invece, lascia l'equazione cos\`i com\`e, ma permette di calcolare l'integrale nei soli punti della \emph{mesh}. Lasciamo i confronti sulle prestazione dei due cambi di variabile al capitolo dedicato, tuttavia a priori \`e facile capire che l'assemblaggio delle matrici con il primo cambio di variabile sar\`a pi\`u veloce rispetto al secondo, ma il calcolo dell'integrale sar\`a inesorabilmente pi\`u lento.
 
+\section{\emph{Log-Prices}}
+Ci occupiamo ora di mostrare la discretizzazione dell'equazione con il primo cambio di variabile. Trattiamo qui il solo caso della \emph{call} europea, in quanto per la \emph{put} e le americane la discretizzazione \`e la medesima, a meno di cambiare condizioni al bordo e dati finali.
+\subsection{Equazione 1d}
+Il primo cambio di variabili che studiamo \`e il seguente: $x=log(\sfrac{S}{S_0}),$ che permette di portare l'equazione a coefficienti costanti. Posta quindi $u: \mathbb{R}\times[0,T]\rightarrow\mathbb{R}^+$, $u=u(x,t)$, incognita della PIDE monodimensionale, otteniamo:
+\begin{equation}
+\begin{cases}
+\displaystyle
+\der{u}{t}+\left(r-\sigma^2\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-ru\\
+\displaystyle
+\qquad\qquad\qquad\qquad+\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(y)=0,\\
+u(x,T)=max(S_0e^x-K,0),\\
+\lim\limits_{x\to-\infty}u(x,t)=0,\qquad\forall t\in[0,T],\\
+\lim\limits_{x\to\infty}u(x,t)=\infty,\qquad\forall t\in[0,T],
+\end{cases}
+\end{equation}
+per la \emph{call} europea.
+\subsection{Troncamento del dominio}
+Come \`e facile osservare $x\in(-\infty,\infty)$, perci\`o \`e necessario adottare un troncamento del dominio monodimensionale. Generalmente, in finanza si applica il seguente troncamento:
+\begin{align*}
+S_{min}&=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\right),\\
+S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right),
+\end{align*}
+dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$u_{min}=log(\sfrac{S_{min}}{S_0}), \qquad u_{max}=log(\sfrac{S_{max}}{S_0}).$$
+\subsection{Discretizzazione}
+Siano ora $\Omega_h$ una triangolazione con $N+1$ nodi di $[x_{min},x_{max}]$ e $0= t_0\leq t_1\leq ... \leq t_N=T$ una griglia temporale. Cerchiamo quindi una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}a_j(t_n)\phi_j(x),$$
 
-
+ 
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
