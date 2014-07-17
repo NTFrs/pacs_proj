@@ -16,6 +16,9 @@
 \usepackage{eurosym}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
+\usepackage{listings}
+\usepackage{lstautogobble}
+
 
 \hypersetup{
     colorlinks=false,
@@ -47,7 +50,7 @@
 \theoremstyle{notazione}
 \newtheorem{notazione}{Notazione}[chapter]
 \theoremstyle{corollario}
-\newtheorem{corollario}{Corollario}[chapter]
+\newtheorem{corollario}{Corollario}[section]
 
 \begin{document}
 
@@ -108,7 +111,7 @@
 
 \chapter{Modello di Black \& Scholes}
 
-\section*{Introduzione}
+\section{Introduzione}
 In questo capitolo descriviamo i modelli basilari utilizzati per descrivere il mercato finanziario, seguendo le argomentazioni di Merton (1973). Consideriamo quindi un mercato finanziario molto semplificato, costituito da un titolo \emph{risk-free} descritto dal processo $B$ e un titolo azionario con valore pari al processo $S$. Definiamo quindi questi due processi.
 \begin{definition}
 Sia $(\Omega,\mathcal{F},\mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in [ 0,T ]}$ una filtrazione. Allora, il processo B descrive il valore di un titolo \emph{risk-free} se la sua dinamica \`e del tipo: $$dB(t)=r(t)B(t)dt,$$dove $r$ \`e un qualsiasi processo $\mathcal{F}_t$-adattato.
@@ -197,7 +200,12 @@ P(0,t)=K,\qquad\qquad\forall t\in[0,T]\\
 Come possiamo osservare, si tratta di equazioni paraboliche \emph{backword} con dato finale. Il prezzo dell'opzione al tempo $t=0$ sar\`a dato dalla soluzione C o P, valutate in $S_t=S_0$, ovvero il valore dell'azione oggi e in $t=0$.
 
 \section{Opzioni Basket}
-Un altro tipo di opzioni scambiate sui mercati finanziari sono le opzioni basket, il cui \emph{payoff} dipende cio\`e da due o pi\`u sottostanti. In particolare, in questo progetto ci siamo concentrati sul \emph{pricing} di opzioni basket 2D, con i seguenti valori finali: $$C(S_1, S_2, T)=max(S_{1,T}+S_{2,T}-K,0)$$ per la \emph{call} e: $$P(S_1, S_2, T)=max(K-S_{1,T}-S_{2,T},0)$$ per la \emph{put}, dove $S_{1,T}$ e $S_{2,T}$ sono i valori al tempo $T$ dei due sottostanti $S_1$ e $S_2$.\\L'equazione che si ottiene con procedimenti analoghi a quelli mostrati nella sezione precedente \`e la seguente:$$\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}=rC,$$ in cui $C:\mathbb{R}^+\times\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_1(t), S_2(t),t)$, $\sigma_1$ e $\sigma_2$ sono le volatilit\`a dei due sottostanti e $\rho$ \`e il coefficiente di correlazione fra $S_1$ e $S_2$.
+Un altro tipo di opzioni scambiate sui mercati finanziari sono le opzioni basket, il cui \emph{payoff} dipende cio\`e da due o pi\`u sottostanti. In particolare, in questo progetto ci siamo concentrati sul \emph{pricing} di opzioni basket 2D, con i seguenti valori finali: $$C(S_1, S_2, T)=max(S_{1,T}+S_{2,T}-K,0)$$ per la \emph{call} e: $$P(S_1, S_2, T)=max(K-S_{1,T}-S_{2,T},0)$$ per la \emph{put}, dove $S_{1,T}$ e $S_{2,T}$ sono i valori al tempo $T$ dei due sottostanti $S_1$ e $S_2$.\\L'equazione che si ottiene con procedimenti analoghi a quelli mostrati nella sezione precedente \`e la seguente:
+\begin{equation}
+\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}=rC,
+\label{pde2d}
+\end{equation}
+in cui $C:\mathbb{R}^+\times\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_1(t), S_2(t),t)$, $\sigma_1$ e $\sigma_2$ sono le volatilit\`a dei due sottostanti e $\rho$ \`e il coefficiente di correlazione fra $S_1$ e $S_2$.
 
 \section{Opzioni Americane: il problema con frontiera libera}
 Le opzioni americane differiscono dalle europee poich\'e consentono di esercitare l'opzione non solo in $T$, bens\`i in qualsiasi istante di tempo dalla stipula del contratto alla sua scadenza. Quindi, proprio perch\'e danno al titolare del contratto dei diritti aggiuntivi, \`e facile capire che vale la seguente relazione: $$V^{Am}\geq V^{Eu},$$ ovvero il valore di un'opzione americana \`e sempre superiore al valore dell'europea corrispondente. In particolare, il valore dell'opzione americana \`e sempre pari o superiore al valore del \emph{payoff}. L'opzione europea infatti, pu\`o avere un valore inferiore al \emph{payoff}, ma questo non pu\`o succedere per le americane. Infatti, se cos\`i non fosse, potremmo acquistare un'azione e una \emph{put} su questa azione ed esercitare immediatamente, ottenendo un guadagno certo senza correre alcun rischio. Per questo valgono i seguenti vincoli:
@@ -244,6 +252,47 @@ Il modello di \emph{Black\&Scholes}, nonostante sia molto utilizzato in finanza,
 Nel prossimo capitolo introdurremo una classe pi\`u ampia di processi stocastici, cio\`e i processi di L\'evy, e descriveremo dei modelli che permettono di risolvere alcuni dei problemi sopra descritti. Questi modelli danno luogo a equazioni simili a quella di \emph{Black\&Scholes} (PDE) con l'aggiunta per\`o di un termine integrale, per questo le chiameremo Equazioni Integro-Differenziali alle Derivate Parziali (PIDE).
 
 \chapter{Processi di L\'evy e Modelli di Kou e Merton}
+\section{Introduzione}
+In questo secondo capitolo introduciamo i processi di L\'evy, una classe pi\`u ampia di processi stocastici che permettono di descrivere con pi\`u accuratezza il comportamento di un titolo azionario. Elenchiamo ora alcune definizioni e un teorema che ci permettono di definire i nuovi modelli.
+\begin{definition}
+Sia $(\Omega, \mathcal{F}, \mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in[0,T]}$ una filtrazione. Sia $X_t$ un processo stocastico \emph{cadlag}\footnote{Ricordiamo che un processo \`e detto \emph{cadlag} se ha traiettorie continue a destra e limitate a sinistra.}, allora $X_t$ \`e di L\'evy se:
+\begin{enumerate}
+\item $X_0=0$,
+\item ha incrementi indipendenti,
+\item ha incrementi stazionari,
+\item c'\`e continuit\`a stocastica.
+\end{enumerate}
+\end{definition}
+\begin{definition}
+Sia $X_t$ un L\'evy, allora poniamo $$\nu(A)=\mathbb{E}(\#\{t\in[0,1]: \Delta X_t\neq0, \Delta X_t\in A\}),$$ $\forall A\in \mathcal{B}$, e chiamiamo $\nu(A)$ la misura di L\'evy di $X_t$.
+\end{definition}
+\begin{definition}
+Sia $X_t$ un processo di L\'evy (\`e un LEVY?!?!?!?), allora $X_t$ \`e un \emph{Compound Poisson} di intensit\`a $\lambda$ e distribuzione di salti $f$ se $$X_t=\sum_{i=1}^{N_t}Y_i,$$ dove $N_t\sim$\emph{Poisson}$(\lambda)$ e $Y_i\sim f$, $Y_i$ i.i.d. $\forall i$.
+\end{definition}
+\begin{theorem}
+Decomposizione di L\'evy-It$\hat{o}$.\\Sia $X_t$ un processo di L\'evy con misura $\nu$ finita, allora esistono due costanti $\gamma$ e $\sigma$ tali che:$$X_t=\gamma t+\sigma W_t+X^C_t,$$ dove $W_t$ \`e un moto browniano e $X^C_t$ un \emph{Compound Poisson}.
+\end{theorem}
+Perci\`o un processo di L\'evy \`e determinato univocamente dalla sua tripletta caratteristica $(\gamma, \sigma, \nu)$.
+\section{Modelli di Merton e Kou}
+Passiamo ora a definire i modelli di Merton e Kou. In entrambi questi modelli il prezzo dell'azione \`e descritto dalla seguente equazione:
+\begin{equation}
+S_t=S_0e^{rt+X_t},
+\label{explevy}
+\end{equation}
+dove $r$ \`e il tasso di interesse e $X_t$ \`e un L\'evy, ovvero $$X_t=\gamma t+\sigma W_t+\sum_{i=1}^{N_t}Y_i.$$Nel modello di Merton, $Y_i\sim\mathcal{N}(\mu, \delta^2)$, e la misura di L\'evy \`e data da: $$\nu(x)=\frac{\lambda}{\sqrt{2\pi\delta^2}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\},$$in cui $\lambda$ \`e l'intensit\`a del \emph{Poisson}.\\Nel modello di Kou invece, le $Y_i$ sono delle esponenziali con parametri diversi per salti positivi e negativi. In particolare, $$\nu(x)=p\lambda\lambda_+e^{\lambda_+x}\mathcal{I}_{x>0}+(1-p)\lambda\lambda_-e^{-\lambda_-x}\mathcal{I}_{x<0},$$dove $p$ \`e la probabilit\`a di salti positivi, $\lambda$ \`e il solito parametro del \emph{Poisson}, $\lambda_+$ e $\lambda_-$ sono invece le intensit\`a dei salti positivi e negativi.
+\section{\emph{Pricing} con modelli Exponential L\'evy}
+Riportiamo ora un risultato che permette di individuare un'equazione differenziale che permetta di risolvere il problema di \emph{pricing} descritto nel capitolo precedente.
+\begin{theorem}
+Sia $S_t$ nella forma \ref{explevy} con l'ipotesi: $$\int_{|x|>1} e^{2x}\nu(dx)<\infty.$$ Sia $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_t,t)$ nella forma: $$C(S_t,t)=e^{-r(T-t)}\mathbb{E}(\Phi(S_t)),$$ dove $\Phi$ \`e un \emph{payoff Lipshitz} che dipende dall'unico sottostante $S_t$. Allora $C$ soddisfa l'equazione:
+\begin{multline}
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)=0.
+\end{multline}
+\end{theorem}
+Per quanto riguarda opzioni su due \emph{asset}, l'equazione \ref{pde2d} diventa:
+\begin{multline}
+\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}-rC\\+\int_\mathbb{R}\left(C(t,S_1e^y,S_2)-C(t,S_1,S_2)-S_1(e^y-1)\der{C}{S_1}(t,S_1,S_2)\right)\nu_1(dy)\\+\int_\mathbb{R}\left(C(t,S_1,S_2e^y)-C(t,S_1,S_2)-S_2(e^y-1)\der{C}{S_2}(t,S_1,S_2)\right)\nu_2(dy)=0,
+\end{multline}
+dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'evy, rispettivamente con misure $\nu_1$ e $\nu_2$.
 
 \chapter{Discretizzazione}
 Di solito sempre FD, per\`o si possono usare FEM. Tuttavia per 2d non \`e mai stato fatto nulla da un punto di vista numerico. Perch\'e FEM? Possiamo raffinare, possiamo estendere in 3d (log price facile). 
