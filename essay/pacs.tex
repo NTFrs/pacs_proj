@@ -214,8 +214,14 @@ C^{Am}(S,t)&\geq max(S_T-K,0)\qquad\forall t\in[0,T],\\
 P^{Am}(S,t)&\geq max(K-S_T,0)\qquad\forall t\in[0,T].
 \label{putbound}
 \end{align}
-\textbf{disegnino 4.5 Seydel pag. 159}\\
-Consideriamo ora il comportamento della \emph{put} nella parte sinistra del grafico riportato in figura ***. Senza la possibilt\`a di esercizio anticipato, $P^{Eu}<K-S$, ma per la disuguaglianza \ref{putbound}, $P^{Am}=K-S$. Nella parte destra della curva, invece, vale $P^{Am}\geq max(K-S,0)$. Quindi, per la continuit\`a e la monotonia di $P^{Am}$, la curva dovr\`a toccare il \emph{payoff} in un punto $S_f(t)$, $0<S_f(t)<K$. Questo punto \`e definito da:
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=12cm]{img/putam.eps}
+\caption{Opzioni Americane vs. Opzione Europee}
+\label{putamfig}
+\end{center}
+\end{figure}
+Consideriamo ora il comportamento della \emph{put} nella parte sinistra del grafico riportato in figura \ref{putamfig}. Senza la possibilt\`a di esercizio anticipato, $P^{Eu}<K-S$, ma per la disuguaglianza \ref{putbound}, $P^{Am}=K-S$. Nella parte destra della curva, invece, vale $P^{Am}\geq max(K-S,0)$. Quindi, per la continuit\`a e la monotonia di $P^{Am}$, la curva dovr\`a toccare il \emph{payoff} in un punto $S_f(t)$, $0<S_f(t)<K$. Questo punto \`e definito da:
 \begin{align*}
 P^{Am}(S,t)&>max(K-S,0)\qquad S>S_f(t),\\
 P^{Am}(S,t)&=K-S\qquad\qquad\quad S<S_f(t).
@@ -291,11 +297,16 @@ Sia $S_t$ nella forma \ref{explevy} con l'ipotesi: $$\int_{|x|>1} e^{2x}\nu(dx)<
 Per quanto riguarda opzioni su due \emph{asset}, l'equazione \ref{pde2d} diventa:
 \begin{multline}
 \der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}-rC\\+\int_\mathbb{R}\left(C(t,S_1e^y,S_2)-C(t,S_1,S_2)-S_1(e^y-1)\der{C}{S_1}(t,S_1,S_2)\right)\nu_1(dy)\\+\int_\mathbb{R}\left(C(t,S_1,S_2e^y)-C(t,S_1,S_2)-S_2(e^y-1)\der{C}{S_2}(t,S_1,S_2)\right)\nu_2(dy)=0,
+\label{pide2d}
 \end{multline}
-dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'evy, rispettivamente con misure $\nu_1$ e $\nu_2$.
+dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'evy, rispettivamente con misure $\nu_1$ e $\nu_2$.\\Nel prossimo capitolo, presentiamo dei metodi numerici che trovino una soluzione approssimata per le equazioni presentate in questi due capitoli.
 
-\chapter{Discretizzazione}
-Di solito sempre FD, per\`o si possono usare FEM. Tuttavia per 2d non \`e mai stato fatto nulla da un punto di vista numerico. Perch\'e FEM? Possiamo raffinare, possiamo estendere in 3d (log price facile). 
+\chapter{Metodi numerici per PDE e PIDE}
+%Di solito sempre FD, per\`o si possono usare FEM. Tuttavia per 2d non \`e mai stato fatto nulla da un punto di vista numerico. Perch\'e FEM? Possiamo raffinare, possiamo estendere in 3d (log price facile).
+\section{Introduzione}
+In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} non era mai stato tentato da nessuno (di cui noi siamo a conoscenza), tanto \`e vero che per validare i risultati ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile.
+
+
 
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
