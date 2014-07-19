@@ -2,6 +2,8 @@
 #define __models_hpp
 
 #include <iostream>
+#include <cmath> 
+
 //! Abstract class Model
 /*!
  * This class gives the idea of how we intend a model class.
@@ -44,6 +46,7 @@ public:
         virtual inline double get_nu()          const   =0;
         virtual inline double get_delta()       const   =0;
         
+        virtual double density(double pt) const =0;
 };
 
 //! Black&Scholes Model
@@ -74,7 +77,7 @@ public:
                           double sigma_):
         Model(S0_, sigma_)
         {};
-        
+        virtual double density(double pt) const {return 0;};
 };
 
 //! Kou Model
@@ -125,7 +128,18 @@ public:
         virtual inline double get_lambda_p()    const   {return lambda_plus;}
         virtual inline double get_lambda_m()    const   {return lambda_minus;}
         
+        virtual double density(double pt) const ;
+        
 };
+
+double KouModel::density(double pt) const
+{
+	if (pt>0)
+	return p*lambda*lambda_plus*exp(-lambda_plus*pt);
+	else
+	return (1-p)*lambda*lambda_minus*exp(lambda_minus*pt);
+}
+
 
 //! Merton Model
 /*!
