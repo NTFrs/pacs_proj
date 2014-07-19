@@ -259,7 +259,7 @@ KouIntegral<1>::KouIntegral(KouModel * const p,
                             bool adapting_,
                             double toll_)
 :
-LevyIntegral<1>(new Kou_Density<1>(p->get_p(),
+LevyIntegral<1>(new Kou_Density<1>(0, p->get_p(),
                                    p->get_lambda(),
                                    p->get_lambda_p(),
                                    p->get_lambda_m()),

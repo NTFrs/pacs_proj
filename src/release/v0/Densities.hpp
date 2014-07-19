@@ -17,10 +17,12 @@ public:
          * \param lambda_       Intensity of jumps
          * \param lambda_plus_  Intensity of positive jumps
          * \param lambda_minus_ Intensity of negative jumps
+		 * \param ax_			On wich direction itworks
          */
-	Kou_Density(double p_,  double lambda_, double lambda_plus_,  double lambda_minus_)
+	Kou_Density(unsigned ax_ , double p_,  double lambda_, double lambda_plus_,  double lambda_minus_)
         :
         Function<dim>(),  
+        ax(ax_), 
         p(p_), 
         lambda(lambda_), 
 	lambda_plus(lambda_plus_),
@@ -43,6 +45,7 @@ public:
                                          std::vector<double> &values,
                                          const unsigned int component = 0) const;
 private:
+		unsigned ax;
         double p;
         double lambda;
         double lambda_plus;
@@ -53,10 +56,10 @@ template<unsigned dim>
 double Kou_Density<dim>::value(const Point<dim> &p_,  const unsigned int component) const
 {
 	Assert (component == 0, ExcInternalError());
-	if (p_[0]>0)
-                return p*lambda*lambda_plus*exp(-lambda_plus*p_[0]);
+	if (p_[ax]>0)
+                return p*lambda*lambda_plus*exp(-lambda_plus*p_[ax]);
 	else
-                return (1-p)*lambda*lambda_minus*exp(lambda_minus*p_[0]);
+                return (1-p)*lambda*lambda_minus*exp(lambda_minus*p_[ax]);
         
 }
 
@@ -72,10 +75,10 @@ void Kou_Density<dim>::value_list(const std::vector<Point<dim> > &points, std::v
 	const unsigned int n_points=points.size();
         
 	for (unsigned int i=0;i<n_points;++i)
-                if (points[i][0]>0)
-                        values[i]=p*lambda*lambda_plus*exp(-lambda_plus*points[i][0]);
+                if (points[i][ax]>0)
+                        values[i]=p*lambda*lambda_plus*exp(-lambda_plus*points[i][ax]);
                 else
-                        values[i]=(1-p)*lambda*lambda_minus*exp(lambda_minus*points[i][0]);
+                        values[i]=(1-p)*lambda*lambda_minus*exp(lambda_minus*points[i][ax]);
 }
 
 //! Merton Density
