@@ -1,10 +1,24 @@
 #include <iostream>
 #include "Levy.hpp"
 
+// #include <vector>
+// #include "models.hpp"
+
 using namespace std;
 
 int main(){
-        
+	
+		/*
+		KouModel Mod(100,0.2, 0.5, 3, 2, 4);
+		Model * ModPtr=&Mod;
+		std::vector<Model *> Mods;
+		Mods.push_back(ModPtr);
+		
+		std::cout<< Mod.density(0.5)<< std::endl;
+		std::cout<< (*ModPtr).density(0.5)<< std::endl;
+        std::cout<< (*Mods[0]).density(0.5)<< std::endl;
+		*/
+ 
         BlackScholesModel model(95., 0.120381);
         
         BlackScholesModel model1(80., 0.1256);
