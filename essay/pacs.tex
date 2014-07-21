@@ -285,7 +285,12 @@ Passiamo ora a definire i modelli di Merton e Kou. In entrambi questi modelli il
 S_t=S_0e^{rt+X_t},
 \label{explevy}
 \end{equation}
-dove $r$ \`e il tasso di interesse e $X_t$ \`e un L\'evy, ovvero $$X_t=\gamma t+\sigma W_t+\sum_{i=1}^{N_t}Y_i.$$Nel modello di Merton, $Y_i\sim\mathcal{N}(\mu, \delta^2)$, e la misura di L\'evy \`e data da: $$\nu(x)=\frac{\lambda}{\sqrt{2\pi\delta^2}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\},$$in cui $\lambda$ \`e l'intensit\`a del \emph{Poisson}.\\Nel modello di Kou invece, le $Y_i$ sono delle esponenziali con parametri diversi per salti positivi e negativi. In particolare, $$\nu(x)=p\lambda\lambda_+e^{\lambda_+x}\mathcal{I}_{x>0}+(1-p)\lambda\lambda_-e^{-\lambda_-x}\mathcal{I}_{x<0},$$dove $p$ \`e la probabilit\`a di salti positivi, $\lambda$ \`e il solito parametro del \emph{Poisson}, $\lambda_+$ e $\lambda_-$ sono invece le intensit\`a dei salti positivi e negativi.
+dove $r$ \`e il tasso di interesse e $X_t$ \`e un L\'evy, ovvero $$X_t=\gamma t+\sigma W_t+\sum_{i=1}^{N_t}Y_i.$$Nel modello di Merton, $Y_i\sim\mathcal{N}(\mu, \delta^2)$, e la misura di L\'evy \`e data da:
+\begin{equation}
+\nu(x)=\frac{\lambda}{\sqrt{2\pi\delta^2}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\},
+\label{merton}
+\end{equation}
+in cui $\lambda$ \`e l'intensit\`a del \emph{Poisson}.\\Nel modello di Kou invece, le $Y_i$ sono delle esponenziali con parametri diversi per salti positivi e negativi. In particolare, $$\nu(x)=p\lambda\lambda_+e^{\lambda_+x}\mathcal{I}_{x>0}+(1-p)\lambda\lambda_-e^{-\lambda_-x}\mathcal{I}_{x<0},$$dove $p$ \`e la probabilit\`a di salti positivi, $\lambda$ \`e il solito parametro del \emph{Poisson}, $\lambda_+$ e $\lambda_-$ sono invece le intensit\`a dei salti positivi e negativi.
 \section{\emph{Pricing} con modelli Exponential L\'evy}
 Riportiamo ora un risultato che permette di individuare un'equazione differenziale che permetta di risolvere il problema di \emph{pricing} descritto nel capitolo precedente.
 \begin{theorem}
@@ -315,7 +320,7 @@ Il primo cambio di variabili che studiamo \`e il seguente: $x=log(\sfrac{S}{S_0}
 \displaystyle
 \der{u}{t}+\left(r-\sigma^2\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-ru\\
 \displaystyle
-\qquad\qquad\qquad\qquad+\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(y)=0,\\
+\qquad\qquad\qquad\qquad+\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)=0,\\
 u(x,T)=max(S_0e^x-K,0),\\
 \lim\limits_{x\to-\infty}u(x,t)=0,\qquad\forall t\in[0,T],\\
 \lim\limits_{x\to\infty}u(x,t)=\infty,\qquad\forall t\in[0,T],
@@ -335,13 +340,33 @@ Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`
 \sum_{j=1}^{N-1}\int_{\Omega_h}\left(\frac{\partial}{\partial t}(a_j(t)\phi_j(x))\phi_i(x)\right)dx+\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}a_j(t)\phi_j'(x)\phi_i(x)dx\\
 +\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}a_j(t)\phi_j''(x)\phi_i(x)dx=\sum_{j=1}^{N-1}r\int_{\Omega_h}a_j(t)\phi_j(x)\phi_i(x)dx,
 \end{multline}
-$\forall t\in\mathcal{T}$ e $\forall i=0,...,N$. Applicando inoltre le condizioni al bordo, otteniamo: $$a_0=0, \qquad a_N=S_{max}-K.$$
+$\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Applicando inoltre le condizioni al bordo, otteniamo: $$a_0=0, \qquad a_N=S_{max}-K.$$
 Applicando ora uno schema di Eulero Implicito per la derivata prima in tempo, giungiamo a:
 \begin{multline}
 \sum_{j=1}^{N-1}\int_{\Omega_h}\frac{a_j(t_{n+1})\phi_j(x)}{\Delta t}\phi_i(x)dx-\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{a_j(t_n)\phi_j(x)}{\Delta t}\phi_i(x)dx\\
 +\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}a_j(t_n)\phi_j'(x)\phi_i(x)dx+\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}a_j(t_n)\phi_j''(x)\phi_i(x)dx\\
 =\sum_{j=1}^{N-1}r\int_{\Omega_h}a_j(t_n)\phi_j(x)\phi_i(x)dx,
 \end{multline}
+$\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Poniamo infine:
+\begin{align*}
+a_{ij}&=\int_{\Omega_h}\phi_i(x)\phi_j(x)dx,\\
+b_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i(x)dx,\\
+c_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i'(x)dx.
+\end{align*}
+Otteniamo quindi la seguente discretizzazione per la PDE:$$\sum_{j=1}^{N-1}\alpha_j(t_{n+1})\frac{a_{ij}}{\Delta t}=\sum_{j=1}^{N-1}\alpha_j(t_{n})\left(\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij}\right).$$
+\subsection{La parte integrale}
+Concentriamoci ora sulla parte integrale della \ref{pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che, poich\'e la misura \`e finita:$$\nu(dy)=\nu(y)dy.$$ Possiamo quindi spezzare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
+\begin{align*}
+\hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
+\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
+\end{align*}
+ottenendo: $$\der{u}{t}+\left(r-\frac{\sigma^2}{2}-\hat{\alpha}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-(r+\hat{\lambda})u+\int_\mathbb{R}u(t,x+y)\nu(y)dy=0.$$
+Sappiamo inoltre dalla teoria che $\hat{\lambda}=\lambda$, poich\'e integrando la densit\`a di L\'evy otteniamo l'intensit\`a dei salti. Per quanto riguarda invece il calcolo numerico dei due integrali, pooch\'e le densit\`a con cui abbiamo a che fare sono gaussiane o esponenziali, abbiamo utilizzato delle formule di quadratura rispettivamente di Gauss-Hermite e di Gauss-Laguerre. Per esempio, se consideriamo la densit\`a di L\'evy di Merton, $\nu$ \`e nella forma \ref{merton}, perci\`o, a meno di costanti,
+\begin{align*}
+\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)Ae^{-By^2}dy\\
+&\simeq\sum_{j=0}^{Q}(e^{q_j}-1)w_j,
+\end{align*}
+dove $q_j$ sono i nodi di quadratura su $\mathbb{R}$, mentre $w_j$ sono i pesi che inglobano gi\`a il nucleo guassiano.
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
