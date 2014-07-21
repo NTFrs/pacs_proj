@@ -17,7 +17,7 @@ class LevyIntegral<dim> {
 protected:
 	std::vector<double> alpha;
 	dealii::Vector<double> J1, J2;
-	dealii::Point<dim> Bmin, Bmax,  Smax;
+	dealii::Point<dim> Bmin, Bmax, Smin, Smax;
 	
 	std::vector<Model *> Mods;
 	
@@ -95,10 +95,14 @@ template<unsigned dim>
 class LevyIntegralPrice: public: LevyIntegral< dim > {
 
 protected:
-	virtual void compute J
-	
+	//TODO add exception
+	virtual void compute_J(/**/) {std::cerr<<"Not defined for this dimension"<< std::endl;}
+
+public:
+	LevyIntegralPrice()=delete
 };
 
-
+template<>
+LevyIntegralPrice<1>::LevyIntegralPrice(Point<1> Smin_,  Point<1> Smax_,  Model * Mod_)
 
 #endif
