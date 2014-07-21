@@ -329,10 +329,19 @@ S_{min}&=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\ri
 S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right),
 \end{align*}
 dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$u_{min}=log(\sfrac{S_{min}}{S_0}), \qquad u_{max}=log(\sfrac{S_{max}}{S_0}).$$
-\subsection{Discretizzazione}
-Siano ora $\Omega_h$ una triangolazione con $N+1$ nodi di $[x_{min},x_{max}]$ e $0= t_0\leq t_1\leq ... \leq t_N=T$ una griglia temporale. Cerchiamo quindi una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}a_j(t_n)\phi_j(x),$$
-
- 
+\subsection{Discretizzazione della PDE}
+Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`e la sola PDE del modello di \emph{Black\&Scholes}. Siano quindi $\Omega_h$ una triangolazione con $N+1$ nodi di $\Omega=[x_{min},x_{max}]$ e $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ una griglia temporale. Cerchiamo una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}a_j(t_n)\phi_j(x),$$ dove $a_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\Passiamo ora alla formulazione debole del problema \ref{callbs1d}:
+\begin{multline}
+\sum_{j=1}^{N-1}\int_{\Omega_h}\left(\frac{\partial}{\partial t}(a_j(t)\phi_j(x))\phi_i(x)\right)dx+\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}a_j(t)\phi_j'(x)\phi_i(x)dx\\
++\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}a_j(t)\phi_j''(x)\phi_i(x)dx=\sum_{j=1}^{N-1}r\int_{\Omega_h}a_j(t)\phi_j(x)\phi_i(x)dx,
+\end{multline}
+$\forall t\in\mathcal{T}$ e $\forall i=0,...,N$. Applicando inoltre le condizioni al bordo, otteniamo: $$a_0=0, \qquad a_N=S_{max}-K.$$
+Applicando ora uno schema di Eulero Implicito per la derivata prima in tempo, giungiamo a:
+\begin{multline}
+\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{a_j(t_{n+1})\phi_j(x)}{\Delta t}\phi_i(x)dx-\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{a_j(t_n)\phi_j(x)}{\Delta t}\phi_i(x)dx\\
++\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}a_j(t_n)\phi_j'(x)\phi_i(x)dx+\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}a_j(t_n)\phi_j''(x)\phi_i(x)dx\\
+=\sum_{j=1}^{N-1}r\int_{\Omega_h}a_j(t_n)\phi_j(x)\phi_i(x)dx,
+\end{multline}
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
