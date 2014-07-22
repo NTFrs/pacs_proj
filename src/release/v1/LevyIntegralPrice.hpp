@@ -166,11 +166,20 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
  }
   }
 
-/// ///////////////////////////////////////////////////////////////////////////
+//////////////////KOU INTEGRAL//////////////////////////////
 
 template<unsigned dim>
-class KouIntegralPrice<dim>: public LevyIntegralPrice {
+class KouIntegralPrice: public LevyIntegralPrice<dim> {
+	
+public:
+	KouIntegralPrice()=delete;
+	KouIntegralPrice(std::vector<Model *> & Models_): LevyIntegralPrice<dim>::LevyIntegralPrice(dealii::Point<dim>(), dealii::Point<dim>(), Models_) {};
 
-  };
+};
+
+template<unsigned dim>
+void KouIntegralPrice<dim>::compute_alpha() {
+	
+}
 
 # endif

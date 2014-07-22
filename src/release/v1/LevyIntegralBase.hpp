@@ -1,5 +1,5 @@
-#ifndef __integral_levy_normal_hpp
-# define __integral_levy_normal_hpp
+#ifndef __integral_levy_base_hpp
+# define __integral_levy_base_hpp
 
 # include "deal_ii.hpp"
 # include "Quadrature.hpp"
@@ -12,43 +12,62 @@
 //inherit rest 
 
 template<unsigned dim>
-class LevyIntegral<dim> {
+class LevyIntegral{
 
 protected:
+	
 	std::vector<double> alpha;
 	dealii::Vector<double> J1, J2;
+	
+	
 	dealii::Point<dim> Bmin, Bmax, Smin, Smax;
 	
+	//should be const? 
 	std::vector<Model *> Mods;
 	
 	bool alpha_ran;
+	bool j_ran;
 	
 	virtual void compute_alpha();
-	virtual void compute_J(/* */) =0;
-
 public:
-	
+		
 	LevyIntegral()=delete;
+	LevyIntegral(dealii::Point<dim> Smin_,  dealii::Point<dim> Smax_,  std::vector<Model *> & Models_): Smin(Smin_), Smax(Smax_), Mods(Models_),  alpha_ran(false) , j_ran(false) {if (Models_.size() !=dim)
+	 std::cerr<< "Wrong dimension! Number of models is different from option dimension\n";};
 	
-	virtual double get_alpha_1() const {if (!alpha_ran)
-							compute_alpha();
+	//would be nice to make it protected,  but need to pass arguments
+	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) =0;
+	
+	virtual double get_alpha_1() {if (!alpha_ran)
+							this->compute_alpha();
 							return alpha[0];}
 	
-	virtual double get_alpha_2() const {if (!alpha_ran)                      // add exception if dim < 2
-							 compute_alpha();
+	virtual double get_alpha_2() {if (!alpha_ran)                      // add exception if dim < 2
+							 this->compute_alpha();
 							 return alpha[1];}
 
-	virtual void get_alpha(std::vector<double> & alp) const {if (!alpha_ran)
-														  compute_alpha();
+	virtual void get_alpha(std::vector<double> & alp) {if (!alpha_ran)
+														  this->compute_alpha();
 															alp=alpha;
 														 return;}
-
-	virtual ~LevyIntegral() {for (unsiged d=0;d<dim;++d) Mods[d]=nullptr;}
+	
+	//add exception
+	virtual void get_j_1(dealii::Vector<double> & J_x) {if (!j_ran)
+															std::cerr<< "Run J first!"<< std::endl;
+														else
+															J_x=J1;}
+	virtual void get_j_both(dealii::Vector<double> & J_x, dealii::Vector<double> & J_y) {if (!j_ran)
+	 std::cerr<< "Run J first!"<< std::endl;
+	 else{J_x=J1;J_y=J2;}}
+	
+	virtual ~LevyIntegral() {for (unsigned d=0;d<dim;++d) Mods[d]=nullptr;}
 };
 
 template<unsigned dim>
-void LevyIntegral< dim >::compute_alpha()
+void LevyIntegral<dim>::compute_alpha()
 {
+	using namespace dealii;
+	double tol=1e-6;
 for (unsigned d=0;d<dim;++d) {
 	Bmin[d]=0.;Bmax[d]=Smax[d];
 	while ((*Mods[d]).density(Bmin[d])>tol)
@@ -91,18 +110,8 @@ for (unsigned d=0;d<dim;++d) {
 	
 }
 
-template<unsigned dim>
-class LevyIntegralPrice: public: LevyIntegral< dim > {
 
-protected:
-	//TODO add exception
-	virtual void compute_J(/**/) {std::cerr<<"Not defined for this dimension"<< std::endl;}
 
-public:
-	LevyIntegralPrice()=delete
-};
 
-template<>
-LevyIntegralPrice<1>::LevyIntegralPrice(Point<1> Smin_,  Point<1> Smax_,  Model * Mod_)
 
 #endif
