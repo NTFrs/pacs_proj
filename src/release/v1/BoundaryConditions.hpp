@@ -9,7 +9,7 @@
  * This class is used to set the boundary conditions of our problems. It works in 1d and 2d and needs to know if the option is a Put or a Call.
  */
 template<unsigned dim>
-class BoundaryCondition: public Function<dim>
+class BoundaryCondition: public dealii::Function<dim>
 {
 public:
         //! Constructor
@@ -21,7 +21,7 @@ public:
          */
 	BoundaryCondition(double K_, double T_,  double r_, OptionType type_)
         :
-        Function<dim>(),
+        dealii::Function<dim>(),
         K(K_),
         T(T_),
         r(r_),
@@ -29,7 +29,7 @@ public:
         {};
         
         //! Function needed by dealii
-	virtual double value (const Point<dim> &p, const unsigned int component =0) const;
+	virtual double value (const dealii::Point<dim> &p, const unsigned int component =0) const;
         
 private:
 	double K;
@@ -39,9 +39,9 @@ private:
 };
 
 template<unsigned dim>
-double BoundaryCondition<dim>::value(const Point<dim> &p, const unsigned int component) const
+double BoundaryCondition<dim>::value(const dealii::Point<dim> &p, const unsigned int component) const
 {
-	Assert (component == 0, ExcInternalError());
+	Assert (component == 0, dealii::ExcInternalError());
         
         double point(0.);
         
