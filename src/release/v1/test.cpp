@@ -1,8 +1,11 @@
 #include <iostream>
 // #include "Levy.hpp"
 #include "LevyIntegralPrice.hpp"
+#include "LevyIntegralLogPrice.hpp"
 #include <vector>
 #include "models.hpp"
+#include "BoundaryConditions.hpp"
+#include "OptionTypes.hpp"
 
 
 /// ////////////////////////////////////////////////////////
@@ -81,13 +84,16 @@ int main(){
 		ModPtr2.push_back(&Mod1);
 		LevyIntegralPrice<1> Int2(dealii::Point<1>(0.),dealii::Point<1>(100.), ModPtr2);
 		*/
+ 
 		vector<Model *> ModPtr;
 		ModPtr.push_back(&Mod1);
 		ModPtr.push_back(&Mod2);
-		
-		LevyIntegralPrice<2> Int(dealii::Point<2>(0., 0.),dealii::Point<2>(100.,100.), ModPtr);
+/*		
+		LevyIntegralPrice<2> Int(dealii::Point<2>(0.5, 0.5),dealii::Point<2>(100.,100.), ModPtr);
 		KouIntegralPrice<2> Kou(ModPtr);
-		
+*/		
+		BoundaryCondition<2> BC(100, 1, 0.03, OptionType::Call);
+		LevyIntegralLogPrice<2> Int(dealii::Point<2>(-2., -2.),dealii::Point<2>(2.,2.), ModPtr, &BC);
 		Triangulation<2> triangulation;
 
 		GridGenerator::hyper_cube (triangulation);
@@ -102,6 +108,8 @@ int main(){
 		  solution[i]=i;
 		
 		Int.compute_J(solution, dof_handler, fe);
+		
+		
 		
 /* 
         BlackScholesModel model(95., 0.120381);
