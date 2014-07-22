@@ -12,7 +12,7 @@
 //inherit rest 
 
 template<unsigned dim>
-class LevyIntegral{
+class LevyIntegralBase{
 
 protected:
 	
@@ -20,7 +20,7 @@ protected:
 	dealii::Vector<double> J1, J2;
 	
 	
-	dealii::Point<dim> Bmin, Bmax, Smin, Smax;
+	dealii::Point<dim> Bmin, Bmax, lower_limit, upper_limit;
 	
 	//should be const? 
 	std::vector<Model *> Mods;
@@ -29,11 +29,14 @@ protected:
 	bool j_ran;
 	
 	virtual void compute_alpha();
+	virtual void compute_Bounds();
+	
 public:
 		
-	LevyIntegral()=delete;
-	LevyIntegral(dealii::Point<dim> Smin_,  dealii::Point<dim> Smax_,  std::vector<Model *> & Models_): Smin(Smin_), Smax(Smax_), Mods(Models_),  alpha_ran(false) , j_ran(false) {if (Models_.size() !=dim)
-	 std::cerr<< "Wrong dimension! Number of models is different from option dimension\n";};
+	LevyIntegralBase()=delete;
+	LevyIntegralBase(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,  std::vector<Model *> & Models_): lower_limit(lower_limit_), upper_limit(upper_limit_), Mods(Models_),  alpha_ran(false) , j_ran(false) {if (Models_.size() !=dim)
+	 std::cerr<< "Wrong dimension! Number of models is different from option dimension\n";
+	 this->compute_Bounds();};
 	
 	//would be nice to make it protected,  but need to pass arguments
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) =0;
@@ -60,21 +63,28 @@ public:
 	 std::cerr<< "Run J first!"<< std::endl;
 	 else{J_x=J1;J_y=J2;}}
 	
-	virtual ~LevyIntegral() {for (unsigned d=0;d<dim;++d) Mods[d]=nullptr;}
+	virtual ~LevyIntegralBase() {for (unsigned d=0;d<dim;++d) Mods[d]=nullptr;}
 };
 
 template<unsigned dim>
-void LevyIntegral<dim>::compute_alpha()
+void LevyIntegralBase<dim>::compute_Bounds() {
+	double tol=1e-6;
+	for (unsigned d=0;d<dim;++d) {
+	 Bmin[d]=lower_limit(d);Bmax[d]=upper_limit(d);
+	 while ((*Mods[d]).density(Bmin[d])>tol)
+	 Bmin[d]+=-0.5;
+	 while ((*Mods[d]).density(Bmax[d])>tol)
+	 Bmax[d]+=0.5;
+
+}
+}
+
+template<unsigned dim>
+void LevyIntegralBase<dim>::compute_alpha()
 {
 	using namespace dealii;
-	double tol=1e-6;
 for (unsigned d=0;d<dim;++d) {
-	Bmin[d]=0.;Bmax[d]=Smax[d];
-	while ((*Mods[d]).density(Bmin[d])>tol)
-		Bmin[d]+=-0.5;
-	while ((*Mods[d]).density(Bmax[d])>tol)
-		Bmax[d]+=0.5;
-	
+
 	
 	 Triangulation<1> integral_grid;
 	 FE_Q<1> fe2(1);
