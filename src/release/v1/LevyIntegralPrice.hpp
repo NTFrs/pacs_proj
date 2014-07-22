@@ -4,7 +4,7 @@
 #include "LevyIntegralBase.hpp"
 
 template<unsigned dim>
-class LevyIntegralPrice: public LevyIntegral< dim > {
+class LevyIntegralPrice: public LevyIntegralBase< dim > {
 
 
 public:
@@ -12,7 +12,7 @@ public:
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) {std::cerr<<"Not defined for this dimension"<< std::endl;}
 
 	LevyIntegralPrice()=delete;
-	LevyIntegralPrice(dealii::Point<dim> Smin_,  dealii::Point<dim> Smax_,  std::vector<Model *> & Models_): LevyIntegral<dim>::LevyIntegral(Smin_, Smax_, Models_) {};
+	LevyIntegralPrice(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,  std::vector<Model *> & Models_): LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_) {};
   };
 
 template<>
@@ -76,10 +76,10 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	 typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
 	 bool left(false),  bottom(false);
 
-	 if (fabs(actual_vertex[0]-Smin[0])<grid_tol) {
+	 if (fabs(actual_vertex[0]-lower_limit[0])<grid_tol) {
 	  left=true;
 	}
-	 if (fabs(actual_vertex[1]-Smin[1])<grid_tol) {
+	 if (fabs(actual_vertex[1]-lower_limit[1])<grid_tol) {
 	  bottom=true;
 	// 	    cout<< "it's a bottom node \n";
 	}
@@ -176,10 +176,10 @@ public:
 	KouIntegralPrice(std::vector<Model *> & Models_): LevyIntegralPrice<dim>::LevyIntegralPrice(dealii::Point<dim>(), dealii::Point<dim>(), Models_) {};
 
 };
-
+/*
 template<unsigned dim>
 void KouIntegralPrice<dim>::compute_alpha() {
 	
-}
+}*/
 
 # endif
