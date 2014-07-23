@@ -349,7 +349,7 @@ Applicando ora uno schema di Eulero Implicito per la derivata prima in tempo, gi
 \end{multline}
 $\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Poniamo infine:
 \begin{align*}
-a_{ij}&=\int_{\Omega_h}\phi_i(x)\phi_j(x)dx,\\
+a_{ij}&=\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,\\
 b_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i(x)dx,\\
 c_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i'(x)dx.
 \end{align*}
@@ -363,10 +363,21 @@ Concentriamoci ora sulla parte integrale della \ref{pide1dlog}:$$\int_\mathbb{R}
 ottenendo: $$\der{u}{t}+\left(r-\frac{\sigma^2}{2}-\hat{\alpha}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-(r+\hat{\lambda})u+\int_\mathbb{R}u(t,x+y)\nu(y)dy=0.$$
 Sappiamo inoltre dalla teoria che $\hat{\lambda}=\lambda$, poich\'e integrando la densit\`a di L\'evy otteniamo l'intensit\`a dei salti. Per quanto riguarda invece il calcolo numerico dei due integrali, pooch\'e le densit\`a con cui abbiamo a che fare sono gaussiane o esponenziali, abbiamo utilizzato delle formule di quadratura rispettivamente di Gauss-Hermite e di Gauss-Laguerre. Per esempio, se consideriamo la densit\`a di L\'evy di Merton, $\nu$ \`e nella forma \ref{merton}, perci\`o, a meno di costanti,
 \begin{align*}
-\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)Ae^{-By^2}dy\\
-&\simeq\sum_{j=0}^{Q}(e^{q_j}-1)w_j,
+\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)Ae^{-B(y-\mu)^2}dy\\
+&\simeq A\sum_{j=0}^{Q}(e^{q_j}-1)w_j,
 \end{align*}
-dove $q_j$ sono i nodi di quadratura su $\mathbb{R}$, mentre $w_j$ sono i pesi che inglobano gi\`a il nucleo guassiano.
+dove $q_j$ sono i nodi di quadratura su $\mathbb{R}$, mentre $w_j$ sono i pesi che inglobano gi\`a il nucleo guassiano. Lo stesso metodo viene utilizzato anche per il nucleo di Kou, con l'accortezza di spezzare l'integrale fra $(-\infty,0)$ e $(0,\infty)$ poich\'e il parametro dell'esponenziale \`e diverso.\\\\Focalizziamoci ora sul calcolo dell'ultimo integrale rimasto, cio\`e:
+\begin{equation}
+\int_\mathbb{R}u(t,x+y)\nu(y)dy,
+\label{intnonlocal}
+\end{equation}
+e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e quindi la seguente:$$M_1u^n=M_2n^{n+1}+AJ,$$ in cui: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che il calcolo dell'integrale viene fatto esplicitamente. Un calcolo implicito richiederebbe infatti la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
+\begin{align*}
+&\int_{\Omega_h}\phi_i(x)\left( \int_{\mathbb{R}}\sum_{j=1}^N u_j^k \phi_j(x+y)\nu(y)dy \right)dx=\\ 
+&\sum_{j=1}^N  \int_{\Omega_h}\int_{\mathbb{R}} \phi_i(x)\phi_j(x+y)\nu(y)dxdy,
+\end{align*}
+che potremmo anche riscrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come: $$d_{ij}=\sum_{j=1}^N  \int_{\Omega_h} \int_{\mathbb{R}} \phi_i(x)\phi_j(z)\nu(z-x)dzdx.$$In tal caso, potremmo porre $\{D\}_{ij}=d_{ij}$ ottenendo:$$M_1u^n=M_2u^{n+1}+Du^{n+1}.$$
+
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
