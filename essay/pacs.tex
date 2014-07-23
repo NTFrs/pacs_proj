@@ -102,10 +102,12 @@
 	
 	\clearpage
 
+\clearpage
+\thispagestyle{plain}
+\par\vspace*{.35\textheight}{\raggedleft An approximate answer to the right problem is worth a good deal more than an exact answer to an approximate problem.\par}
+\par\vspace{1cm}{\raggedleft John Tukey\par}
 
 \tableofcontents
-
-\setcounter{secnumdepth}{0}
 
 \chapter*{Introduzione}
 
@@ -332,8 +334,9 @@ Come \`e facile osservare $x\in(-\infty,\infty)$, perci\`o \`e necessario adotta
 \begin{align*}
 S_{min}&=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\right),\\
 S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right),
+\label{cut}
 \end{align*}
-dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$u_{min}=log(\sfrac{S_{min}}{S_0}), \qquad u_{max}=log(\sfrac{S_{max}}{S_0}).$$
+dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$x_{min}=log(\sfrac{S_{min}}{S_0}), \qquad x_{max}=log(\sfrac{S_{max}}{S_0}).$$
 \subsection{Discretizzazione della PDE}
 Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`e la sola PDE del modello di \emph{Black\&Scholes}. Siano quindi $\Omega_h$ una triangolazione con $N+1$ nodi di $\Omega=[x_{min},x_{max}]$ e $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ una griglia temporale. Cerchiamo una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}a_j(t_n)\phi_j(x),$$ dove $a_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\Passiamo ora alla formulazione debole del problema \ref{callbs1d}:
 \begin{multline}
@@ -371,12 +374,60 @@ dove $q_j$ sono i nodi di quadratura su $\mathbb{R}$, mentre $w_j$ sono i pesi c
 \int_\mathbb{R}u(t,x+y)\nu(y)dy,
 \label{intnonlocal}
 \end{equation}
-e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e quindi la seguente:$$M_1u^n=M_2n^{n+1}+AJ,$$ in cui: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che il calcolo dell'integrale viene fatto esplicitamente. Un calcolo implicito richiederebbe infatti la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
+e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e quindi la seguente:$$M_1u^n=M_2n^{n+1}+AJ,$$ in cui: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che l'integrale viene calcolato esplicitamente. D'altro canto, un calcolo implicito richiederebbe la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer. Dalla teoria sappiamo che questo metodo, detto \emph{operator splitting}, \`e stabile se: $$\Delta t\leq\sfrac{1}{\lambda},$$una condizione molto semplice da soddisfare.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
 \begin{align*}
 &\int_{\Omega_h}\phi_i(x)\left( \int_{\mathbb{R}}\sum_{j=1}^N u_j^k \phi_j(x+y)\nu(y)dy \right)dx=\\ 
 &\sum_{j=1}^N  \int_{\Omega_h}\int_{\mathbb{R}} \phi_i(x)\phi_j(x+y)\nu(y)dxdy,
 \end{align*}
-che potremmo anche riscrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come: $$d_{ij}=\sum_{j=1}^N  \int_{\Omega_h} \int_{\mathbb{R}} \phi_i(x)\phi_j(z)\nu(z-x)dzdx.$$In tal caso, potremmo porre $\{D\}_{ij}=d_{ij}$ ottenendo:$$M_1u^n=M_2u^{n+1}+Du^{n+1}.$$
+che potremmo anche riscrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come: $$d_{ij}=\sum_{j=1}^N  \int_{\Omega_h} \int_{\mathbb{R}} \phi_i(x)\phi_j(z)\nu(z-x)dzdx.$$In tal caso, potremmo porre $\{D\}_{ij}=d_{ij}$ ottenendo:$$M_1u^n=M_2u^{n+1}+Du^{n+1}.$$Questo metodo permette di calcolare una sola volta la matrice piena $D$, e poi moltiplicarla ogni volta per la soluzione al passo precedente (cio\`e $n+1$). Nonostante questa idea possa portare a un calcolo pi\`u veloce della parte integrale $J=Du^{n+1}$, anche questo metodo costringerebbe a tenere in memoria una matrice piena, quindi non \`e praticabile.\\\\Siamo giunti quindi alla discretizzazione completa della PIDE 1d con la trasformazione \emph{log-price}. Nei prossimi paragrafi mostriamo la discretizzazione della PIDE 2d.
+\subsection{Discretizzazione della PIDE bidimensionale}
+Trattiamo ora la PIDE bidimensionale riportata in \ref{pide2d}. Tramite il cambio di variabile $x_1=log(\sfrac{S_1}{S_{1,0}})$, $x_2=log(\sfrac{S_2}{S_{2,0}})$, $u=u(t, x_1, x_2)$, otteniamo:
+\begin{multline}
+\der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
+\left(r-\sigma_1^2\right)\der{u}{x_1}+
+\left(r-\sigma_2^2\right)\der{u}{x_2}-ru\\
++\int_\mathbb{R}\left( u(t,x_1+y,x_2)-u(t,x_1,x_2)-(e^y-1)\der{u}{x_1}\right)k_1(y)dy\\
++\int_\mathbb{R}\left( u(t,x_1,x_2+y)-u(t,x_1,x_2)-(e^y-1)\der{u}{x_2}\right)k_2(y)dy=0.
+\label{pide2dcostcoeff}
+\end{multline}
+Ponendo come sopra:$$\hat{\lambda_i}=\int_\mathbb{R}\nu_i(y)dy \qquad \hat{\alpha_i}=\int_\mathbb{R}(e^y-1)\nu_i(y)dy,$$abbiamo:
+\begin{multline}
+\der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
+\left(r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}\right)\der{u}{x_1}\\+
+\left(r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}\right)\der{u}{x_2}-(r+\hat{\lambda_1}+\hat{\lambda_2})u\\+
+\int_\mathbb{R}u(t,x_1+y,x_2)\nu_1(y)dy+
+\int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0.
+\label{pide2dcostcoeff2}
+\end{multline}
+Di nuovo, applichiamo un troncamento al dominio calcolando $\{x_{min}^1, x_{max}^1\}$ e $\{x_{min}^2, x_{max}^2\}$ come in \ref{cut} e definiamo una triangolazione $\Omega_h$ sull'insieme sul rettangolo di vertici $(x_{min}^1, x_{min}^2)$, $(x_{max}^1, x_{max}^2)$, la griglia temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ e uno spazio $\mathbb{P}_h^1$ in cui cerchiamo la soluzione $u_h$.
+Prima di passare alla formulazione debole, osserviamo che l'equazione pu\`o essere scritta nel seguente modo:
+\begin{multline}
+\der{u}{t}+\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\nabla u+\frac{1}{2}div\left(\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla u\right)-(r+\hat{\lambda_1}+\hat{\lambda_2})u\\
++\int_\mathbb{R}u(t,x_1+y,x_2)\nu_1(y)dy+
+\int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0.
+\end{multline}
+Osserviamo inoltre che, pur essendo un'equazione bidimensionale, la parte integrale rimane in una sola dimensione, quindi per valutare i due integrali occorre calcolare due vettori, $J_1$ e $J_2$:
+\begin{align*}
+J_1^i&=J_1(x^i)=\int_\mathbb{R}u(t,x_1^i+y,x_2^i)\nu_1(y)dy,\\
+J_2^i&=J_2(x^i)=\int_\mathbb{R}u(t,x_1^i,x_2^i+y)\nu_2(y)dy,
+\end{align*}
+nei diversi nodi $x^i$ della griglia bidimensionale. Siamo quindi pronti a scrivere la formulazione debole del problema \ref{pide2dcostcoeff2}:
+\begin{multline}
+\sum_{j=0}^{N}\int_{\Omega_h}\frac{\partial}{\partial t}\left(a_j(t)\phi_j(x,y)\phi_i(x,y)\right)d\Omega\\
++\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\int_{\Omega_h}a_j(t)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
+-\frac{1}{2}\sum_{j=0}^{N}\int_{\Omega_h}a_j(t)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
+-(r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\int_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega\\
++\sum_{j=0}^{N}J^j_1\int_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\int_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega=0,
+\end{multline}
+e la discretizzazione in tempo con uno schema di Eulero Implicito:
+\begin{multline}
+\sum_{j=0}^{N}\int_{\Omega_h}\frac{a_j(t_{n+1})}{\Delta t}\phi_j(x,y)\phi_i(x,y)d\Omega\\
++\sum_{j=0}^{N}J^j_1\int_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\int_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega=\\
+-\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\int_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
++\frac{1}{2}\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
++(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
+\end{multline}
+A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+DJ_1^{n+1}+DJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $D$ \`e la matrice di massa.
 
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
