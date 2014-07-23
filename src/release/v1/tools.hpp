@@ -107,18 +107,17 @@ namespace tools{
         template<int dim>
         class Solution_Trimmer: public dealii::Function<dim>
         {
-        private:
+        protected:
                 unsigned int _ax;
                 //check that this causes no memory leaks while keeping hereditariety
-                dealii::Function<dim> * _left;  
-                dealii::Function<dim> * _right;
+                dealii::Function<dim> & _BC;  
                 dealii::DoFHandler<dim> const & _dof;
                 dealii::Vector<double> const & _sol;
                 dealii::Point<dim> _l_lim, _r_lim;
                 dealii::Functions::FEFieldFunction<dim> _fe_func;
                 
         public:
-                Solution_Trimmer(unsigned int ax, dealii::Function<dim> * left,  dealii::Function<dim> * right, dealii::DoFHandler<dim> const & dof, dealii::Vector<double> const & sol,  dealii::Point<dim> const & xmin, dealii::Point<dim> const & xmax): _ax(ax), _left(left),  _right(right),  _dof(dof), _sol(sol), _l_lim(xmin), _r_lim(xmax) , _fe_func(_dof, _sol){};
+                Solution_Trimmer(unsigned int ax,   dealii::Function<dim> & BC, dealii::DoFHandler<dim> const & dof, dealii::Vector<double> const & sol,  dealii::Point<dim> const & xmin, dealii::Point<dim> const & xmax): _ax(ax), _BC(BC),  _dof(dof), _sol(sol), _l_lim(xmin), _r_lim(xmax) , _fe_func(_dof, _sol){};
                 
                 virtual double value(const dealii::Point<dim> &p,  const unsigned int component=0) const;
                 virtual void value_list(const std::vector<dealii::Point<dim> > &points,
@@ -133,9 +132,9 @@ namespace tools{
                 Assert (component == 0, ExcInternalError());
                 
                 if (p[_ax]<_l_lim[_ax])
-                        return _left->value(p);
+                        return _BC.value(p);
                 if (p[_ax]>_r_lim[_ax])
-                        return _right->value(p);
+                        return _BC.value(p);
                 return _fe_func.value(p);  
                 
         }
@@ -152,9 +151,9 @@ namespace tools{
                 for (unsigned int i=0;i<n_points;++i)
                 {
                         if (points[i][_ax]<_l_lim[_ax])
-                                values[i]=_left->value(points[i]);
+                                values[i]=_BC.value(points[i]);
                         else if (points[i][_ax]>_r_lim[_ax])
-                                values[i]=_right->value(points[i]);
+                                values[i]=_BC.value(points[i]);
                         else
                                 values[i]=_fe_func.value(points[i]);
                 }

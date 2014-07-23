@@ -6,6 +6,7 @@
 # include "Densities.hpp"
 # include "tools.hpp"
 #include "models.hpp"
+#include "constants.hpp"
 
 //TODO
 //constructor
@@ -73,12 +74,11 @@ public:
 
 template<unsigned dim>
 void LevyIntegralBase<dim>::compute_Bounds() {
-	double tol=1e-6;
 	for (unsigned d=0;d<dim;++d) {
                 Bmin[d]=lower_limit(d);Bmax[d]=upper_limit(d);
-                while ((*Mods[d]).density(Bmin[d])>tol)
+                while ((*Mods[d]).density(Bmin[d])>constants::light_toll)
                         Bmin[d]+=-0.5;
-                while ((*Mods[d]).density(Bmax[d])>tol)
+				while ((*Mods[d]).density(Bmax[d])>constants::light_toll)
                         Bmax[d]+=0.5;
                 
         }

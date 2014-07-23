@@ -15,6 +15,7 @@ public:
 	LevyIntegralPrice(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,  std::vector<Model *> & Models_): LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_) {};
 };
 
+
 template<>
 void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<1> & dof_handler, dealii::FE_Q<1> & fe) {
 	using namespace dealii;
@@ -53,8 +54,10 @@ void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 template<>
 void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<2> & dof_handler, dealii::FE_Q<2> & fe) {
 	using namespace dealii;
-	double grid_tol(1.0e-6);
-        
+	
+    
+    std::cout<< "I'm computing J from LevyPrice\n";
+    
 	J1.reinit(sol.size());J2.reinit(sol.size());
         
 	QGauss<1> quad1D(3);    
@@ -76,10 +79,10 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                 typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
                 bool left(false),  bottom(false);
                 
-                if (fabs(actual_vertex[0]-lower_limit[0])<grid_tol) {
+                if (fabs(actual_vertex[0]-lower_limit[0])<constants::light_toll) {
                         left=true;
                 }
-                if (fabs(actual_vertex[1]-lower_limit[1])<grid_tol) {
+                if (fabs(actual_vertex[1]-lower_limit[1])<constants::light_toll) {
                         bottom=true;
                         // 	    cout<< "it's a bottom node \n";
                 }
@@ -123,7 +126,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                         }
                         
                         
-                        if (fabs(inner_cell->face(3)->center()(1)-actual_vertex(1))<grid_tol) 
+                        if (fabs(inner_cell->face(3)->center()(1)-actual_vertex(1))<constants::light_toll) 
                         {
                                 // 		  cout<< "\t\t operating on upper face\n";
                                 unsigned face(3);
@@ -142,7 +145,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 
                         }
                         
-                        if (fabs(inner_cell->face(1)->center()(0)-actual_vertex(0))<grid_tol) 
+                        if (fabs(inner_cell->face(1)->center()(0)-actual_vertex(0))<constants::light_toll) 
                         {
                                 // 			cout<< "\t\t Operating on right face\n";
                                 unsigned face(1);
@@ -166,20 +169,5 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         }
 }
 
-//////////////////KOU INTEGRAL//////////////////////////////
-
-template<unsigned dim>
-class KouIntegralPrice: public LevyIntegralPrice<dim> {
-	
-public:
-	KouIntegralPrice()=delete;
-	KouIntegralPrice(std::vector<Model *> & Models_): LevyIntegralPrice<dim>::LevyIntegralPrice(dealii::Point<dim>(), dealii::Point<dim>(), Models_) {};
-        
-};
-/*
- template<unsigned dim>
- void KouIntegralPrice<dim>::compute_alpha() {
- 
- }*/
 
 # endif
