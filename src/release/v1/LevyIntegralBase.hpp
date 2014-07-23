@@ -11,6 +11,11 @@
 //constructor
 //inherit rest 
 
+//! Abstract class 
+/*!
+ * This class gives the base for the classes calculating the integral part of the equation. It implements the function that calculates the fist part for a generic model.
+ */
+
 template<unsigned dim>
 class LevyIntegralBase{
 
