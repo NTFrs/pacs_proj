@@ -72,43 +72,54 @@ int main(){
 	
         using namespace dealii;
         
-        KouModel Mod1(100,0.2, 0.5, 3, 2, 4);
-        KouModel Mod2(120, 0.25, 0.4, 4, 1, 5);
+        KouModel Mod1(95,0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
+		KouModel Mod2(95,0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
-        /*
-         vector<Model *> ModPtr2;
-         ModPtr2.push_back(&Mod1);
-         LevyIntegralPrice<1> Int2(dealii::Point<1>(0.),dealii::Point<1>(100.), ModPtr2);
-         */
-        
-        vector<Model *> ModPtr;
-        ModPtr.push_back(&Mod1);
-        ModPtr.push_back(&Mod2);
+        vector<Model *> ModPtr1;
+        ModPtr1.push_back(&Mod1);
+         
+        vector<Model *> ModPtr2;
+        ModPtr2.push_back(&Mod1);
+        ModPtr2.push_back(&Mod2);
         		
-         LevyIntegralPrice<2> Int(dealii::Point<2>(0.5, 0.5),dealii::Point<2>(100.,100.), ModPtr);
-        cerr<< "I'm here\n";
-// 		LevyIntegralPriceKou<2> Kou(ModPtr);
-        std::cerr<<"alpha is"<<  Int.get_alpha_1()<< std::endl; 		
+		LevyIntegralPriceKou<1> Kou(ModPtr1, false);
+		std::cerr<<"alpha KOU is"<<  Kou.get_alpha_1()<< std::endl;
+
+		LevyIntegralPriceKou<2> Kou2(ModPtr2);
+		std::cerr<<"alpha KOU2 is"<<  Kou2.get_alpha_1()<< std::endl;
+        
         /*
 		BoundaryCondition<2> BC(100, 1, 0.03, OptionType::Call);
         LevyIntegralLogPrice<2> Int(dealii::Point<2>(-2., -2.),dealii::Point<2>(2.,2.), ModPtr, BC);
 		*/
+	Triangulation<1> triangulation;
+
+	GridGenerator::hyper_cube (triangulation);
+	triangulation.refine_global (4);
+	FE_Q<1>              fe(1);
+	DoFHandler<1>        dof_handler(triangulation);
+
+	dof_handler.distribute_dofs(fe);
+	Vector<double> solution;
+	solution.reinit(dof_handler.n_dofs());
+	for (unsigned i=0;i<solution.size();++i)
+	solution[i]=i;
+
+        Triangulation<2> triangulation2;
         
-        Triangulation<2> triangulation;
+        GridGenerator::hyper_cube (triangulation2);
+        triangulation2.refine_global (4);
+        FE_Q<2>              fe2(1);
+        DoFHandler<2>        dof_handler2(triangulation2);
         
-        GridGenerator::hyper_cube (triangulation);
-        triangulation.refine_global (4);
-        FE_Q<2>              fe(1);
-        DoFHandler<2>        dof_handler(triangulation);
+        dof_handler2.distribute_dofs(fe2);
+        Vector<double> solution2;
+        solution2.reinit(dof_handler2.n_dofs());
+        for (unsigned i=0;i<solution2.size();++i)
+                solution2[i]=i;
         
-        dof_handler.distribute_dofs(fe);
-        Vector<double> solution;
-        solution.reinit(dof_handler.n_dofs());
-        for (unsigned i=0;i<solution.size();++i)
-                solution[i]=i;
-        
-//         Kou.compute_J(solution, dof_handler, fe);
-        
+        Kou.compute_J(solution, dof_handler, fe);
+		Kou2.compute_J(solution2, dof_handler2, fe2);
         
         
         /* 

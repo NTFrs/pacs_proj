@@ -20,6 +20,8 @@ template<>
 void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<1> & dof_handler, dealii::FE_Q<1> & fe) {
 	using namespace dealii;
 	J1.reinit(sol.size());
+	
+	std::cout<< "I'm computing J from LevyPrice<1>\n";
         
 	QGauss<1> quadrature_formula(5);
 	FEValues<1> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
@@ -56,7 +58,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace dealii;
 	
     
-    std::cout<< "I'm computing J from LevyPrice\n";
+    std::cout<< "I'm computing J from LevyPrice<2>\n";
     
 	J1.reinit(sol.size());J2.reinit(sol.size());
         

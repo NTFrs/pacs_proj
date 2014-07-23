@@ -88,6 +88,7 @@ template<unsigned dim>
 void LevyIntegralBase<dim>::compute_alpha()
 {
 	using namespace dealii;
+	alpha=std::vector<double>(dim, 0.);
         for (unsigned d=0;d<dim;++d) {
                 
                 
@@ -115,7 +116,7 @@ void LevyIntegralBase<dim>::compute_alpha()
                         
                         for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                 Point<dim> p;
-                                p[d]=quad_points_1D[q_point][d];
+                                p[d]=quad_points_1D[q_point][0];
                                 alpha[d]+=fe_values.JxW(q_point)*(exp(p[d])-1.)*(*Mods[d]).density(p[d]);
                         }
                 }
