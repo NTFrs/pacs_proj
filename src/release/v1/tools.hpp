@@ -102,63 +102,63 @@ namespace tools{
         }
         
         
-//same,  added a private variable indicating wih ax
-//TODO delete default constructor
-template<int dim>
-class Solution_Trimmer: public dealii::Function<dim>
-{
-private:
-	unsigned int _ax;
-	//check that this causes no memory leaks while keeping hereditariety
-	dealii::Function<dim> * _left;  
-	dealii::Function<dim> * _right;
-	dealii::DoFHandler<dim> const & _dof;
-	dealii::Vector<double> const & _sol;
-	dealii::Point<dim> _l_lim, _r_lim;
-	dealii::Functions::FEFieldFunction<dim> _fe_func;
-
-public:
-	Solution_Trimmer(unsigned int ax, dealii::Function<dim> * left,  dealii::Function<dim> * right, dealii::DoFHandler<dim> const & dof, dealii::Vector<double> const & sol,  dealii::Point<dim> const & xmin, dealii::Point<dim> const & xmax): _ax(ax), _left(left),  _right(right),  _dof(dof), _sol(sol), _l_lim(xmin), _r_lim(xmax) , _fe_func(_dof, _sol){};
-
-	virtual double value(const dealii::Point<dim> &p,  const unsigned int component=0) const;
-	virtual void value_list(const std::vector<dealii::Point<dim> > &points,
-	 std::vector<double> &values,
-	 const unsigned int component = 0) const;
-};
-
-template<int dim>
-double Solution_Trimmer<dim>::value(const dealii::Point<dim> &p,  const unsigned int component) const
-{
-	using namespace dealii;
-	Assert (component == 0, ExcInternalError());
-
-	if (p[_ax]<_l_lim[_ax])
-	return _left->value(p);
-	if (p[_ax]>_r_lim[_ax])
-	return _right->value(p);
-	return _fe_func.value(p);  
-
-}
-
-template<int dim>
-void Solution_Trimmer<dim>::value_list(const std::vector<dealii::Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
-{ using namespace dealii;
-	Assert (values.size() == points.size(),
-	 ExcDimensionMismatch (values.size(), points.size()));
-	Assert (component == 0, ExcInternalError());
-
-	const unsigned int n_points=points.size();
-
-	for (unsigned int i=0;i<n_points;++i)
-	{
-	 if (points[i][_ax]<_l_lim[_ax])
-	 values[i]=_left->value(points[i]);
-	 else if (points[i][_ax]>_r_lim[_ax])
-	 values[i]=_right->value(points[i]);
-	 else
-	 values[i]=_fe_func.value(points[i]);
- }
-}
+        //same,  added a private variable indicating wih ax
+        //TODO delete default constructor
+        template<int dim>
+        class Solution_Trimmer: public dealii::Function<dim>
+        {
+        private:
+                unsigned int _ax;
+                //check that this causes no memory leaks while keeping hereditariety
+                dealii::Function<dim> * _left;  
+                dealii::Function<dim> * _right;
+                dealii::DoFHandler<dim> const & _dof;
+                dealii::Vector<double> const & _sol;
+                dealii::Point<dim> _l_lim, _r_lim;
+                dealii::Functions::FEFieldFunction<dim> _fe_func;
+                
+        public:
+                Solution_Trimmer(unsigned int ax, dealii::Function<dim> * left,  dealii::Function<dim> * right, dealii::DoFHandler<dim> const & dof, dealii::Vector<double> const & sol,  dealii::Point<dim> const & xmin, dealii::Point<dim> const & xmax): _ax(ax), _left(left),  _right(right),  _dof(dof), _sol(sol), _l_lim(xmin), _r_lim(xmax) , _fe_func(_dof, _sol){};
+                
+                virtual double value(const dealii::Point<dim> &p,  const unsigned int component=0) const;
+                virtual void value_list(const std::vector<dealii::Point<dim> > &points,
+                                        std::vector<double> &values,
+                                        const unsigned int component = 0) const;
+        };
+        
+        template<int dim>
+        double Solution_Trimmer<dim>::value(const dealii::Point<dim> &p,  const unsigned int component) const
+        {
+                using namespace dealii;
+                Assert (component == 0, ExcInternalError());
+                
+                if (p[_ax]<_l_lim[_ax])
+                        return _left->value(p);
+                if (p[_ax]>_r_lim[_ax])
+                        return _right->value(p);
+                return _fe_func.value(p);  
+                
+        }
+        
+        template<int dim>
+        void Solution_Trimmer<dim>::value_list(const std::vector<dealii::Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
+        { using namespace dealii;
+                Assert (values.size() == points.size(),
+                        ExcDimensionMismatch (values.size(), points.size()));
+                Assert (component == 0, ExcInternalError());
+                
+                const unsigned int n_points=points.size();
+                
+                for (unsigned int i=0;i<n_points;++i)
+                {
+                        if (points[i][_ax]<_l_lim[_ax])
+                                values[i]=_left->value(points[i]);
+                        else if (points[i][_ax]>_r_lim[_ax])
+                                values[i]=_right->value(points[i]);
+                        else
+                                values[i]=_fe_func.value(points[i]);
+                }
+        }
         
         
 }

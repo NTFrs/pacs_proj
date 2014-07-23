@@ -5,7 +5,7 @@
 
 
 class DensityBase {
-
+        
 public:
 	virtual double operator()(double pt) const =0;
 };
@@ -16,7 +16,7 @@ public:
  */
 
 class Kou_Density: public DensityBase {
-
+        
 public:
 	//! Constructor
 	/*!

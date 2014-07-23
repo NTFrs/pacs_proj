@@ -49,13 +49,13 @@ double BoundaryCondition<dim>::value(const dealii::Point<dim> &p, const unsigned
                 point+=p(i);
                 
         }
-
+        
         if (type==OptionType::Put)
                 return  (K*exp(-r*(T-this->get_time()))-point>0.)?
-                        (K*exp(-r*(T-this->get_time()))-point):0.;
+                (K*exp(-r*(T-this->get_time()))-point):0.;
         else
                 return  (point-K*exp(-r*(T-this->get_time()))>0.)?
-                        (point-K*exp(-r*(T-this->get_time()))):0.;
+                (point-K*exp(-r*(T-this->get_time()))):0.;
         
 }
 

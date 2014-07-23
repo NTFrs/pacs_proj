@@ -196,26 +196,26 @@ void LevyIntegral<1>::get_part2(dealii::Vector<double> &J,
 	vector< Point <1> > quad_points(n_q_points);
 	Point<1> logz(0.);
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-
+        
 	tools::Vertex_Iterator<1> verts(dof_handler);
 	
 	for (; !verts.at_end();++verts) {
-                        
-	  Point<1> actual_vertex=*verts;
-	  unsigned it=verts.get_global_index();
-				
-                                cell=dof_handler.begin_active();
-                                
-                                for (; cell!=endc;++cell) {
-                                        fe_values.reinit(cell);
-                                        quad_points=fe_values.get_quadrature_points();
-                                        fe_values.get_function_values(solution, sol_cell);                        
-                                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
-                                                logz(0)=log(quad_points[q_point](0)/actual_vertex(0));
-                                                J[it]+=fe_values.JxW(q_point)*sol_cell[q_point]*(*density).value(logz)/quad_points[q_point](0);
-                                        }
-                                }
+                
+                Point<1> actual_vertex=*verts;
+                unsigned it=verts.get_global_index();
+                
+                cell=dof_handler.begin_active();
+                
+                for (; cell!=endc;++cell) {
+                        fe_values.reinit(cell);
+                        quad_points=fe_values.get_quadrature_points();
+                        fe_values.get_function_values(solution, sol_cell);                        
+                        for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+                                logz(0)=log(quad_points[q_point](0)/actual_vertex(0));
+                                J[it]+=fe_values.JxW(q_point)*sol_cell[q_point]*(*density).value(logz)/quad_points[q_point](0);
                         }
+                }
+        }
         
         return;
 }
@@ -283,27 +283,27 @@ adapting(adapting_)
         
 }
 /*
-// 2d constructor (to do)
-template <unsigned dim>
-KouIntegral<dim>::KouIntegral(KouModel * const p,
-                            dealii::Point<dim> Smin_,
-                            dealii::Point<dim> Smax_,
-                            bool adapting_,
-                            double toll_)
-{}
-
-template <unsigned dim>
-double KouIntegral<dim>::get_part1(){ return 0; }
-
-template <unsigned dim>
-void KouIntegral<dim>::setup_quadrature_rigth(unsigned n){}
-
-template <unsigned dim>
-void KouIntegral<dim>::setup_quadrature_left(unsigned n){}
-
-template <unsigned dim>
-void KouIntegral<dim>::setup_quadrature_points(){}
-*/
+ // 2d constructor (to do)
+ template <unsigned dim>
+ KouIntegral<dim>::KouIntegral(KouModel * const p,
+ dealii::Point<dim> Smin_,
+ dealii::Point<dim> Smax_,
+ bool adapting_,
+ double toll_)
+ {}
+ 
+ template <unsigned dim>
+ double KouIntegral<dim>::get_part1(){ return 0; }
+ 
+ template <unsigned dim>
+ void KouIntegral<dim>::setup_quadrature_rigth(unsigned n){}
+ 
+ template <unsigned dim>
+ void KouIntegral<dim>::setup_quadrature_left(unsigned n){}
+ 
+ template <unsigned dim>
+ void KouIntegral<dim>::setup_quadrature_points(){}
+ */
 // template <>
 double KouIntegral<1>::get_part1()
 {

@@ -62,99 +62,93 @@
 #include <fstream>
 #include <iostream>
 
-/// /////////////////////////////////////////////////////////////////
-
-
-
-
-
-
+/////////////////////////////////////////////////////////////////////
 
 using namespace std;
 
 int main(){
 	
-		using namespace dealii;
-		
-		KouModel Mod1(100,0.2, 0.5, 3, 2, 4);
-		KouModel Mod2(120, 0.25, 0.4, 4, 1, 5);
-
-		/*
-		vector<Model *> ModPtr2;
-		ModPtr2.push_back(&Mod1);
-		LevyIntegralPrice<1> Int2(dealii::Point<1>(0.),dealii::Point<1>(100.), ModPtr2);
-		*/
- 
-		vector<Model *> ModPtr;
-		ModPtr.push_back(&Mod1);
-		ModPtr.push_back(&Mod2);
-/*		
-		LevyIntegralPrice<2> Int(dealii::Point<2>(0.5, 0.5),dealii::Point<2>(100.,100.), ModPtr);
-		KouIntegralPrice<2> Kou(ModPtr);
-*/		
-		BoundaryCondition<2> BC(100, 1, 0.03, OptionType::Call);
-		LevyIntegralLogPrice<2> Int(dealii::Point<2>(-2., -2.),dealii::Point<2>(2.,2.), ModPtr, &BC);
-		Triangulation<2> triangulation;
-
-		GridGenerator::hyper_cube (triangulation);
-		triangulation.refine_global (4);
-		FE_Q<2>              fe(1);
-		DoFHandler<2>        dof_handler(triangulation);
-
-		dof_handler.distribute_dofs(fe);
-		Vector<double> solution;
-		solution.reinit(dof_handler.n_dofs());
-		for (unsigned i=0;i<solution.size();++i)
-		  solution[i]=i;
-		
-		Int.compute_J(solution, dof_handler, fe);
-		
-		
-		
-/* 
-        BlackScholesModel model(95., 0.120381);
+        using namespace dealii;
         
-        BlackScholesModel model1(80., 0.1256);
-        BlackScholesModel model2(120., 0.2);
+        KouModel Mod1(100,0.2, 0.5, 3, 2, 4);
+        KouModel Mod2(120, 0.25, 0.4, 4, 1, 5);
         
-        KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.6599, 3.13868);
+        /*
+         vector<Model *> ModPtr2;
+         ModPtr2.push_back(&Mod1);
+         LevyIntegralPrice<1> Int2(dealii::Point<1>(0.),dealii::Point<1>(100.), ModPtr2);
+         */
         
-        EuropeanOptionPrice<1> foo(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        vector<Model *> ModPtr;
+        ModPtr.push_back(&Mod1);
+        ModPtr.push_back(&Mod2);
+        /*		
+         LevyIntegralPrice<2> Int(dealii::Point<2>(0.5, 0.5),dealii::Point<2>(100.,100.), ModPtr);
+         KouIntegralPrice<2> Kou(ModPtr);
+         */		
+        BoundaryCondition<2> BC(100, 1, 0.03, OptionType::Call);
+        LevyIntegralLogPrice<2> Int(dealii::Point<2>(-2., -2.),dealii::Point<2>(2.,2.), ModPtr, &BC);
+        Triangulation<2> triangulation;
         
-        EuropeanOptionLogPrice<1> foo2
-        (OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        GridGenerator::hyper_cube (triangulation);
+        triangulation.refine_global (4);
+        FE_Q<2>              fe(1);
+        DoFHandler<2>        dof_handler(triangulation);
         
-        EuropeanOptionPrice<1> goofy(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        dof_handler.distribute_dofs(fe);
+        Vector<double> solution;
+        solution.reinit(dof_handler.n_dofs());
+        for (unsigned i=0;i<solution.size();++i)
+                solution[i]=i;
         
-        AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 10, 100);
-        
-        EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
-                                 -0.2, 0.1, 1., 200., 7, 100);
-        
-        EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
-        
-        foo.run();
-        foo2.run();
-        goofy.run();
-        minnie.run();
-        mickey.run();
-        duffy.run();
-        
-        cout<<foo.get_price()<<"\n";
-        cout<<foo2.get_price()<<"\n";
-        cout<<goofy.get_price()<<"\n";
-        cout<<minnie.get_price()<<"\n";
-        cout<<mickey.get_price()<<"\n";
-        cout<<duffy.get_price()<<"\n";
+        Int.compute_J(solution, dof_handler, fe);
         
         
-        cout<<"TARGET (Premia)\n"
-            <<"PDE  1d Call  (10, 100): 9.62216.\n"
-            <<"PDE  1d Put   (10, 100): 1.43609.\n"
-            <<"PDE  1d PutAm (10, 100): 1.56720.\n"
-            <<"PDE  2d Call  (7,  100): 21.3480.\n"
-            <<"PIDE 1d Call  (8,  100): 12.3683.\n";
-*/        
+        
+        /* 
+         BlackScholesModel model(95., 0.120381);
+         
+         BlackScholesModel model1(80., 0.1256);
+         BlackScholesModel model2(120., 0.2);
+         
+         KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.6599, 3.13868);
+         
+         EuropeanOptionPrice<1> foo(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+         
+         EuropeanOptionLogPrice<1> foo2
+         (OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+         
+         EuropeanOptionPrice<1> goofy(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+         
+         AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 10, 100);
+         
+         EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
+         -0.2, 0.1, 1., 200., 7, 100);
+         
+         EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
+         
+         foo.run();
+         foo2.run();
+         goofy.run();
+         minnie.run();
+         mickey.run();
+         duffy.run();
+         
+         cout<<foo.get_price()<<"\n";
+         cout<<foo2.get_price()<<"\n";
+         cout<<goofy.get_price()<<"\n";
+         cout<<minnie.get_price()<<"\n";
+         cout<<mickey.get_price()<<"\n";
+         cout<<duffy.get_price()<<"\n";
+         
+         
+         cout<<"TARGET (Premia)\n"
+         <<"PDE  1d Call  (10, 100): 9.62216.\n"
+         <<"PDE  1d Put   (10, 100): 1.43609.\n"
+         <<"PDE  1d PutAm (10, 100): 1.56720.\n"
+         <<"PDE  2d Call  (7,  100): 21.3480.\n"
+         <<"PIDE 1d Call  (8,  100): 12.3683.\n";
+         */        
         return 0;
         
 }
