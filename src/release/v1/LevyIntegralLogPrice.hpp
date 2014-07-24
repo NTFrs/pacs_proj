@@ -21,6 +21,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
 {
 	using namespace dealii;
 	unsigned N(sol.size());
+	//TODO and if we do not initialise J nd do a pushback? 
 	Vector<double> J;J.reinit(2*N);
 	std::map<types::global_dof_index, Point<dim> > vertices;
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
@@ -90,10 +91,14 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                 }
                 
         }
-        /*
-         J1=;
-         J2=;
-         */
+        this->J1.reinit(N);
+	    for (unsigned i=0;i<this->J1.size();++i)
+         this->J1[i]=J[i];
+         if (dim==2) {
+         this->J2.reinit(N);
+			 for (unsigned i=0;i<this->J1.size();++i)
+			 this->J2[i]=J[i+N];
+		 }
 }
 
 
