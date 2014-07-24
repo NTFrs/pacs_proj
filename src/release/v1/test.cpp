@@ -3,6 +3,7 @@
 #include "LevyIntegralPrice.hpp"
 #include "LevyIntegralLogPrice.hpp"
 #include "LevyIntegralPriceKou.hpp"
+#include "LevyIntegralPriceMerton.hpp"
 #include <vector>
 #include "models.hpp"
 #include "BoundaryConditions.hpp"
@@ -72,26 +73,31 @@ int main(){
 	
         using namespace dealii;
         
-        KouModel Mod1(95,0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
-		KouModel Mod2(95,0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
+        KouModel ModKou1(95,0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
+		KouModel ModKou2(95,0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
-        vector<Model *> ModPtr1;
-        ModPtr1.push_back(&Mod1);
+		MertonModel ModMer1(95,0.120381, +0.2, 0.3, 0.330966);
+		MertonModel ModMer2(95,0.120381, +0.2, 0.3, 0.330966);
+        
+        vector<Model *> ModKouPtr1;
+        ModKouPtr1.push_back(&ModKou1);
          
-        vector<Model *> ModPtr2;
-        ModPtr2.push_back(&Mod1);
-        ModPtr2.push_back(&Mod2);
-        		
-		LevyIntegralPriceKou<1> Kou(ModPtr1, false);
-		std::cerr<<"alpha KOU is"<<  Kou.get_alpha_1()<< std::endl;
-
-		LevyIntegralPriceKou<2> Kou2(ModPtr2);
-		std::cerr<<"alpha KOU2 is"<<  Kou2.get_alpha_1()<< std::endl;
+        vector<Model *> ModMerPtr1;
+        ModMerPtr1.push_back(&ModMer1);
+         
+        vector<Model *> ModKouPtr2;
+        ModKouPtr2.push_back(&ModKou1);
+        ModKouPtr2.push_back(&ModKou2);
         
-        /*
+		vector<Model *> ModMerPtr2;
+		ModMerPtr2.push_back(&ModMer1);
+		ModMerPtr2.push_back(&ModMer2);
+
+        
 		BoundaryCondition<2> BC(100, 1, 0.03, OptionType::Call);
-        LevyIntegralLogPrice<2> Int(dealii::Point<2>(-2., -2.),dealii::Point<2>(2.,2.), ModPtr, BC);
-		*/
+        LevyIntegralLogPrice<2> Kou2(dealii::Point<2>(-2., -2.),dealii::Point<2>(2.,2.), ModKouPtr2, BC);
+		
+
 	Triangulation<1> triangulation;
 
 	GridGenerator::hyper_cube (triangulation);
@@ -118,9 +124,9 @@ int main(){
         for (unsigned i=0;i<solution2.size();++i)
                 solution2[i]=i;
         
-        Kou.compute_J(solution, dof_handler, fe);
+//         Kou.compute_J(solution, dof_handler, fe);
 		Kou2.compute_J(solution2, dof_handler2, fe2);
-        
+       
         
         /* 
          BlackScholesModel model(95., 0.120381);
