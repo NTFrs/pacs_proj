@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath> 
+#include "constants.hpp"
 
 //! Abstract class Model
 /*!
@@ -176,6 +177,13 @@ public:
         virtual inline double get_delta()       const   { return delta; };
         virtual inline double get_lambda()      const   { return lambda; }
         
+		virtual double density(double pt) const ;
+        
 };
+
+double MertonModel::density(double pt) const
+{
+return lambda/(delta*sqrt(2*constants::pi))*exp(-(pt-nu)*(pt-nu)/(2*delta*delta));
+}
 
 #endif

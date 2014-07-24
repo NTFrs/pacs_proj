@@ -33,7 +33,8 @@ void LevyIntegralPriceMerton<dim>::setup_quadratures(unsigned int n)
 	quadratures.clear();
 
 	for (unsigned d=0;d<dim;++d) {
-	 quadratures.emplace_back(Quadrature_Laguerre(n, (this->Mods[d])->()));//TODO
+	 //TODO
+	 quadratures.emplace_back(Quadrature_Hermite(n, (this->Mods[d])->get_nu(), (this->Mods[d])->get_delta() ));
    }
 }
 
@@ -47,18 +48,11 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
 
 	if (!adapting) {
 	 for (unsigned d=0;d<dim;++d) {
-	  for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
-	   this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
-	   ((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-	   ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+	  for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
+	   this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
+	   ((this->Mods[d])->get_p())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+	   *(quadratures[d].get_weights())[i];
 	 }
-
-	  for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
-	   this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
-	   (1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-	   ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
-	 }
-
 	}
    }
 
@@ -72,20 +66,15 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
 	  this->alpha=std::vector<double>(dim, 0.);
 
 	  for (unsigned d=0;d<dim;++d) {
-	   for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
-		this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
-		((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-		((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+	   for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
+		this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
+		((this->Mods[d])->get_p())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+		*(quadratures[d].get_weights())[i];
 	  }
 
-	   for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
-		this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
-		(1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-		((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
-	  }
 	 }
 
-	  setup_quadratures(2*leftQuads[0].get_order());
+	  setup_quadratures(2*quadratures[0].get_order());
 
 
 	  err=0.;
@@ -94,7 +83,7 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
 
 	}
 	 while (err>constants::light_toll &&
-	  rightQuads[0].get_order()<=order_max);
+	  quadratures[0].get_order()<=order_max);
    }
 
 
