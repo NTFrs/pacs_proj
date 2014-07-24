@@ -68,7 +68,7 @@ public:
 	 unsigned kind = 6;                          // kind=6, Generalized Hermite, (-inf,inf)  |x-a|^alpha*exp(-b*(x-a)^2)
 
 	 //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
-	 cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
+	 quadrature::cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
    }
 
 	inline unsigned get_order () {return order;}
