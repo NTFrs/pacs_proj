@@ -7,6 +7,7 @@
 # include "tools.hpp"
 #include "models.hpp"
 #include "constants.hpp"
+# include "cmath"
 
 //TODO
 //constructor
@@ -75,12 +76,13 @@ public:
 template<unsigned dim>
 void LevyIntegralBase<dim>::compute_Bounds() {
 	for (unsigned d=0;d<dim;++d) {
-                Bmin[d]=lower_limit(d);Bmax[d]=upper_limit(d);
+				 //may misbehave with merton
+                Bmin[d]=std::min(0., lower_limit(d));Bmax[d]=upper_limit(d);
                 while ((*Mods[d]).density(Bmin[d])>constants::light_toll)
                         Bmin[d]+=-0.5;
 				while ((*Mods[d]).density(Bmax[d])>constants::light_toll)
                         Bmax[d]+=0.5;
-                
+                 
         }
 }
 
@@ -121,9 +123,9 @@ void LevyIntegralBase<dim>::compute_alpha()
                         }
                 }
                 
-                std::cout<< "alpha "<< d << " is "<< alpha[d]<< std::endl;
+//                 std::cout<< "alpha "<< d << " is "<< alpha[d]<< std::endl;
         }
-	
+	alpha_ran=true;
 }
 
 
