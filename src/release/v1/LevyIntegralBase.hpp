@@ -5,8 +5,8 @@
 # include "Quadrature.hpp"
 # include "Densities.hpp"
 # include "tools.hpp"
-#include "models.hpp"
-#include "constants.hpp"
+# include "models.hpp"
+# include "constants.hpp"
 # include "cmath"
 
 //TODO
@@ -76,13 +76,13 @@ public:
 template<unsigned dim>
 void LevyIntegralBase<dim>::compute_Bounds() {
 	for (unsigned d=0;d<dim;++d) {
-				 //may misbehave with merton
+                //may misbehave with merton
                 Bmin[d]=std::min(0., lower_limit(d));Bmax[d]=upper_limit(d);
                 while ((*Mods[d]).density(Bmin[d])>constants::light_toll)
                         Bmin[d]+=-0.5;
-				while ((*Mods[d]).density(Bmax[d])>constants::light_toll)
+                while ((*Mods[d]).density(Bmax[d])>constants::light_toll)
                         Bmax[d]+=0.5;
-                 
+                
         }
 }
 
@@ -122,8 +122,6 @@ void LevyIntegralBase<dim>::compute_alpha()
                                 alpha[d]+=fe_values.JxW(q_point)*(exp(p[d])-1.)*(*Mods[d]).density(p[d]);
                         }
                 }
-                
-//                 std::cout<< "alpha "<< d << " is "<< alpha[d]<< std::endl;
         }
 	alpha_ran=true;
 }

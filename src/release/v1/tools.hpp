@@ -1,5 +1,5 @@
 #ifndef __tools_hpp
-# define __tools_hpp
+#define __tools_hpp
 
 #include "deal_ii.hpp"
 

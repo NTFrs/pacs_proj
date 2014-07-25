@@ -18,18 +18,16 @@
 #include <memory>
 #include <exception>
 
-#include "boundary_conditions.hpp"
-#include "BoundaryConditions.hpp"
-#include "FinalConditions.hpp"
+#include "BoundaryConditionsPrice.hpp"
+#include "BoundaryConditionsLogPrice.hpp"
+#include "FinalConditionsPrice.hpp"
+#include "FinalConditionsLogPrice.hpp"
 #include "OptionTypes.hpp"
 #include "models.hpp"
 #include "constants.hpp"
-#include "Densities.hpp"
-#include "LevyIntegral.hpp"
 #include "OptionParameters.hpp"
 
 using namespace dealii;
-using namespace std;
 
 template<unsigned dim>
 class OptionBase
@@ -53,30 +51,30 @@ protected:
         ModelType               model_type;
         
         // Triangulation and fe objects
-        Triangulation<dim>      triangulation;
-	FE_Q<dim>               fe;
-	DoFHandler<dim>         dof_handler;
+        dealii::Triangulation<dim>      triangulation;
+	dealii::FE_Q<dim>               fe;
+	dealii::DoFHandler<dim>         dof_handler;
         
         // Matrices
-        SparsityPattern         sparsity_pattern;
+        dealii::SparsityPattern         sparsity_pattern;
 	
-        SparseMatrix_withProjectedSOR<double, dim> * matrix_with_sor;
-        SparseMatrix<double> * system_matrix;
+        dealii::SparseMatrix_withProjectedSOR<double, dim> * matrix_with_sor;
+        dealii::SparseMatrix<double> * system_matrix;
 	
-        SparseMatrix<double>    system_M2;
-	SparseMatrix<double>    dd_matrix;
-	SparseMatrix<double>    fd_matrix;
-	SparseMatrix<double>    ff_matrix;
+        dealii::SparseMatrix<double>    system_M2;
+	dealii::SparseMatrix<double>    dd_matrix;
+	dealii::SparseMatrix<double>    fd_matrix;
+	dealii::SparseMatrix<double>    ff_matrix;
         
         // points of grid
         std::vector< Point<dim> >       grid_points;
 	
         // Solution and rhs vectors
-	Vector<double>          solution;
-	Vector<double>          system_rhs;
+	dealii::Vector<double>          solution;
+	dealii::Vector<double>          system_rhs;
         
         // Mesh boundaries
-        Point<dim>              Smin, Smax;
+        dealii::Point<dim>              Smin, Smax;
         
         // Disctretization parameters
         unsigned                refs;      // space
@@ -87,14 +85,15 @@ protected:
 	bool                    ran;
         
         // Integral Part
-        LevyIntegral<dim> *     levy;       
+        LevyIntegralBase<dim> *     levy;       
         
         // Private methods
-        virtual void make_grid() = 0;
         virtual void setup_system();
         // Pure abstract methods
+        virtual void make_grid() = 0;
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
+        virtual void setup_integral() = 0;
         
 public:
         //! Constructor 1d
@@ -137,11 +136,12 @@ public:
         {
                 make_grid();
                 setup_system();
+                setup_integral();
                 assemble_system();
                 solve();
         };
         
-        //! SISTEMAREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        //!
         /*!
          * This function is used to set the scale factor of the grid boundary.
          * \param f_    is set by default to 0.5. The user can specify it in ]0,1[.
@@ -159,6 +159,7 @@ public:
          * This function returns the price of the option
          */
         virtual inline double get_price()=0;
+        
 };
 
 // Constructor 1d
@@ -303,8 +304,8 @@ void OptionBase<dim>::setup_system()
 	<< dof_handler.n_dofs()
 	<< std::endl;
         
-	CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	dealii::CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
+	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
@@ -316,7 +317,7 @@ void OptionBase<dim>::setup_system()
                 system_matrix=new SparseMatrix<double>;
                 matrix_with_sor=NULL;
         }
-        
+        /*
         if (model_type==ModelType::Kou) {
                 
                 if (dim==1) {
@@ -334,7 +335,7 @@ void OptionBase<dim>::setup_system()
                         levy=new LevyIntegral<dim>(m, Smin, Smax);
                 }
         }
-        
+        */
         dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);

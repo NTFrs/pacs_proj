@@ -10,7 +10,7 @@
 template <unsigned dim>
 class EuropeanOptionPrice final: public OptionBasePrice<dim> {
 private:
-        OptionType type;
+        OptionType type2;
         ExerciseType eu;
         
         virtual void solve();
@@ -35,7 +35,7 @@ public:
                             unsigned time_step_)
         :
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::EU, model, r_, T_, K_, refs_, time_step_),
-        type(type_),
+        type2(type_),
         eu(ExerciseType::EU)
         {};
         
@@ -64,7 +64,7 @@ public:
                             unsigned time_step_)
         :
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
-        type(type_),
+        type2(type_),
         eu(ExerciseType::EU)
         {};
         
@@ -74,8 +74,11 @@ public:
 template <unsigned dim>
 void EuropeanOptionPrice<dim>::solve ()
 {
+        using namespace dealii;
+        using namespace std;
+        
         VectorTools::interpolate (this->dof_handler,
-                                  FinalCondition<dim>(this->K, this->type),
+                                  FinalConditionPrice<dim>(this->K, this->type2),
                                   this->solution);
         
         {
@@ -92,7 +95,7 @@ void EuropeanOptionPrice<dim>::solve ()
         
 	unsigned Step=this->time_step;
         
-        BoundaryCondition<dim> bc(this->K, this->T,  this->r, this->type);
+        BoundaryConditionPrice<dim> bc(this->K, this->T,  this->r, this->type2);
         
 	cout<< "time step is"<< this->time_step << endl;
 	
@@ -101,12 +104,14 @@ void EuropeanOptionPrice<dim>::solve ()
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
                 //
-                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes && dim==1) {
+                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
                         Vector<double> J;
                         Vector<double> temp;
                         
-                        (this->levy)->get_part2(J, this->solution, this->fe, this->dof_handler);
+                        this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+                        
+                        this->levy->get_j_1(J);
                         
                         (this->ff_matrix).vmult(this->system_rhs, J);
                         
@@ -123,7 +128,7 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 //
                 
-                bc.set_time(time);
+                bc.set_time(this->dt);
                 
                 {
                         
@@ -160,6 +165,21 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 std::ofstream output ("end.gpl");
                 data_out.write_gnuplot (output);
+        }
+        
+        {
+                ofstream print;
+                print.open("solution.m");
+                
+                if (print.is_open()) {
+                        print<<"sol=[ ";
+                        for (int i=0; i<this->solution.size()-1; ++i) {
+                                print<<this->solution(i)<<"; ";
+                        }
+                        print<<this->solution(this->solution.size()-1)<<" ];\n";
+                }
+                
+                print.close();
         }
         
 	this->ran=true;

@@ -68,8 +68,11 @@ public:
 template <unsigned dim>
 void AmericanOptionPrice<dim>::solve ()
 {
+        using namespace dealii;
+        using namespace std;
+        
         VectorTools::interpolate (this->dof_handler,
-                                  FinalCondition<dim>(this->K, OptionType::Put),
+                                  FinalConditionPrice<dim>(this->K, OptionType::Put),
                                   this->solution);
         
         
@@ -87,7 +90,7 @@ void AmericanOptionPrice<dim>::solve ()
         
 	unsigned Step=this->time_step;
         
-        BoundaryCondition<dim> bc(this->K, this->T,  this->r, OptionType::Put);
+        BoundaryConditionPrice<dim> bc(this->K, this->T,  this->r, OptionType::Put);
         
 	cout<< "time step is"<< this->time_step << endl;
 	
@@ -95,7 +98,7 @@ void AmericanOptionPrice<dim>::solve ()
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 this->system_M2.vmult(this->system_rhs, this->solution);
-                bc.set_time(time);
+                bc.set_time(this->dt);
                 
                 {
                         

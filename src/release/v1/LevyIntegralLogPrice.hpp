@@ -92,13 +92,13 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                 
         }
         this->J1.reinit(N);
-	    for (unsigned i=0;i<this->J1.size();++i)
-         this->J1[i]=J[i];
-         if (dim==2) {
-         this->J2.reinit(N);
-			 for (unsigned i=0;i<this->J1.size();++i)
-			 this->J2[i]=J[i+N];
-		 }
+        for (unsigned i=0;i<this->J1.size();++i)
+                this->J1[i]=J[i];
+        if (dim==2) {
+                this->J2.reinit(N);
+                for (unsigned i=0;i<this->J1.size();++i)
+                        this->J2[i]=J[i+N];
+        }
 }
 
 

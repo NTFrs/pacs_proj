@@ -8,6 +8,7 @@ class OptionBasePrice: public OptionBase<dim> {
 protected:
         virtual void make_grid();
         virtual void assemble_system();
+        virtual void setup_integral();
         virtual void solve()=0;
 public:
         //! Constructor 1d
@@ -63,7 +64,7 @@ void OptionBasePrice<dim>::make_grid(){
                 refinement[i]=pow(2, this->refs);
         }
         
-        GridGenerator::subdivided_hyper_rectangle (this->triangulation, refinement,
+        dealii::GridGenerator::subdivided_hyper_rectangle (this->triangulation, refinement,
                                                    this->Smin, this->Smax);
         
         this->grid_points=this->triangulation.get_vertices();
@@ -72,19 +73,37 @@ void OptionBasePrice<dim>::make_grid(){
 }
 
 template <unsigned dim>
+void OptionBasePrice<dim>::setup_integral(){
+        if (this->model_type==OptionBase<dim>::ModelType::Kou) {
+                std::cout<<"creo Kou\n";
+                this->levy=new LevyIntegralPriceKou<dim>(this->models);
+        }
+        else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
+                this->levy=new LevyIntegralPriceMerton<dim>(this->models);
+        }
+        else
+                this->levy=NULL;
+}
+
+template <unsigned dim>
 void OptionBasePrice<dim>::assemble_system()
 {
-        double alpha(0.);
-        double lambda(0.);
+        using namespace std;
+        using namespace dealii;
         
-        if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes && dim==1) {
-                alpha=this->levy->get_part1();
-                lambda=this->models[0]->get_lambda();
-        }
+        std::vector<double> alpha(dim,0.);
+
+        if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes)
+                this->levy->get_alpha(alpha);
         
-        QGauss<dim> quadrature_formula(2*dim);
-	FEValues<dim> fe_values (this->fe, quadrature_formula, update_values | update_gradients |
-                                 update_JxW_values | update_quadrature_points);
+        double lambda=0.;
+        if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes)
+                for (unsigned i=0; i<dim; ++i)
+                        lambda+=this->models[i]->get_lambda();
+        
+        dealii::QGauss<dim> quadrature_formula(2*dim);
+	dealii::FEValues<dim> fe_values (this->fe, quadrature_formula, update_values 
+                                         | update_gradients | update_JxW_values | update_quadrature_points);
         
 	const unsigned int   dofs_per_cell = (this->fe).dofs_per_cell;
 	const unsigned int   n_q_points    = quadrature_formula.size();
@@ -95,16 +114,16 @@ void OptionBasePrice<dim>::assemble_system()
         
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
         
-	FullMatrix<double> cell_ff(dofs_per_cell);
-	FullMatrix<double> cell_mat(dofs_per_cell);
+	dealii::FullMatrix<double> cell_ff(dofs_per_cell);
+	dealii::FullMatrix<double> cell_mat(dofs_per_cell);
         
 	typename DoFHandler<dim>::active_cell_iterator
 	cell=(this->dof_handler).begin_active(),
 	endc=(this->dof_handler).end();
-	Tensor< 1 , dim, double > trasp;
-	Tensor< 2 , dim, double > sig_mat;
+	dealii::Tensor< 1 , dim, double > trasp;
+	dealii::Tensor< 2 , dim, double > sig_mat;
 	
-	vector<Point<dim> > quad_points(n_q_points);
+	vector<dealii::Point<dim> > quad_points(n_q_points);
         
         for (; cell !=endc;++cell) {
                 fe_values.reinit(cell);
@@ -116,7 +135,7 @@ void OptionBasePrice<dim>::assemble_system()
                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                         
                         if (dim==1) {
-                                trasp[0]=(this->r-(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()-alpha)*quad_points[q_point][0];
+                                trasp[0]=(this->r-(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()-alpha[0])*quad_points[q_point][0];
                                 sig_mat[0][0]=0.5*(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
                         }
@@ -169,7 +188,7 @@ void OptionBasePrice<dim>::assemble_system()
                         }
         }
         
-	(this->system_M2).add(1/(this->dt), this->ff_matrix);
+	(this->system_M2).add(1./(this->dt), this->ff_matrix);
         
         return;
         
@@ -182,7 +201,7 @@ double OptionBasePrice<dim>::get_price() {
                 this->run();
         }
         
-        Point<dim> p;
+        dealii::Point<dim> p;
         
         for (unsigned i=0; i<dim; ++i) {
                 p(i)=(*(this->models[i])).get_spot();

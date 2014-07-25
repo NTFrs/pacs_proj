@@ -10,7 +10,7 @@
 template <unsigned dim>
 class EuropeanOptionLogPrice final: public OptionBaseLogPrice<dim> {
 private:
-        OptionType type;
+        OptionType type2;
         ExerciseType eu;
         
         virtual void solve();
@@ -27,15 +27,15 @@ public:
          * \param time_step_    Number of TimeStep
          */
         EuropeanOptionLogPrice(OptionType type_,
-                            Model * const model,
-                            double r_,
-                            double T_,
-                            double K_,
-                            unsigned refs_,
-                            unsigned time_step_)
+                               Model * const model,
+                               double r_,
+                               double T_,
+                               double K_,
+                               unsigned refs_,
+                               unsigned time_step_)
         :
         OptionBaseLogPrice<dim>::OptionBaseLogPrice(ExerciseType::EU, model, r_, T_, K_, refs_, time_step_),
-        type(type_),
+        type2(type_),
         eu(ExerciseType::EU)
         {};
         
@@ -54,17 +54,17 @@ public:
          * \note                model1 and model2 MUST be of the same type.
          */
         EuropeanOptionLogPrice(OptionType type_,
-                            Model * const model1,
-                            Model * const model2,
-                            double rho_,
-                            double r_,
-                            double T_,
-                            double K_,
-                            unsigned refs_,
-                            unsigned time_step_)
+                               Model * const model1,
+                               Model * const model2,
+                               double rho_,
+                               double r_,
+                               double T_,
+                               double K_,
+                               unsigned refs_,
+                               unsigned time_step_)
         :
         OptionBaseLogPrice<dim>::OptionBasePrice(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
-        type(type_),
+        type2(type_),
         eu(ExerciseType::EU)
         {};
         
@@ -74,9 +74,22 @@ public:
 template <unsigned dim>
 void EuropeanOptionLogPrice<dim>::solve ()
 {
+        using namespace dealii;
+        using namespace std;
+        
         VectorTools::interpolate (this->dof_handler,
-                                  FinalCondition<dim>(this->K, this->type),
+                                  FinalConditionLogPrice<dim>(this->models[0]->get_spot(),
+                                                              this->K, this->type2),
                                   this->solution);
+        
+        ofstream print;
+        print.open("solution.m");
+        
+        print<<"Payoff=[ ";
+        for (int i=0; i<this->solution.size()-1; ++i) {
+                print<<this->solution(i)<<"; ";
+        }
+        print<<this->solution(this->solution.size()-1)<<" ];\n";
         
         {
                 DataOut<dim> data_out;
@@ -92,7 +105,8 @@ void EuropeanOptionLogPrice<dim>::solve ()
         
 	unsigned Step=this->time_step;
         
-        BoundaryCondition<dim> bc(this->K, this->T,  this->r, this->type);
+        BoundaryConditionLogPrice<dim> bc(this->models[0]->get_spot(),
+                                          this->K, this->T,  this->r, this->type2);
         
 	cout<< "time step is"<< this->time_step << endl;
 	
@@ -101,12 +115,14 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
                 //
-                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes && dim==1) {
+                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
                         Vector<double> J;
                         Vector<double> temp;
                         
-                        (this->levy)->get_part2(J, this->solution, this->fe, this->dof_handler);
+                        this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+                        
+                        this->levy->get_j_1(J);
                         
                         (this->ff_matrix).vmult(this->system_rhs, J);
                         
@@ -123,7 +139,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 
                 //
                 
-                bc.set_time(time);
+                bc.set_time(this->dt);
                 
                 {
                         
@@ -161,6 +177,21 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 std::ofstream output ("end.gpl");
                 data_out.write_gnuplot (output);
         }
+        
+        
+        print<<"x=[ ";
+        for (int i=0; i<this->grid_points.size()-1; ++i) {
+                print<<this->models[0]->get_spot()*exp(this->grid_points[i][0])<<"; ";
+        }
+        print<<this->models[0]->get_spot()*
+        exp(this->grid_points[this->grid_points.size()-1][0])<<" ];\n";
+        print<<"sol=[ ";
+        for (int i=0; i<this->solution.size()-1; ++i) {
+                print<<this->solution(i)<<"; ";
+        }
+        print<<this->solution(this->solution.size()-1)<<" ];\n";
+        
+        print.close();
         
 	this->ran=true;
         

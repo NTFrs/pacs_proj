@@ -746,6 +746,18 @@ void Opzione<dim>::solve() {
         
 	ran=true;
         
+        {
+                DataOut<dim> data_out;
+                
+                data_out.attach_dof_handler (this->dof_handler);
+                data_out.add_data_vector (this->solution, "end");
+                
+                data_out.build_patches ();
+                
+                std::ofstream output ("end.gpl");
+                data_out.write_gnuplot (output);
+        }
+        
 #ifdef __MATLAB__
 	ofstream print;
         print.open("solution.m");

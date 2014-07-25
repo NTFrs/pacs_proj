@@ -2,12 +2,14 @@
 #define __option_base_logprice_hpp
 
 #include "OptionBase.hpp"
+#include "BoundaryConditionsLogPrice.hpp"
 
 template <unsigned dim>
 class OptionBaseLogPrice: public OptionBase<dim> {
 protected:
         virtual void make_grid();
         virtual void assemble_system();
+        virtual void setup_integral();
         virtual void solve()=0;
 public:
         //! Constructor 1d
@@ -73,18 +75,41 @@ void OptionBaseLogPrice<dim>::make_grid(){
 }
 
 template <unsigned dim>
+void OptionBaseLogPrice<dim>::setup_integral(){
+        //da capire cosa sono upper_limit, lower_limit
+        
+        /*
+        if (this->model_type==OptionBase<dim>::ModelType::Kou) {
+                std::cout<<"creo Kou\n";
+                this->levy=new LevyIntegralLogPriceKou<dim>(this->models);
+        }
+        else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
+                this->levy=new LevyIntegralLogPriceMerton<dim>(this->models);
+        }
+        else
+                this->levy=NULL;
+         */
+        this->levy=NULL;
+}
+
+template <unsigned dim>
 void OptionBaseLogPrice<dim>::assemble_system()
 {
-        double alpha(0.);
-        double lambda(0.);
+        using namespace std;
         
-        if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes && dim==1) {
-                alpha=this->levy->get_part1();
-                lambda=this->models[0]->get_lambda();
-        }
+        std::vector<double> alpha(dim,0.);
         
-        QGauss<dim> quadrature_formula(2*dim);
-	FEValues<dim> fe_values (this->fe, quadrature_formula, update_values | update_gradients |
+        if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes)
+                this->levy->get_alpha(alpha);
+        
+        double lambda=0.;
+        if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes)
+                for (unsigned i=0; i<dim; ++i)
+                        lambda+=this->models[i]->get_lambda();
+        
+        dealii::QGauss<dim> quadrature_formula(2*dim);
+	dealii::FEValues<dim> fe_values (this->fe, quadrature_formula, update_values |
+                                         update_gradients |
                                  update_JxW_values | update_quadrature_points);
         
 	const unsigned int   dofs_per_cell = (this->fe).dofs_per_cell;
@@ -96,27 +121,27 @@ void OptionBaseLogPrice<dim>::assemble_system()
         
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
         
-        FullMatrix<double> cell_dd(dofs_per_cell);
-	FullMatrix<double> cell_fd(dofs_per_cell);
-	FullMatrix<double> cell_ff(dofs_per_cell);
-	FullMatrix<double> cell_system(dofs_per_cell);
+        dealii::FullMatrix<double> cell_dd(dofs_per_cell);
+	dealii::FullMatrix<double> cell_fd(dofs_per_cell);
+	dealii::FullMatrix<double> cell_ff(dofs_per_cell);
+	dealii::FullMatrix<double> cell_system(dofs_per_cell);
         
-        SparseMatrix<double>            dd_matrix;
-	SparseMatrix<double>            fd_matrix;
+        dealii::SparseMatrix<double>            dd_matrix;
+	dealii::SparseMatrix<double>            fd_matrix;
         
         dd_matrix.reinit(this->sparsity_pattern);
 	fd_matrix.reinit(this->sparsity_pattern);
         
-	typename DoFHandler<dim>::active_cell_iterator
+	typename dealii::DoFHandler<dim>::active_cell_iterator
 	cell=(this->dof_handler).begin_active(),
 	endc=(this->dof_handler).end();
 	Tensor< 1 , dim, double > trasp;
 	Tensor< 2 , dim, double > sig_mat;
 	
-	vector<Point<dim> > quad_points(n_q_points);
+        std::vector<Point<dim> > quad_points(n_q_points);
         
         if (dim==1) {
-                Tensor< 1 , dim, double > ones;
+                dealii::Tensor< 1 , dim, double > ones;
                 for (unsigned i=0;i<dim;++i)
                         ones[i]=1;
                 
@@ -150,7 +175,7 @@ void OptionBaseLogPrice<dim>::assemble_system()
                 
                 double diff=(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()/2;
                 double trasp=this->r-(*(this->models[0])).get_vol()*
-                (*(this->models[0])).get_vol()/2-alpha;
+                (*(this->models[0])).get_vol()/2-alpha[0];
                 double reaz=-(this->r)-lambda;
                 
                 (*(this->system_matrix)).add(1/(this->dt)-0.5*reaz, this->ff_matrix); 
@@ -179,8 +204,8 @@ void OptionBaseLogPrice<dim>::assemble_system()
                  ones[i]=1;
                  */
                 Tensor< 1, dim, double > trasp;
-                trasp[0]=this->r-(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()/2-alpha;
-                trasp[1]=this->r-(*(this->models[1])).get_vol()*(*(this->models[1])).get_vol()/2-alpha;
+                trasp[0]=this->r-(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()/2-alpha[0];
+                trasp[1]=this->r-(*(this->models[1])).get_vol()*(*(this->models[1])).get_vol()/2-alpha[1];
                 
                 for (; cell !=endc;++cell) {
                         fe_values.reinit(cell);
@@ -230,13 +255,13 @@ double OptionBaseLogPrice<dim>::get_price() {
                 this->run();
         }
         
-        Point<dim> p;
+        dealii::Point<dim> p;
         
         for (unsigned i=0; i<dim; ++i) {
                 p(i)=0.;
         }
         
-	Functions::FEFieldFunction<dim> fe_function (this->dof_handler, this->solution);
+	dealii::Functions::FEFieldFunction<dim> fe_function (this->dof_handler, this->solution);
 	return fe_function.value(p);
 }
 
