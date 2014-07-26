@@ -37,7 +37,7 @@ public:
         void ProjectedSOR_step (Vector<number> &v,                          // Solution
                                 const Vector<number> &v_old,                // Solution step before
                                 const Vector<number> &b,                    // right hand side
-                                const std::vector< Point<dim> > &grid_points,   // mesh points
+                                std::map<dealii::types::global_dof_index,dealii::Point<dim> > &vertices,                                                            // mesh points
                                 const number        K,                          // Strike
                                 const number        om = 1.);                   // SOR parameter
         
@@ -48,7 +48,7 @@ void
 dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                                                            const Vector<number> &v_old,
                                                            const Vector<number> &b,
-                                                           const std::vector< Point<dim> > &grid_points,
+                        std::map<dealii::types::global_dof_index,dealii::Point<dim> > &vertices,                                                            
                                                            const number        K,
                                                            const number        om)
 
@@ -80,9 +80,15 @@ dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                         
                 }
                 
-                v(row)=(K-grid_points[row][0]>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
+                double point=0.;
+                
+                for (unsigned d=0; d<dim; ++d) {
+                        point+=vertices[row][d];
+                }
+                
+                v(row)=(K-point>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
                 ?
-                (K-grid_points[row][0])
+                (K-point)
                 :
                 v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
                 

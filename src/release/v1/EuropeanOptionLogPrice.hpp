@@ -86,7 +86,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
         print.open("solution.m");
         
         print<<"Payoff=[ ";
-        for (int i=0; i<this->solution.size()-1; ++i) {
+        for (unsigned i=0; i<this->solution.size()-1; ++i) {
                 print<<this->solution(i)<<"; ";
         }
         print<<this->solution(this->solution.size()-1)<<" ];\n";
@@ -164,9 +164,11 @@ void EuropeanOptionLogPrice<dim>::solve ()
                         
                 }
                 
+                auto pointer=dynamic_cast<SparseMatrix<double> *> (&(this->system_matrix));
+                
                 SparseDirectUMFPACK solver;
                 solver.initialize(this->sparsity_pattern);
-                solver.factorize((this->system_matrix));
+                solver.factorize(*pointer);
                 solver.solve(this->system_rhs);
                 
                 this->solution=this->system_rhs;
@@ -187,13 +189,13 @@ void EuropeanOptionLogPrice<dim>::solve ()
         
         
         print<<"x=[ ";
-        for (int i=0; i<this->grid_points.size()-1; ++i) {
+        for (unsigned i=0; i<this->grid_points.size()-1; ++i) {
                 print<<this->models[0]->get_spot()*exp(this->grid_points[i][0])<<"; ";
         }
         print<<this->models[0]->get_spot()*
         exp(this->grid_points[this->grid_points.size()-1][0])<<" ];\n";
         print<<"sol=[ ";
-        for (int i=0; i<this->solution.size()-1; ++i) {
+        for (unsigned i=0; i<this->solution.size()-1; ++i) {
                 print<<this->solution(i)<<"; ";
         }
         print<<this->solution(this->solution.size()-1)<<" ];\n";

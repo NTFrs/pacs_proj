@@ -128,7 +128,7 @@ void AmericanOptionPrice<dim>::solve ()
                         this->system_matrix.ProjectedSOR_step(this->solution,
                                                               solution_old,
                                                               this->system_rhs,
-                                                              this->grid_points,
+                                                              this->vertices,
                                                               this->K);
                         
                         auto temp=this->solution;

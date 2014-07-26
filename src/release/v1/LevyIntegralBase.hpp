@@ -56,19 +56,33 @@ public:
                 this->compute_alpha();
                 return alpha[1];}
         
-	virtual void get_alpha(std::vector<double> & alp) {if (!alpha_ran)
-                this->compute_alpha();
+	virtual void get_alpha(std::vector<double> & alp) {
+                if (!alpha_ran)
+                        this->compute_alpha();
                 alp=alpha;
-                return;}
+                return;
+        }
 	
 	//add exception
-	virtual void get_j_1(dealii::Vector<double> & J_x) {if (!j_ran)
-                std::cerr<< "Run J first!"<< std::endl;
-        else
-                J_x=J1;}
-	virtual void get_j_both(dealii::Vector<double> & J_x, dealii::Vector<double> & J_y) {if (!j_ran)
-                std::cerr<< "Run J first!"<< std::endl;
-                else{J_x=J1;J_y=J2;}}
+	virtual void get_j_1(dealii::Vector<double> & J_x) {
+                if (!j_ran)
+                        std::cerr<< "Run J first!"<< std::endl;
+                else {
+                        J_x=J1;
+                        j_ran=false;
+                }
+                return;
+        }
+	virtual void get_j_both(dealii::Vector<double> & J_x, dealii::Vector<double> & J_y) {
+                if (!j_ran)
+                        std::cerr<< "Run J first!"<< std::endl;
+                else{
+                        J_x=J1;
+                        J_y=J2;
+                        j_ran=false;
+                }
+                return;
+        }
 	
 	virtual ~LevyIntegralBase() {for (unsigned d=0;d<dim;++d) Mods[d]=nullptr;}
 };
@@ -77,7 +91,8 @@ template<unsigned dim>
 void LevyIntegralBase<dim>::compute_Bounds() {
 	for (unsigned d=0;d<dim;++d) {
                 //may misbehave with merton
-                Bmin[d]=std::min(0., lower_limit(d));Bmax[d]=upper_limit(d);
+                Bmin[d]=std::min(0., lower_limit(d));
+                Bmax[d]=upper_limit(d);
                 while ((*Mods[d]).density(Bmin[d])>constants::light_toll)
                         Bmin[d]+=-0.5;
                 while ((*Mods[d]).density(Bmax[d])>constants::light_toll)

@@ -13,4 +13,9 @@ enum class ExerciseType
         US
 };
 
+enum class Transformation {
+        Price,
+        LogPrice
+};
+
 #endif

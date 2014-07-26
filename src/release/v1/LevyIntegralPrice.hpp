@@ -58,7 +58,8 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         
         std::cout<< "I'm computing J from LevyPrice<2>\n";
         
-	J1.reinit(sol.size());J2.reinit(sol.size());
+	J1.reinit(sol.size());
+        J2.reinit(sol.size());
         
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);

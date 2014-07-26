@@ -96,7 +96,10 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
                 while (err>constants::light_toll &&
                        rightQuads[0].get_order()<=order_max);
         }
-        
+        for (unsigned i=0; i<dim; ++i) {
+                std::cout<<this->alpha[i]<<"\t";
+        }
+        std::cout<<"\n";
         
 }
 

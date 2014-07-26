@@ -106,20 +106,33 @@ void EuropeanOptionPrice<dim>::solve ()
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
-                        Vector<double> J;
+                        Vector<double> J_x, J_y;
                         Vector<double> temp;
                         
+                        cout<<"calcolo J... ";
                         this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+                        cout<<"fine.\n";
                         
-                        this->levy->get_j_1(J);
+                        if (dim==1)
+                                this->levy->get_j_1(J_x);
+                        else
+                                this->levy->get_j_both(J_x, J_y);
                         
-                        (this->ff_matrix).vmult(this->system_rhs, J);
+                        (this->system_M2).vmult(this->system_rhs,this->solution);
                         
                         temp.reinit(this->dof_handler.n_dofs());
                         
-                        (this->system_M2).vmult(temp,this->solution);
+                        (this->ff_matrix).vmult(temp, J_x);
                         
                         this->system_rhs+=temp;
+                        
+                        if (dim==2) {
+                                temp.reinit(this->dof_handler.n_dofs());
+                        
+                                this->ff_matrix.vmult(temp, J_y);
+                        
+                                this->system_rhs+=temp;
+                        }
                         
                 }
                 
@@ -182,7 +195,7 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 if (print.is_open()) {
                         print<<"sol=[ ";
-                        for (int i=0; i<this->solution.size()-1; ++i) {
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
                                 print<<this->solution(i)<<"; ";
                         }
                         print<<this->solution(this->solution.size()-1)<<" ];\n";

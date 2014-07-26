@@ -67,6 +67,7 @@ protected:
         
         // points of grid
         std::vector< Point<dim> >       grid_points;
+        std::map<dealii::types::global_dof_index, dealii::Point<dim> > vertices;
 	
         // Solution and rhs vectors
 	dealii::Vector<double>          solution;
@@ -315,6 +316,9 @@ void OptionBase<dim>::setup_system()
         
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
+        
+        vertices.clear();
+	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
         
         return;
         
