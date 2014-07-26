@@ -150,8 +150,15 @@ void EuropeanOptionLogPrice<dim>::solve ()
                                                                   bc,
                                                                   boundary_values);
                         
+                        if (dim==1) {
+                                VectorTools::interpolate_boundary_values (this->dof_handler,
+                                                                          1,
+                                                                          bc,
+                                                                          boundary_values);
+                        }
+                        
                         MatrixTools::apply_boundary_values (boundary_values,
-                                                            *(this->system_matrix),
+                                                            (this->system_matrix),
                                                             this->solution,
                                                             this->system_rhs, false);
                         
@@ -159,7 +166,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 
                 SparseDirectUMFPACK solver;
                 solver.initialize(this->sparsity_pattern);
-                solver.factorize(*(this->system_matrix));
+                solver.factorize((this->system_matrix));
                 solver.solve(this->system_rhs);
                 
                 this->solution=this->system_rhs;

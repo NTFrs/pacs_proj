@@ -178,9 +178,9 @@ void OptionBaseLogPrice<dim>::assemble_system()
                 (*(this->models[0])).get_vol()/2-alpha[0];
                 double reaz=-(this->r)-lambda;
                 
-                (*(this->system_matrix)).add(1/(this->dt)-0.5*reaz, this->ff_matrix); 
-                (*(this->system_matrix)).add(0.5*diff, dd_matrix);
-                (*(this->system_matrix)).add(-0.5*trasp, fd_matrix);
+                ((this->system_matrix)).add(1/(this->dt)-0.5*reaz, this->ff_matrix); 
+                ((this->system_matrix)).add(0.5*diff, dd_matrix);
+                ((this->system_matrix)).add(-0.5*trasp, fd_matrix);
                 
                 (this->system_M2).add(1/(this->dt)+0.5*reaz, this->ff_matrix); 
                 (this->system_M2).add(-0.5*diff, dd_matrix);
@@ -235,7 +235,7 @@ void OptionBaseLogPrice<dim>::assemble_system()
                                 for (unsigned int j=0; j< dofs_per_cell; ++j) {
                                         
                                         (this->ff_matrix).add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                                        (*(this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_system(i, j));
+                                        ((this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_system(i, j));
                                         
                                 }
                         

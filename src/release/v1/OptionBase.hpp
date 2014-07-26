@@ -58,8 +58,7 @@ protected:
         // Matrices
         dealii::SparsityPattern         sparsity_pattern;
 	
-        dealii::SparseMatrix_withProjectedSOR<double, dim> * matrix_with_sor;
-        dealii::SparseMatrix<double> * system_matrix;
+        dealii::SparseMatrix_PSOR<double, dim> system_matrix;
 	
         dealii::SparseMatrix<double>    system_M2;
 	dealii::SparseMatrix<double>    dd_matrix;
@@ -125,7 +124,6 @@ public:
         //! Destructor
         virtual ~OptionBase(){
                 delete levy;
-                delete system_matrix;
         };
         
         //! 
@@ -309,37 +307,10 @@ void OptionBase<dim>::setup_system()
         
 	sparsity_pattern.copy_from(c_sparsity);
         
-        if (type==ExerciseType::US) {
-                matrix_with_sor=new SparseMatrix_withProjectedSOR<double, dim>;
-                system_matrix=matrix_with_sor;
-        }
-        else {
-                system_matrix=new SparseMatrix<double>;
-                matrix_with_sor=NULL;
-        }
-        /*
-        if (model_type==ModelType::Kou) {
-                
-                if (dim==1) {
-                        levy=new KouIntegral<dim>(dynamic_cast<KouModel *> (models[0]->get_pointer()),
-                                                  Smin, Smax);
-                }
-                
-        }
-        
-        else if (model_type==ModelType::Merton) {
-                
-                Function<1> * m=new Merton_Density<1>();
-                
-                if (dim==1) {
-                        levy=new LevyIntegral<dim>(m, Smin, Smax);
-                }
-        }
-        */
         dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);
-	(*system_matrix).reinit(sparsity_pattern);
+	system_matrix.reinit(sparsity_pattern);
 	system_M2.reinit(sparsity_pattern);
         
 	solution.reinit(dof_handler.n_dofs());

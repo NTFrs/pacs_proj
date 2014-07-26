@@ -81,8 +81,6 @@ void OptionBasePrice<dim>::setup_integral(){
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
                 this->levy=new LevyIntegralPriceMerton<dim>(this->models);
         }
-        else
-                this->levy=NULL;
 }
 
 template <unsigned dim>
@@ -182,7 +180,7 @@ void OptionBasePrice<dim>::assemble_system()
                 for (unsigned int i=0; i<dofs_per_cell;++i)
                         for (unsigned int j=0; j< dofs_per_cell; ++j) {
                                 
-                                (*(this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
+                                ((this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
                                 (this->ff_matrix).add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
                                 
                         }

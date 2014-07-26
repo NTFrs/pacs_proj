@@ -50,8 +50,6 @@ double BoundaryConditionPrice<dim>::value(const dealii::Point<dim> &p, const uns
                 
         }
         
-        std::cout<<this->get_time()<<"\t";
-        
         if (type==OptionType::Put)
                 return  (K*exp(-r*(T-this->get_time()))-point>0.)?
                 (K*exp(-r*(T-this->get_time()))-point):0.;

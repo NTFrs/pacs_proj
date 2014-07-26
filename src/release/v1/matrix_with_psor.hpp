@@ -14,12 +14,24 @@
 DEAL_II_NAMESPACE_OPEN
 
 template <typename number, unsigned dim>
-class SparseMatrix_withProjectedSOR : public virtual SparseMatrix<number> {
+class SparseMatrix_PSOR : public virtual SparseMatrix<number> {
 public:
         // Inheriting needed typedef
         using typename SparseMatrix<number>::size_type;
         
-        virtual ~SparseMatrix_withProjectedSOR(){};
+        // Constructors
+        SparseMatrix_PSOR():SparseMatrix<number>(){};
+        
+        SparseMatrix_PSOR(const SparseMatrix<number> &A):SparseMatrix<number>(A){};
+        
+        explicit SparseMatrix_PSOR(const SparsityPattern &sparsity):SparseMatrix<number>(sparsity){};
+        
+        SparseMatrix_PSOR(const SparsityPattern &sparsity, const IdentityMatrix  &id):
+        SparseMatrix<number>(sparsity, id){};
+        
+        // SparseMatrix methods
+        using SparseMatrix<number>::reinit;
+        using SparseMatrix<number>::add;
         
         // Adding a new SOR_Step
         void ProjectedSOR_step (Vector<number> &v,                          // Solution
@@ -29,23 +41,16 @@ public:
                                 const number        K,                          // Strike
                                 const number        om = 1.);                   // SOR parameter
         
-private:
-        SmartPointer<const SparsityPattern,SparseMatrix<number> > cols;
-        
-        number *val;
-        
-        std::size_t max_len;
-
 };
 
 template <typename number, unsigned dim>
 void
-dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
-                                         const Vector<number> &v_old,
-                                         const Vector<number> &b,
-                                         const std::vector< Point<dim> > &grid_points,
-                                         const number        K,
-                                         const number        om)
+dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
+                                                           const Vector<number> &v_old,
+                                                           const Vector<number> &b,
+                                                           const std::vector< Point<dim> > &grid_points,
+                                                           const number        K,
+                                                           const number        om)
 
 {
         AssertDimension (SparseMatrix<number>::m(), SparseMatrix<number>::n());
@@ -76,10 +81,10 @@ dealii::SparseMatrix_withProjectedSOR<number, dim>::ProjectedSOR_step (Vector<nu
                 }
                 
                 v(row)=(K-grid_points[row][0]>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
-                        ?
-                        (K-grid_points[row][0])
-                        :
-                        v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
+                ?
+                (K-grid_points[row][0])
+                :
+                v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
                 
         }
 }

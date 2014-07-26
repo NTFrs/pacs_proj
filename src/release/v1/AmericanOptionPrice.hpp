@@ -26,11 +26,11 @@ public:
          * \param time_step_    Number of TimeStep
          */
         AmericanOptionPrice(Model * const model,
-                       double r_,
-                       double T_,
-                       double K_,
-                       unsigned refs_,
-                       unsigned time_step_)
+                            double r_,
+                            double T_,
+                            double K_,
+                            unsigned refs_,
+                            unsigned time_step_)
         :
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::US, model, r_, T_, K_, refs_, time_step_),
         us(ExerciseType::US)
@@ -50,13 +50,13 @@ public:
          * \note                model1 and model2 MUST be of the same type.
          */
         AmericanOptionPrice(Model * const model1,
-                       Model * const model2,
-                       double rho_,
-                       double r_,
-                       double T_,
-                       double K_,
-                       unsigned refs_,
-                       unsigned time_step_)
+                            Model * const model2,
+                            double rho_,
+                            double r_,
+                            double T_,
+                            double K_,
+                            unsigned refs_,
+                            unsigned time_step_)
         :
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::US, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
         us(ExerciseType::US)
@@ -110,7 +110,7 @@ void AmericanOptionPrice<dim>::solve ()
                                                                   boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
-                                                            *(this->system_matrix),
+                                                            (this->system_matrix),
                                                             this->solution,
                                                             this->system_rhs, false);
                         
@@ -125,11 +125,11 @@ void AmericanOptionPrice<dim>::solve ()
                 
                 for (unsigned k=0; k<maxiter && !converged; ++k) {
                         
-                        (this->matrix_with_sor)->ProjectedSOR_step(this->solution,
-                                                                   solution_old,
-                                                                   this->system_rhs,
-                                                                   this->grid_points,
-                                                                   this->K);
+                        this->system_matrix.ProjectedSOR_step(this->solution,
+                                                              solution_old,
+                                                              this->system_rhs,
+                                                              this->grid_points,
+                                                              this->K);
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);
