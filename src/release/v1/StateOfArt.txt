@@ -1,12 +1,13 @@
-CoeffNonCostanti:
-	-> BS 1d, 2d
-	-> Kou 1d
-	-> Americana 1d
+TODO asap:
 
-TODO
-CoeffNonCostanti
-	-> Kou 2d
-	-> Merton 1d, 2d
-	-> Americana 2d
-	-> MeshAdapting
-	-> Sistemare US
+-> Attacare LevyIntegral a LogPrice
+-> Aggiungere compute_J per Kou e Merton LogPrice
+-> Velocizzare compute_J in Price
+-> MeshRefinment -> aggiungere i due metodi (Kelly e confronto fra griglie), scrivere la solve_one_step
+-> Factory
+
+Varie ed Eventuali:
+-> Restituire J tramite move semantic, o comunque eliminare il passaggio per copia
+-> Uniformare la costruzione della matrice fra 1d e 2d (insieme alla seguente)
+-> Mettere friend della classe opzione i modelli, in modo che si possa accedere direttamente ai membri privati
+-> Eliminare le classi Quadrature_Laguerre e Quadrature_Hermite (se possibile)

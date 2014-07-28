@@ -140,21 +140,25 @@ int main(){
         KouModel model4(80, 0.1256, 0.20761, 0.330966, 9.65997, 3.13868);
         KouModel model5(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
         
-        EuropeanOptionPrice<1> foo(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        EuropeanOptionPrice<1> foo(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 12, 250);
         
         EuropeanOptionLogPrice<1> foo2
-        (OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        (OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 12, 250);
         
         
         //EuropeanOptionPrice<1> goofy(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
-        AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 12, 250);
         
-        AmericanOptionLogPrice<1> minnie2(model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        AmericanOptionLogPrice<1> minnie2(model.get_pointer(), 0.0367, 1., 90., 12, 250);
         /*
         EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
                                       -0.2, 0.1, 1., 200., 7, 100);
         
+        EuropeanOptionLogPrice<2> mickey2(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
+                                      -0.2, 0.1, 1., 200., 7, 100);
+         */
+        /*
         EuropeanOptionPrice<2> mickey2(OptionType::Call, model5.get_pointer(), model4.get_pointer(),
                                       -0.2, 0.1, 1., 200., 7, 25);
         
@@ -165,11 +169,10 @@ int main(){
         foo2.run();
         //goofy.run();
         minnie.run();
-        minnie2.run();/*
-        mickey.run();
-        mickey2.run();
-        duffy.run();
-        */
+        minnie2.run();
+        //mickey.run();
+        //mickey2.run();
+        //duffy.run();
         //foo2.run();
         //foo.run();
         

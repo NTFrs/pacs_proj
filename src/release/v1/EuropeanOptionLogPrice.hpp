@@ -63,7 +63,7 @@ public:
                                unsigned refs_,
                                unsigned time_step_)
         :
-        OptionBaseLogPrice<dim>::OptionBasePrice(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
+        OptionBaseLogPrice<dim>::OptionBaseLogPrice(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
         type2(type_),
         eu(ExerciseType::EU)
         {};
