@@ -54,12 +54,12 @@ void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 template<>
 void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<2> & dof_handler, dealii::FE_Q<2> & fe) {
 	using namespace dealii;
-	
+	using namespace std;
         
         std::cout<< "I'm computing J from LevyPrice<2>\n";
-        
-	J1.reinit(sol.size());
-        J2.reinit(sol.size());
+    const unsigned N(sol.size());
+	J1.reinit(N);
+        J2.reinit(N);
         
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
@@ -67,23 +67,25 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	const unsigned int n_q_points=quad1D.size();
         
 	typename DoFHandler<2>::active_cell_iterator   endc=dof_handler.end();
-        
+    
 	std::map<types::global_dof_index, Point<2> > vertices;
 	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
-        
+    
 	double z, karg;
         
-	for (unsigned it=0;it<sol.size();++it)
+        
+	for (unsigned it=0;it<N;++it)
 	{
-                Point<2> actual_vertex=vertices[it];
                 
-                typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
+                Point<2> actual_vertex(vertices[it]);
+
+                                typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
                 bool left(false),  bottom(false);
                 
-                if (fabs(actual_vertex[0]-lower_limit[0])<constants::light_toll) {
+                if (fabs(actual_vertex(0)-lower_limit(0))<constants::grid_toll) {
                         left=true;
                 }
-                if (fabs(actual_vertex[1]-lower_limit[1])<constants::light_toll) {
+                if (fabs(actual_vertex(1)-lower_limit(1))<constants::grid_toll) {
                         bottom=true;
                         // 	    cout<< "it's a bottom node \n";
                 }
@@ -95,7 +97,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 // 		  cout<< "\t boundary cell left\n";
                                 unsigned actual_face(0);
                                 fe_face.reinit(inner_cell, actual_face);
-                                std::vector<Point <2> > quad_points=fe_face.get_quadrature_points();
+                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
                                 
                                 std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
@@ -103,7 +105,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                         z=quad_points[q_point](1);
                                         karg=log(z/actual_vertex(1));
-                                        J2[it]+=fe_face.JxW(q_point)*(*Mods[1]).density(karg)*sol_values[q_point]/z;
+                                        J2[it]+=fe_face.JxW(q_point)*((*Mods[1]).density(karg))*(sol_values[q_point])/z;
                                 }
                                 
                         }
@@ -113,7 +115,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 // 		  cout<< "\t boundary cell bottom\n";
                                 unsigned actual_face(2);
                                 fe_face.reinit(inner_cell, actual_face);
-                                std::vector<Point <2> > quad_points=fe_face.get_quadrature_points();
+                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
                                 
                                 std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
@@ -121,18 +123,18 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                         z=quad_points[q_point](0);
                                         karg=log(z/actual_vertex(0));
-                                        J1[it]+=fe_face.JxW(q_point)*((*Mods[0]).density(karg))*sol_values[q_point]/z;
+                                        J1[it]+=fe_face.JxW(q_point)*((*Mods[0]).density(karg))*(sol_values[q_point])/z;
                                 }
                                 
                         }
                         
                         
-                        if (fabs(inner_cell->face(3)->center()(1)-actual_vertex(1))<constants::light_toll) 
+                        if (fabs(inner_cell->face(3)->center()(1)-actual_vertex(1))<constants::grid_toll) 
                         {
                                 // 		  cout<< "\t\t operating on upper face\n";
                                 unsigned face(3);
                                 fe_face.reinit(inner_cell, face);
-                                std::vector<Point <2> > quad_points=fe_face.get_quadrature_points();
+                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
                                 
                                 std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
@@ -140,18 +142,17 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                         z=quad_points[q_point](0);
                                         karg=log(z/actual_vertex(0));
-                                        
-                                        J1[it]+=fe_face.JxW(q_point)*((*Mods[0]).density(karg))*sol_values[q_point]/z;
+                                        J1[it]+=fe_face.JxW(q_point)*((*Mods[0]).density(karg))*(sol_values[q_point])/z;
                                 }
                                 
                         }
                         
-                        if (fabs(inner_cell->face(1)->center()(0)-actual_vertex(0))<constants::light_toll) 
+                        if (fabs(inner_cell->face(1)->center()(0)-actual_vertex(0))<constants::grid_toll) 
                         {
                                 // 			cout<< "\t\t Operating on right face\n";
                                 unsigned face(1);
                                 fe_face.reinit(inner_cell, face);
-                                std::vector<Point <2> > quad_points=fe_face.get_quadrature_points();
+                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
                                 
                                 std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
@@ -159,16 +160,17 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                         z=quad_points[q_point](1);
                                         karg=log(z/actual_vertex(1));
-                                        
-                                        J2[it]+=fe_face.JxW(q_point)*((*Mods[1]).density(karg))*sol_values[q_point]/z;
+                                        J2[it]+=fe_face.JxW(q_point)*((*Mods[1]).density(karg))*(sol_values[q_point])/z;
                                 }
                                 
                         }
                         
                         
                 }
-        }
+		 }
         j_ran=true;
+//         ofstream out("JdiLevy", ios_base::app);
+//         out<< "J1 is \n"<< J1<<"\n\nJ2 is \n"<< J2<< "\n";
 }
 
 
