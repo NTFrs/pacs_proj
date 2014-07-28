@@ -143,12 +143,12 @@ void OptionBasePrice<dim>::assemble_system()
                                 trasp[0]=-((*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
                                            *quad_points[q_point][0]
                                            +0.5*(this->rho)*(*(this->models[0])).get_vol()*(*(this->models[1])).get_vol()
-                                           *quad_points[q_point][0]-(this->r)*quad_points[q_point][0]);
+                                           *quad_points[q_point][0]+(alpha[0]-this->r)*quad_points[q_point][0]);
                                 
                                 trasp[1]=-((*(this->models[1])).get_vol()*(*(this->models[1])).get_vol()*
                                            quad_points[q_point][1]+0.5*(this->rho)*(*(this->models[0])).get_vol()*
                                            (*(this->models[1])).get_vol()*quad_points[q_point][1]
-                                           -(this->r)*quad_points[q_point][1]);
+                                           +(alpha[1]-this->r)*quad_points[q_point][1]);
                                 
                                 sig_mat[0][0]=0.5*(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];

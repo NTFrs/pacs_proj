@@ -154,7 +154,7 @@ int main(){
                                       -0.2, 0.1, 1., 200., 7, 100);
         */
         EuropeanOptionPrice<2> mickey2(OptionType::Call, model5.get_pointer(), model4.get_pointer(),
-                                      -0.2, 0.1, 1., 200., 6, 25);
+                                      -0.2, 0.1, 1., 200., 6, 100);
         
         //EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
         
