@@ -109,9 +109,7 @@ void EuropeanOptionPrice<dim>::solve ()
                         Vector<double> J_x, J_y;
                         Vector<double> temp;
                         
-                        cout<<"calcolo J... ";
                         this->levy->compute_J(this->solution, this->dof_handler, this->fe);
-                        cout<<"fine.\n";
                         
                         if (dim==1)
                                 this->levy->get_j_1(J_x);

@@ -14,7 +14,7 @@
 #include "LevyIntegralLogPriceMerton.hpp"
 
 #include "EuropeanOptionLogPrice.hpp"
-//#include "AmericanOptionLogPrice.hpp"
+#include "AmericanOptionLogPrice.hpp"
 #include "EuropeanOptionPrice.hpp"
 #include "AmericanOptionPrice.hpp"
 

@@ -20,7 +20,7 @@ public:
          * \param r_    Interest Rate
          * \param type_ Option type (Put or Call)
          */
-	BoundaryConditionLogPrice(double S0_, double K_, double T_,  double r_, OptionType type_)
+	BoundaryConditionLogPrice(std::vector<double> & S0_, double K_, double T_,  double r_, OptionType type_)
         :
         dealii::Function<dim>(),
         S0(S0_),
@@ -34,7 +34,7 @@ public:
 	virtual double value (const dealii::Point<dim> &p, const unsigned int component =0) const;
         
 private:
-        double S0;
+        std::vector<double> S0;
 	double K;
 	double T;
 	double r;
@@ -49,7 +49,7 @@ double BoundaryConditionLogPrice<dim>::value(const dealii::Point<dim> &p, const 
         double point(0.);
         
         for (unsigned i=0; i<dim; ++i) {
-                point+=S0*exp(p(i));
+                point+=S0[i]*exp(p(i));
                 
         }
         

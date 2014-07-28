@@ -139,43 +139,47 @@ int main(){
         KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         KouModel model4(80, 0.1256, 0.20761, 0.330966, 9.65997, 3.13868);
         KouModel model5(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
-        /*
+        
         EuropeanOptionPrice<1> foo(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         EuropeanOptionLogPrice<1> foo2
         (OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         
-        EuropeanOptionPrice<1> goofy(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        //EuropeanOptionPrice<1> goofy(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 10, 100);
         
+        AmericanOptionLogPrice<1> minnie2(model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        /*
         EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
                                       -0.2, 0.1, 1., 200., 7, 100);
-        */
+        
         EuropeanOptionPrice<2> mickey2(OptionType::Call, model5.get_pointer(), model4.get_pointer(),
-                                      -0.2, 0.1, 1., 200., 6, 100);
+                                      -0.2, 0.1, 1., 200., 7, 25);
         
-        //EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
+        EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
+        */
         
-        /*
         foo.run();
         foo2.run();
-        goofy.run();
+        //goofy.run();
         minnie.run();
-        mickey.run();*/
+        minnie2.run();/*
+        mickey.run();
         mickey2.run();
-        //duffy.run();
-        
+        duffy.run();
+        */
         //foo2.run();
         //foo.run();
-        /*
+        
         cout<<foo.get_price()<<"\n";
         cout<<foo2.get_price()<<"\n";
-        cout<<goofy.get_price()<<"\n";
+        //cout<<goofy.get_price()<<"\n";
         cout<<minnie.get_price()<<"\n";
-        cout<<mickey.get_price()<<"\n";*/
-        cout<<mickey2.get_price()<<"\n";
+        cout<<minnie2.get_price()<<"\n";
+        //cout<<mickey.get_price()<<"\n";
+        //cout<<mickey2.get_price()<<"\n";
         //cout<<duffy.get_price()<<"\n";
         
         cout<<"TARGET (Premia)\n"

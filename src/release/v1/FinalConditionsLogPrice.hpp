@@ -17,7 +17,7 @@ public:
          * \param K_    Strike Price
          * \param type_ Option type (Put or Call)
          */
-	FinalConditionLogPrice (double S0_, double K_, OptionType type_)
+	FinalConditionLogPrice (std::vector<double> &S0_, double K_, OptionType type_)
         :
         dealii::Function<dim>(),
         S0(S0_),
@@ -30,7 +30,7 @@ public:
                               // scalar function, return the first component, label 0
                               const unsigned int  component = 0) const;
 private:
-        double S0;
+        std::vector<double> S0;
 	double K;
         OptionType type;
 };
@@ -46,7 +46,7 @@ double FinalConditionLogPrice<dim>::value (const dealii::Point<dim>  &p,
         double point(0.);
         
         for (unsigned i=0; i<dim; ++i) {
-                point+=S0*exp(p(i));
+                point+=S0[i]*exp(p(i));
                 
         }
 

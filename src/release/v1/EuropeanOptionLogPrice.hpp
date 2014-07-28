@@ -77,9 +77,13 @@ void EuropeanOptionLogPrice<dim>::solve ()
         using namespace dealii;
         using namespace std;
         
+        std::vector<double> S0(dim);
+        for (unsigned d=0; d<dim; ++d) {
+                S0[d]=this->models[d]->get_spot();
+        }
+        
         VectorTools::interpolate (this->dof_handler,
-                                  FinalConditionLogPrice<dim>(this->models[0]->get_spot(),
-                                                              this->K, this->type2),
+                                  FinalConditionLogPrice<dim>(S0, this->K, this->type2),
                                   this->solution);
         
         ofstream print;
@@ -105,8 +109,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
         
 	unsigned Step=this->time_step;
         
-        BoundaryConditionLogPrice<dim> bc(this->models[0]->get_spot(),
-                                          this->K, this->T,  this->r, this->type2);
+        BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
         
 	cout<< "time step is"<< this->time_step << endl;
 	
