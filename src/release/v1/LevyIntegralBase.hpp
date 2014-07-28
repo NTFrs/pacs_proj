@@ -68,7 +68,7 @@ public:
                 if (!j_ran)
                         std::cerr<< "Run J first!"<< std::endl;
                 else {
-                        J_x=J1;
+                        J_x=this->J1;
                         j_ran=false;
                 }
                 return;
@@ -77,8 +77,8 @@ public:
                 if (!j_ran)
                         std::cerr<< "Run J first!"<< std::endl;
                 else{
-                        J_x=J1;
-                        J_y=J2;
+                        J_x=this->J1;
+                        J_y=this->J2;
                         j_ran=false;
                 }
                 return;
