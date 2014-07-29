@@ -106,7 +106,8 @@ void EuropeanOptionPrice<dim>::solve ()
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
-                        Vector<double> J_x, J_y;
+                        Vector<double> *J_x;
+                        Vector<double> *J_y;
                         Vector<double> temp;
                         
                         this->levy->compute_J(this->solution, this->dof_handler, this->fe);
@@ -120,14 +121,14 @@ void EuropeanOptionPrice<dim>::solve ()
                         
                         temp.reinit(this->dof_handler.n_dofs());
                         
-                        (this->ff_matrix).vmult(temp, J_x);
+                        (this->ff_matrix).vmult(temp, *J_x);
                         
                         this->system_rhs+=temp;
                         
                         if (dim==2) {
                                 temp.reinit(this->dof_handler.n_dofs());
                         
-                                this->ff_matrix.vmult(temp, J_y);
+                                this->ff_matrix.vmult(temp, *J_y);
                         
                                 this->system_rhs+=temp;
                         }

@@ -30,7 +30,7 @@ public:
         type(type_)
         {};
         
-        //! Function needed by dealii
+        //! Functions needed by dealii
 	virtual double value (const dealii::Point<dim> &p, const unsigned int component =0) const;
         
 private:

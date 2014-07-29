@@ -74,12 +74,13 @@ void OptionBasePrice<dim>::make_grid(){
 
 template <unsigned dim>
 void OptionBasePrice<dim>::setup_integral(){
+        
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
                 std::cout<<"creo Kou\n";
-                this->levy=new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models);
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models));
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
-			this->levy=new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models);
+			this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models));
         }
 }
 

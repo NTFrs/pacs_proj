@@ -85,7 +85,7 @@ protected:
 	bool                    ran;
         
         // Integral Part
-        LevyIntegralBase<dim> *     levy;       
+        std::unique_ptr< LevyIntegralBase<dim> > levy;       
         
         // Private methods
         virtual void setup_system();
@@ -123,9 +123,7 @@ public:
                    unsigned time_step_);
         
         //! Destructor
-        virtual ~OptionBase(){
-                delete levy;
-        };
+        virtual ~OptionBase()=default;
         
         //! 
         /*!
@@ -195,8 +193,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false),
-levy(NULL)
+ran(false)
+//levy(NULL)
 {
         models.push_back(model);
         
@@ -258,8 +256,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false),
-levy(NULL)
+ran(false)
+//levy(NULL)
 {
         models.push_back(model1);
         models.push_back(model2);

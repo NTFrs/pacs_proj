@@ -37,13 +37,13 @@ public:
         virtual inline double get_vol()         const   {return sigma;};
         //! Returns the pointer to che class (needed in OptionBase<dim> constructors)
         virtual inline Model* get_pointer()             {return this;};
-
+        
         virtual inline double get_lambda()      const   { return 0.; };
         
         virtual inline double get_p()           const   { return 0.; };
         virtual inline double get_lambda_p()    const   { return 0.; };
         virtual inline double get_lambda_m()    const   { return 0.; };
-
+        
         virtual inline double get_nu()          const   =0;
         virtual inline double get_delta()       const   =0;
         
@@ -136,9 +136,9 @@ public:
 double KouModel::density(double pt) const
 {
 	if (pt>0)
-	return p*lambda*lambda_plus*exp(-lambda_plus*pt);
+                return p*lambda*lambda_plus*exp(-lambda_plus*pt);
 	else
-	return (1-p)*lambda*lambda_minus*exp(lambda_minus*pt);
+                return (1-p)*lambda*lambda_minus*exp(lambda_minus*pt);
 }
 
 
@@ -157,7 +157,7 @@ private:
         double nu;
         double delta;
         double lambda;
-
+        
 public:
         MertonModel()=default;
         
@@ -177,13 +177,13 @@ public:
         virtual inline double get_delta()       const   { return delta; };
         virtual inline double get_lambda()      const   { return lambda; }
         
-		virtual double density(double pt) const ;
+        virtual double density(double pt) const ;
         
 };
 
 double MertonModel::density(double pt) const
 {
-return lambda/(delta*sqrt(2*constants::pi))*exp(-(pt-nu)*(pt-nu)/(2*delta*delta));
+        return lambda/(delta*sqrt(2*constants::pi))*exp(-(pt-nu)*(pt-nu)/(2*delta*delta));
 }
 
 #endif

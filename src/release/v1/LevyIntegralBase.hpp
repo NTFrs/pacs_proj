@@ -3,7 +3,7 @@
 
 # include "deal_ii.hpp"
 # include "Quadrature.hpp"
-# include "Densities.hpp"
+//# include "Densities.hpp"
 # include "tools.hpp"
 # include "models.hpp"
 # include "constants.hpp"
@@ -48,13 +48,17 @@ public:
 	//would be nice to make it protected,  but need to pass arguments
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) =0;
 	
-	virtual double get_alpha_1() {if (!alpha_ran)
-                this->compute_alpha();
-                return alpha[0];}
+	virtual double get_alpha_1() {
+                if (!alpha_ran)
+                        this->compute_alpha();
+                return alpha[0];
+        }
 	
-	virtual double get_alpha_2() {if (!alpha_ran)                      // add exception if dim < 2
-                this->compute_alpha();
-                return alpha[1];}
+	virtual double get_alpha_2() {
+                if (!alpha_ran)                      // add exception if dim < 2
+                        this->compute_alpha();
+                return alpha[1];
+        }
         
 	virtual void get_alpha(std::vector<double> & alp) {
                 if (!alpha_ran)
@@ -64,21 +68,21 @@ public:
         }
 	
 	//add exception
-	virtual void get_j_1(dealii::Vector<double> & J_x) {
+	virtual void get_j_1(dealii::Vector<double> * &J_x) {
                 if (!j_ran)
                         std::cerr<< "Run J first!"<< std::endl;
                 else {
-                        J_x=this->J1;
+                        J_x=&J1;
                         j_ran=false;
                 }
                 return;
         }
-	virtual void get_j_both(dealii::Vector<double> & J_x, dealii::Vector<double> & J_y) {
+	virtual void get_j_both(dealii::Vector<double> * &J_x, dealii::Vector<double> * &J_y) {
                 if (!j_ran)
                         std::cerr<< "Run J first!"<< std::endl;
                 else{
-                        J_x=this->J1;
-                        J_y=this->J2;
+                        J_x=&J1;
+                        J_y=&J2;
                         j_ran=false;
                 }
                 return;

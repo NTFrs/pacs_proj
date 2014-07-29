@@ -151,9 +151,13 @@ namespace tools{
                 for (unsigned int i=0;i<n_points;++i)
                 {
                         if (points[i][_ax]<_l_lim[_ax]) {
+                                std::cout<<points[i]<<"\n";
+                                std::cout<<_BC.value(points[i])<<"\n";
                                 values[i]=_BC.value(points[i]);
                         }
                         else if (points[i][_ax]>_r_lim[_ax]) {
+                                std::cout<<points[i]<<"\n";
+                                std::cout<<_BC.value(points[i])<<"\n";
                                 values[i]=_BC.value(points[i]);
                         }
                         else
