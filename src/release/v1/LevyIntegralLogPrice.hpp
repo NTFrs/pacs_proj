@@ -8,12 +8,19 @@ class LevyIntegralLogPrice: public LevyIntegralBase<dim> {
 	
 protected:
 	//TODO if done like this can cause problems if Levy is called with LevyIntegralLogPrice(-.-.-.BC<>())
-	dealii::Function<dim> & boundary;
+	std::unique_ptr<dealii::Function<dim> > boundary;
 public:
 	
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe);
 	
-	LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,  std::vector<Model *> & Models_,  dealii::Function<dim> & BC_): LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_), boundary(BC_) {};
+	LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
+                             dealii::Point<dim> upper_limit_,
+                             std::vector<Model *> & Models_,
+                             std::unique_ptr<dealii::Function<dim> > BC_)
+        :
+        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_),
+        boundary(std::move(BC_))
+        {};
 };
 
 template<unsigned dim>
@@ -27,7 +34,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
 	
         for (unsigned d=0;d<dim;++d) {
-                tools::Solution_Trimmer<dim> func(d,this->boundary, dof_handler, sol, this->lower_limit, this->lower_limit);
+                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->lower_limit);
 		
                 Triangulation<1> integral_triangulation;
                 GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, 5), this->Bmin(d), this->Bmax(d));
@@ -99,6 +106,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                 for (unsigned i=0;i<this->J1.size();++i)
                         this->J2[i]=J[i+N];
         }
+        this->j_ran=true;
 }
 
 

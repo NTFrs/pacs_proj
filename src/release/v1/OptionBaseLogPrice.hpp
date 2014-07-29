@@ -121,6 +121,8 @@ void OptionBaseLogPrice<dim>::assemble_system()
 	
         std::vector<Point<dim> > quad_points(n_q_points);
         
+        std::cout<<alpha[0]<<"\n";
+        
         if (dim==1) {
                 dealii::Tensor< 1 , dim, double > ones;
                 for (unsigned i=0;i<dim;++i)

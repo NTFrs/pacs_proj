@@ -141,7 +141,8 @@ namespace tools{
         
         template<int dim>
         void Solution_Trimmer<dim>::value_list(const std::vector<dealii::Point<dim> > &points, std::vector<double> &values, const unsigned int component) const
-        { using namespace dealii;
+        {
+                using namespace dealii;
                 Assert (values.size() == points.size(),
                         ExcDimensionMismatch (values.size(), points.size()));
                 Assert (component == 0, ExcInternalError());
@@ -151,13 +152,9 @@ namespace tools{
                 for (unsigned int i=0;i<n_points;++i)
                 {
                         if (points[i][_ax]<_l_lim[_ax]) {
-                                std::cout<<points[i]<<"\n";
-                                std::cout<<_BC.value(points[i])<<"\n";
                                 values[i]=_BC.value(points[i]);
                         }
                         else if (points[i][_ax]>_r_lim[_ax]) {
-                                std::cout<<points[i]<<"\n";
-                                std::cout<<_BC.value(points[i])<<"\n";
                                 values[i]=_BC.value(points[i]);
                         }
                         else

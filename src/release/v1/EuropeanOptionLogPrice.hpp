@@ -80,13 +80,14 @@ void EuropeanOptionLogPrice<dim>::setup_integral(){
                 S0[d]=this->models[d]->get_spot();
         }
         
-        BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
+        std::unique_ptr<dealii::Function<dim> > bc
+        (new BoundaryConditionLogPrice<dim> (S0, this->K, this->T,  this->r, this->type2));
         
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
-                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models, bc));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models, std::move(bc)));
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
-                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models, bc));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models, std::move(bc)));
         }
 }
 
@@ -198,7 +199,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                         
                 }
                 
-                auto pointer=dynamic_cast<SparseMatrix<double> *> (&(this->system_matrix));
+                auto pointer=static_cast<SparseMatrix<double> *> (&(this->system_matrix));
                 
                 SparseDirectUMFPACK solver;
                 solver.initialize(this->sparsity_pattern);

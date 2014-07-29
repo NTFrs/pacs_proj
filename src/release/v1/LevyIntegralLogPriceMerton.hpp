@@ -17,7 +17,14 @@ protected:
 	
 public:
 	LevyIntegralLogPriceMerton()=delete;
-	LevyIntegralLogPriceMerton(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,  std::vector<Model *> & Models_,  dealii::Function<dim> & BC_,  bool apt=true): LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_, upper_limit_, Models_, BC_), adapting(apt) {
+	LevyIntegralLogPriceMerton(dealii::Point<dim> lower_limit_,
+                                   dealii::Point<dim> upper_limit_,
+                                   std::vector<Model *> & Models_,
+                                   std::unique_ptr<dealii::Function<dim> > BC_,
+                                   bool apt=true)
+        :
+        LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_, upper_limit_, Models_, std::move(BC_)), 
+        adapting(apt) {
                 if (!adapting)
                         this->setup_quadratures(16);
                 else
@@ -99,7 +106,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
         
 	for (unsigned d=0;d<dim;++d) {
-                tools::Solution_Trimmer<dim> func(d,this->boundary, dof_handler, sol, this->lower_limit, this->lower_limit);
+                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->lower_limit);
                 
                 //#pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
@@ -107,7 +114,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
                         std::vector< Point<dim> > quad_points(quadratures[d].get_order());
                         std::vector<double> f_u(quadratures[d].get_order());
                         
-                        for (int i=0; i<quad_points.size(); ++i) {
+                        for (unsigned i=0; i<quad_points.size(); ++i) {
                                 quad_points[i][d]=this->quadratures[d].get_nodes()[i] + vertices[it][d];
                                 quad_points[i][1-d]=vertices[it][1-d];
                         }
@@ -134,6 +141,9 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
                 for (unsigned i=0;i<this->J1.size();++i)
                         this->J2[i]=J[i+N];
         }
+        
+        this->j_ran=true;
+
 }
 
 

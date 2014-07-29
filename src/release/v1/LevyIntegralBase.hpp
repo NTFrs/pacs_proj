@@ -1,13 +1,13 @@
 #ifndef __integral_levy_base_hpp
-# define __integral_levy_base_hpp
+#define __integral_levy_base_hpp
 
-# include "deal_ii.hpp"
-# include "Quadrature.hpp"
-//# include "Densities.hpp"
-# include "tools.hpp"
-# include "models.hpp"
-# include "constants.hpp"
-# include "cmath"
+#include "deal_ii.hpp"
+#include "Quadrature.hpp"
+#include "tools.hpp"
+#include "models.hpp"
+#include "constants.hpp"
+#include "cmath"
+#include <memory>
 
 //TODO
 //constructor

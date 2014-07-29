@@ -165,7 +165,7 @@ void EuropeanOptionPrice<dim>::solve ()
                         
                 }
                 
-                auto pointer=dynamic_cast<SparseMatrix<double> *> (&(this->system_matrix));
+                auto pointer=static_cast<SparseMatrix<double> *> (&(this->system_matrix));
                 
                 SparseDirectUMFPACK solver;
                 solver.initialize(this->sparsity_pattern);
