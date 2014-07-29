@@ -103,7 +103,7 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
 
 template<unsigned dim>
 void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe)
-{/*
+{
 	using namespace dealii;
 	unsigned N(sol.size());
 	//TODO and if we do not initialise J nd do a pushback? 
@@ -120,50 +120,31 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                         std::vector< Point<dim> > quad_points(leftQuads[d].get_order()+rightQuads[d].get_order());
                         std::vector<double> f_u(leftQuads[d].get_order()+rightQuads[d].get_order());
                         
-                        for (int i=0; i<quad_points.size(); ++i) {
-                                quad_points[i][0]=this->quadrature_points_x[i][0] + this->grid_points[it][0];
-                                quad_points[i][1]=this->grid_points[it][1];
-                        }
-                        //CONTROLLARE
-                        for (; cell !=endc;++cell) {
-                                
-                                //reinit this 1D fevalues
-                                fe_values2.reinit(cell);
-                                //ATTENTION
-                                //quadrature points are in 1D,  our functions take dimD
-                                //Need to create a vector of 2D points
-                                
-                                //thus we get the 1D points
-                                std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
-                                
-                                //and we create a vector to hold 2D points
-                                std::vector< Point<dim> >
-                                quad_points(n_q_points);
-                                // This way,  the 1_i point of integration becomes (q_i, 0)
-                                for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
-                                        quad_points[q_point][d]=quad_points_1D[q_point](0);
-                                        quad_points[q_point](1-d)=0;}
-                                std::vector<double> kern(n_q_points),  f_u(n_q_points);
-                                
-                                //and we compute the value of the density on that point (note the y coordinate is useless here) 
-                                for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                        kern[q_point]=(*this->Mods[d]).density(quad_points[q_point](d));
-                                
-                                //here we add the actual where we are, in order to obtain u(t, x_it+q_i, y_it)
-                                //we have thus a vector of (q_i+x_it, y_it)
-                                for (unsigned int q_point=0;q_point<n_q_points;++q_point)
-                                        quad_points[q_point]+=vertices[it];
-                                
-                                //and we thus calculate the values of traslated u
-                                func.value_list(quad_points, f_u);
-                                
-                                //and we can finally calculate the contribution to J_x(it)
-                                for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                        J(d*N+it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
+						for (int i=0; i<leftQuads[d].get_order(); ++i) {
+                                quad_points[i][d]=this->leftQuads[d].get_nodes()[i] + vertices[it][d];
+                                quad_points[i][1-d]=vertices[it][1-d];
                         }
                         
+						for (int i=0; i<rightQuads[d].get_order(); ++i) {
+								quad_points[i][d]=this->rightQuads[d].get_nodes()[i] + vertices[it][d];
+								quad_points[i][1-d]=vertices[it][1-d];
+						}
                         
-                }
+						// valuto f_u in quad_points
+						func.value_list(quad_points, f_u);
+                        
+						// Integro dividendo fra parte sinistra e parte destra dell'integrale
+						for (unsigned i=0;i<leftQuads[d].get_order();++i) {
+						  J[d*N+it]+=f_u[i]*(1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
+						  ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+						}
+						
+						for (unsigned i=0;i<rightQuads[d].get_order();++i) {
+						  J[d*N+it]=f_u[i]*((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
+						  ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+						}
+				
+				}
                 
         }
 	this->J1.reinit(N);
@@ -173,7 +154,7 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                 this->J2.reinit(N);
                 for (unsigned i=0;i<this->J1.size();++i)
                         this->J2[i]=J[i+N];
-        }*/
+        }
 }
 
 #endif
