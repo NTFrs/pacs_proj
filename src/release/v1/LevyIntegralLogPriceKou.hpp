@@ -15,7 +15,7 @@ protected:
 	
 	virtual void setup_quadratures(unsigned n);
         virtual void compute_alpha();
-        virtual void compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe);
+        
 	
 public:
 	LevyIntegralLogPriceKou()=delete;
@@ -25,6 +25,8 @@ public:
                 else
                         this->setup_quadratures(2);
 	}
+	
+	virtual void compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe);
 };
 
 template<unsigned dim>
