@@ -13,6 +13,7 @@ class AmericanOptionLogPrice final: public OptionBaseLogPrice<dim>
 private:
         ExerciseType us;
         
+        virtual void setup_integral();
         virtual void solve();
 public:
         //! 1d Constructor
@@ -66,6 +67,25 @@ public:
 };
 
 template <unsigned dim>
+void AmericanOptionLogPrice<dim>::setup_integral(){
+        
+        std::vector<double> S0(dim);
+        for (unsigned d=0; d<dim; ++d) {
+                S0[d]=this->models[d]->get_spot();
+        }
+        
+        BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, OptionType::Put);
+        
+        if (this->model_type==OptionBase<dim>::ModelType::Kou) {
+                this->levy=new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models, bc);
+        }
+        else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
+                this->levy=new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models, bc);
+        }
+}
+
+
+template <unsigned dim>
 void AmericanOptionLogPrice<dim>::solve ()
 {
         using namespace dealii;
@@ -102,7 +122,42 @@ void AmericanOptionLogPrice<dim>::solve ()
 	for (double time=this->T-this->dt;time >=0;time-=this->dt, --Step) {
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-                this->system_M2.vmult(this->system_rhs, this->solution);
+                
+                //
+                if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
+                        
+                        Vector<double> J_x, J_y;
+                        Vector<double> temp;
+                        
+                        this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+                        
+                        if (dim==1)
+                                this->levy->get_j_1(J_x);
+                        else
+                                this->levy->get_j_both(J_x, J_y);
+                        
+                        (this->system_M2).vmult(this->system_rhs,this->solution);
+                        
+                        temp.reinit(this->dof_handler.n_dofs());
+                        
+                        (this->ff_matrix).vmult(temp, J_x);
+                        
+                        this->system_rhs+=temp;
+                        
+                        if (dim==2) {
+                                temp.reinit(this->dof_handler.n_dofs());
+                                
+                                this->ff_matrix.vmult(temp, J_y);
+                                
+                                this->system_rhs+=temp;
+                        }
+                        
+                }
+                
+                else
+                        this->system_M2.vmult(this->system_rhs, this->solution);
+                
+                //
                 bc.set_time(this->dt);
                 
                 {
@@ -149,7 +204,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         
                         
                         if (k==maxiter-1) {
-                                cout<<"Warning: maxiter reached.\n";
+                                cout<<"Warning: maxiter reached. Error="<<temp.linfty_norm()<<"\n";
                         }
                         
                 }

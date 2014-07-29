@@ -150,10 +150,12 @@ namespace tools{
                 
                 for (unsigned int i=0;i<n_points;++i)
                 {
-                        if (points[i][_ax]<_l_lim[_ax])
+                        if (points[i][_ax]<_l_lim[_ax]) {
                                 values[i]=_BC.value(points[i]);
-                        else if (points[i][_ax]>_r_lim[_ax])
+                        }
+                        else if (points[i][_ax]>_r_lim[_ax]) {
                                 values[i]=_BC.value(points[i]);
+                        }
                         else
                                 values[i]=_fe_func.value(points[i]);
                 }

@@ -13,6 +13,7 @@ private:
         OptionType type2;
         ExerciseType eu;
         
+        virtual void setup_integral();
         virtual void solve();
 public:
         //! 1d Constructor
@@ -72,6 +73,24 @@ public:
 };
 
 template <unsigned dim>
+void EuropeanOptionLogPrice<dim>::setup_integral(){
+        
+        std::vector<double> S0(dim);
+        for (unsigned d=0; d<dim; ++d) {
+                S0[d]=this->models[d]->get_spot();
+        }
+        
+        BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
+        
+        if (this->model_type==OptionBase<dim>::ModelType::Kou) {
+                this->levy=new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models, bc);
+        }
+        else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
+                this->levy=new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models, bc);
+        }
+}
+
+template <unsigned dim>
 void EuropeanOptionLogPrice<dim>::solve ()
 {
         using namespace dealii;
@@ -120,20 +139,31 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
-                        Vector<double> J;
+                        Vector<double> J_x, J_y;
                         Vector<double> temp;
                         
                         this->levy->compute_J(this->solution, this->dof_handler, this->fe);
                         
-                        this->levy->get_j_1(J);
+                        if (dim==1)
+                                this->levy->get_j_1(J_x);
+                        else
+                                this->levy->get_j_both(J_x, J_y);
                         
-                        (this->ff_matrix).vmult(this->system_rhs, J);
+                        (this->system_M2).vmult(this->system_rhs,this->solution);
                         
                         temp.reinit(this->dof_handler.n_dofs());
                         
-                        (this->system_M2).vmult(temp,this->solution);
+                        (this->ff_matrix).vmult(temp, J_x);
                         
                         this->system_rhs+=temp;
+                        
+                        if (dim==2) {
+                                temp.reinit(this->dof_handler.n_dofs());
+                                
+                                this->ff_matrix.vmult(temp, J_y);
+                                
+                                this->system_rhs+=temp;
+                        }
                         
                 }
                 

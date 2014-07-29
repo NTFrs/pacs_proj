@@ -9,7 +9,6 @@ class OptionBaseLogPrice: public OptionBase<dim> {
 protected:
         virtual void make_grid();
         virtual void assemble_system();
-        virtual void setup_integral();
         virtual void solve()=0;
 public:
         //! Constructor 1d
@@ -72,24 +71,6 @@ void OptionBaseLogPrice<dim>::make_grid(){
         this->grid_points=this->triangulation.get_vertices();
         
         return;
-}
-
-template <unsigned dim>
-void OptionBaseLogPrice<dim>::setup_integral(){
-        //da capire cosa sono upper_limit, lower_limit
-        
-        /*
-        if (this->model_type==OptionBase<dim>::ModelType::Kou) {
-                std::cout<<"creo Kou\n";
-                this->levy=new LevyIntegralLogPriceKou<dim>(this->models);
-        }
-        else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
-                this->levy=new LevyIntegralLogPriceMerton<dim>(this->models);
-        }
-        else
-                this->levy=NULL;
-         */
-        this->levy=NULL;
 }
 
 template <unsigned dim>

@@ -142,8 +142,8 @@ void AmericanOptionPrice<dim>::solve ()
                                 solution_old=this->solution;
                         
                         
-                        if (k==maxiter-1) {
-                                cout<<"Warning: maxiter reached.\n";
+                        if (k==maxiter) {
+                                cout<<"Warning: maxiter reached. Error="<<temp.linfty_norm()<<"\n";
                         }
                         
                 }

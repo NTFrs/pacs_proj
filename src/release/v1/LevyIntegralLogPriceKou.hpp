@@ -101,8 +101,6 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
         
 }
 
-
-
 template<unsigned dim>
 void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe)
 {
@@ -122,31 +120,33 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                         std::vector< Point<dim> > quad_points(leftQuads[d].get_order()+rightQuads[d].get_order());
                         std::vector<double> f_u(leftQuads[d].get_order()+rightQuads[d].get_order());
                         
-						for (int i=0; i<leftQuads[d].get_order(); ++i) {
+                        for (int i=0; i<leftQuads[d].get_order(); ++i) {
                                 quad_points[i][d]=this->leftQuads[d].get_nodes()[i] + vertices[it][d];
-                                quad_points[i][1-d]=vertices[it][1-d];
+                                if (dim==2)
+                                        quad_points[i][1-d]=vertices[it][1-d];
                         }
                         
-						for (int i=0; i<rightQuads[d].get_order(); ++i) {
-								quad_points[i][d]=this->rightQuads[d].get_nodes()[i] + vertices[it][d];
-								quad_points[i][1-d]=vertices[it][1-d];
-						}
+                        for (int i=0; i<rightQuads[d].get_order(); ++i) {
+                                quad_points[i][d]=this->rightQuads[d].get_nodes()[i] + vertices[it][d];
+                                if (dim==2)
+                                        quad_points[i][1-d]=vertices[it][1-d];
+                        }
                         
-						// valuto f_u in quad_points
-						func.value_list(quad_points, f_u);
+                        // valuto f_u in quad_points
+                        func.value_list(quad_points, f_u);
                         
-						// Integro dividendo fra parte sinistra e parte destra dell'integrale
-						for (unsigned i=0;i<leftQuads[d].get_order();++i) {
-						  J[d*N+it]+=f_u[i]*(1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-						  ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
-						}
-						
-						for (unsigned i=0;i<rightQuads[d].get_order();++i) {
-						  J[d*N+it]=f_u[i]*((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-						  ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
-						}
-				
-				}
+                        // Integro dividendo fra parte sinistra e parte destra dell'integrale
+                        for (unsigned i=0;i<leftQuads[d].get_order();++i) {
+                                J[d*N+it]+=f_u[i]*(1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
+                                ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+                        }
+                        
+                        for (unsigned i=0;i<rightQuads[d].get_order();++i) {
+                                J[d*N+it]=f_u[i]*((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
+                                ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+                        }
+                        
+                }
                 
         }
 	this->J1.reinit(N);
