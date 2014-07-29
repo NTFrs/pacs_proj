@@ -1,13 +1,11 @@
 TODO asap:
-
--> Attacare LevyIntegral a LogPrice
--> Aggiungere compute_J per Kou e Merton LogPrice
+-> Sistemare il compute_J LogPrice che va in SegFault
 -> Velocizzare compute_J in Price
 -> MeshRefinment -> aggiungere i due metodi (Kelly e confronto fra griglie), scrivere la solve_one_step
 -> Factory
 
 Varie ed Eventuali:
--> Restituire J tramite move semantic, o comunque eliminare il passaggio per copia
+-> Restituire J tramite move semantic, o comunque eliminare il passaggio per copia (provata move semantic, non so se è quello che fa per noi perché dubito che i dealii::Vector abbiamo la std::move, e credo che serva...)
 -> Uniformare la costruzione della matrice fra 1d e 2d (insieme alla seguente)
 -> Mettere friend della classe opzione i modelli, in modo che si possa accedere direttamente ai membri privati
 -> Eliminare le classi Quadrature_Laguerre e Quadrature_Hermite (se possibile)
