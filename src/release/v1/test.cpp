@@ -66,8 +66,11 @@ int main(){
         //cout<<goofy.get_price()<<"\n";
         //cout<<goofy2.get_price()<<"\n";
         
-        auto x=OptionFactory::get()->create(ExerciseType::EU, OptionType::Put, Transformation::Price,
-                                            model.get_pointer(), 0.0367, 1., 90., 12, 250);
+        auto x=OptionFactory::instance()->create(ExerciseType::EU,
+                                                 OptionType::Put,
+                                                 Transformation::Price,
+                                                 model.get_pointer(),
+                                                 0.0367, 1., 90., 12, 250);
         
         x->run();
         cout<<x->get_price()<<"\n";

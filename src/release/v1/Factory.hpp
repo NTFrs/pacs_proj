@@ -11,7 +11,7 @@ private:
         OptionFactory &operator=(const OptionFactory &) { return *this; }
         
 public:
-        static OptionFactory * get()
+        static OptionFactory * instance()
         {
                 static OptionFactory instance;
                 return &instance;
