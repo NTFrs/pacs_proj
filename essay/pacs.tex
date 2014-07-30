@@ -429,12 +429,43 @@ e la discretizzazione in tempo con uno schema di Eulero Implicito:
 \end{multline}
 A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+DJ_1^{n+1}+DJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $D$ \`e la matrice di massa.
 \section{\emph{Prices}}
+\subsection{NAHUEL'S BUSINESS}
 \section{Il problema con l'ostacolo: il SOR proiettato}
+Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
 
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
 \chapter{Codice}
+\section{Introduzione}
+In questo capitolo descriviamo come il problema \`e stato implementato da un punto di vista computazionale, elencando le varie classi scritte e le loro caratteristiche. Inizialmente mostriamo delle piccole classi che si occupano di gestire i parametri dei modelli e le loro densit\`a. Nella seconda sezione descriviamo gli oggetti opzione che costruiscono il sistema per risolvere il problema a elementi finiti in una e due dimensione. Questi oggetti utilizzano poi le funzioni di altri oggetti, \textsf{LevyIntegral}, per il calcolo della parte integrale. Successivamente, descriviamo brevemente la \emph{Factory} che abbiamo scritto per instanziare gli oggetti opzione e infine spieghiamo brevemente le linee guida per utilizzare questa libreria.
+\section{Classi per i Modelli}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=12cm]{img/classModel.eps}
+\label{model}
+\end{center}
+\end{figure}
+\section{Classi per Opzioni}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=12cm]{img/classOptionBase.eps}
+\label{model}
+\end{center}
+\end{figure}
+\subsection{\textsf{OptionBase}}
+\subsection{\textsf{OptionBasePrice}}
+\subsection{\textsf{OptionBaseLogPrice}}
+\section{Classi per il calcolo degli integrali}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=12cm]{img/classLevyIntegralBase.eps}
+\label{model}
+\end{center}
+\end{figure}
+\section{\emph{Factory}}
+\section{Come utilizzare la libreria}
+
 \chapter{Risultati}
 \chapter{Estensioni}
 Aggiungere altri modelli (NIG, VG), provare altre opzioni, farlo in 3d, Heston?, memoria distribuita.
