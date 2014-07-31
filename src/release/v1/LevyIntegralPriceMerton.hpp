@@ -85,6 +85,8 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
                        quadratures[0].get_order()<=order_max);
         }
         
+        std::cout<<this->alpha[0]<<"\n";
+        
         
 }
 

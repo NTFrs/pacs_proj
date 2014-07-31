@@ -207,7 +207,7 @@ void OptionBaseLogPrice<dim>::assemble_system()
                                                 cell_system(i, j)+=fe_values.JxW(q_point)*
                                                 (0.5*fe_values.shape_grad(i, q_point)*sigma_matrix*fe_values.shape_grad(j, q_point)-
                                                  fe_values.shape_value(i, q_point)*(trasp*fe_values.shape_grad(j,q_point))+
-                                                 (1/(this->dt)+this->r+lambda+lambda)*
+                                                 (1/(this->dt)+this->r+lambda)*
                                                  fe_values.shape_value(i, q_point)*fe_values.shape_value(j, q_point));
                                                 
                                         }

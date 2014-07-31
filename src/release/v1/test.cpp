@@ -18,6 +18,31 @@ int main(){
         KouModel model4(80, 0.1256, 0.20761, 0.330966, 9.65997, 3.13868);
         KouModel model5(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
         
+        MertonModel model6(80., 0.2, -0.390078, 0.338796, 0.174814);
+        MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
+        
+        EuropeanOptionPrice<1> a(OptionType::Call, model6.get_pointer(), 0.0367, 1., 100., 8, 100);
+        EuropeanOptionLogPrice<1> b(OptionType::Call, model6.get_pointer(), 0.0367, 1., 100., 8, 100);
+        
+        EuropeanOptionPrice<2> c
+        (OptionType::Call, model6.get_pointer(), model7.get_pointer(),
+         -0.2, 0.1, 1., 200., 6, 25);
+        
+        EuropeanOptionLogPrice<2> d
+        (OptionType::Call, model6.get_pointer(), model7.get_pointer(),
+         -0.2, 0.1, 1., 200., 6, 25);
+        
+        a.run();
+        b.run();
+        c.run();
+        d.run();
+        
+        cout<<a.get_price()<<"\n";
+        cout<<b.get_price()<<"\n";
+        cout<<c.get_price()<<"\n";
+        cout<<d.get_price()<<"\n";
+        
+        /*
         EuropeanOptionPrice<1> foo
         (OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 12, 250);
         EuropeanOptionLogPrice<1> foo2
@@ -70,6 +95,7 @@ int main(){
         cout<<mickey2.get_price()<<"\n";
         cout<<goofy.get_price()<<"\n";
         cout<<goofy2.get_price()<<"\n";
+         */
         /*
          auto x=OptionFactory::instance()->create(ExerciseType::EU,
          OptionType::Put,

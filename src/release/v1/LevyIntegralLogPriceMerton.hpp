@@ -116,7 +116,9 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
                         
                         for (unsigned i=0; i<quad_points.size(); ++i) {
                                 quad_points[i][d]=this->quadratures[d].get_nodes()[i] + vertices[it][d];
-                                quad_points[i][1-d]=vertices[it][1-d];
+                                if (dim==2) {
+                                        quad_points[i][1-d]=vertices[it][1-d];
+                                }
                         }
                         
                         
