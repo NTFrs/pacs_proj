@@ -136,6 +136,7 @@ void LevyIntegralBase<dim>::compute_alpha()
                         std::vector< Point<1> > quad_points_1D(fe_values.get_quadrature_points());
                         
                         for (unsigned q_point=0;q_point<n_q_points;++q_point) {
+								//TODO change this to simple double
                                 Point<dim> p;
                                 p[d]=quad_points_1D[q_point][0];
                                 alpha[d]+=fe_values.JxW(q_point)*(exp(p[d])-1.)*(*Mods[d]).density(p[d]);
