@@ -44,8 +44,8 @@ public:
         virtual inline double get_lambda_p()    const   { return 0.; };
         virtual inline double get_lambda_m()    const   { return 0.; };
         
-        virtual inline double get_nu()          const   =0;
-        virtual inline double get_delta()       const   =0;
+        virtual inline double get_nu()          const   { return 0.; };
+        virtual inline double get_delta()       const   { return 0.; };
         
         virtual double density(double pt) const =0;
 };

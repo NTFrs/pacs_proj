@@ -70,8 +70,8 @@ dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
 #pragma omp parallel for
         for (size_type row=1; row<SparseMatrix<number>::m()-1; ++row) {
                 
-                SparseMatrixIterators::Iterator< number, true > col (this, row, 0);
-                SparseMatrixIterators::Iterator< number, true > colend (this, row+1, 0);
+                SparseMatrixIterators::Iterator< number, true > col=this->begin(row);
+                SparseMatrixIterators::Iterator< number, true > colend=this->begin(row+1);
                 
                 SparseMatrixIterators::Accessor< number, true > row_iterator(*col);
                 
@@ -123,8 +123,8 @@ dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
 #pragma omp parallel for
         for (size_type row=1; row<SparseMatrix<number>::m()-1; ++row) {
                 
-                SparseMatrixIterators::Iterator< number, true > col (this, row, 0);
-                SparseMatrixIterators::Iterator< number, true > colend (this, row+1, 0);
+                SparseMatrixIterators::Iterator< number, true > col=this->begin(row);
+                SparseMatrixIterators::Iterator< number, true > colend=this->begin(row+1);
                 
                 SparseMatrixIterators::Accessor< number, true > row_iterator(*col);
                 

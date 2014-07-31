@@ -23,13 +23,13 @@ int main(){
         //EuropeanOptionLogPrice<1> foo2
         //(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 12, 250);
         
-        EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
-        EuropeanOptionLogPrice<1> duffy2(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
+        //EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
+        //EuropeanOptionLogPrice<1> duffy2(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
         
         
-        //AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 12, 100);
+        AmericanOptionPrice<1> minnie(model.get_pointer(), 0.0367, 1., 90., 12, 100);
         
-        //AmericanOptionLogPrice<1> minnie2(model.get_pointer(), 0.0367, 1., 90., 12, 100);
+        AmericanOptionLogPrice<1> minnie2(model.get_pointer(), 0.0367, 1., 90., 12, 100);
         /*
          EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
          -0.2, 0.1, 1., 200., 7, 100);
@@ -46,10 +46,10 @@ int main(){
          */
         //foo.run();
         //foo2.run();
-        duffy.run();
-        duffy2.run();
-        //minnie.run();
-        //minnie2.run();
+        //duffy.run();
+        //duffy2.run();
+        minnie.run();
+        minnie2.run();
         //mickey.run();
         //mickey2.run();
         //goofy.run();
@@ -57,10 +57,10 @@ int main(){
         
         //cout<<foo.get_price()<<"\n";
         //cout<<foo2.get_price()<<"\n";
-        cout<<duffy.get_price()<<"\n";
-        cout<<duffy2.get_price()<<"\n";
-        //cout<<minnie.get_price()<<"\n";
-        //cout<<minnie2.get_price()<<"\n";
+        //cout<<duffy.get_price()<<"\n";
+        //cout<<duffy2.get_price()<<"\n";
+        cout<<minnie.get_price()<<"\n";
+        cout<<minnie2.get_price()<<"\n";
         //cout<<mickey.get_price()<<"\n";
         //cout<<mickey2.get_price()<<"\n";
         //cout<<goofy.get_price()<<"\n";
