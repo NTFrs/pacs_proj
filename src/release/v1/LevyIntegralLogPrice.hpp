@@ -74,7 +74,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                                 // This way,  the 1_i point of integration becomes (q_i, 0)
                                 for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
                                         quad_points[q_point][d]=quad_points_1D[q_point](0);
-                                        quad_points[q_point](1-d)=0;}
+                                        }
                                 std::vector<double> kern(n_q_points),  f_u(n_q_points);
                                 
                                 //and we compute the value of the density on that point (note the y coordinate is useless here) 
