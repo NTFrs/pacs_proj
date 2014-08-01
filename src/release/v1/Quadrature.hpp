@@ -46,35 +46,33 @@ public:
 
 class Quadrature_Hermite{
 private:
-
+        
 	std::vector<double> nodes;
 	std::vector<double> weights;
 	unsigned order; 
-
+        
 public:
-
+        
 	Quadrature_Hermite()=default;
-
+        
 	// il costruttore costruisce nodi e pesi
 	Quadrature_Hermite(unsigned n, double mu, double delta){
-
-	 std::cout<<"pi "<<constants::pi<<"\n";
-
-	 order=n;
-
-	 nodes=std::vector<double> (order);
-	 weights=std::vector<double> (order);
-
-	 unsigned kind = 6;                          // kind=6, Generalized Hermite, (-inf,inf)  |x-a|^alpha*exp(-b*(x-a)^2)
-
-	 //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
-	 quadrature::cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
-   }
-
+                
+                order=n;
+                
+                nodes=std::vector<double> (order);
+                weights=std::vector<double> (order);
+                
+                unsigned kind = 6;                          // kind=6, Generalized Hermite, (-inf,inf)  |x-a|^alpha*exp(-b*(x-a)^2)
+                
+                //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
+                quadrature::cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
+        }
+        
 	inline unsigned get_order () {return order;}
 	inline std::vector<double> const & get_nodes () {return nodes;}
 	inline std::vector<double> const & get_weights () {return weights;}
-  };
+};
 
 
 #endif
