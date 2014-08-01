@@ -45,7 +45,7 @@ int main(){
 //         cout<<c.get_price()<<"\n";
 //         cout<<d.get_price()<<"\n";
         
-	const int top=8-3+1;
+	const int top=7-3+1;
 	double T[2][top], result[2][top], real_T[2][top];
 
 	clock_t inizio,fine;
@@ -56,7 +56,7 @@ int main(){
         {
 			EuropeanOptionPrice<2> c
 			(OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-	   -0.2, 0.1, 1., 200., top+3, 50);
+	   -0.2, 0.1, 1., 200., i+3, 50);
 	   
 			gettimeofday(&start, NULL);
 			inizio=clock();
@@ -75,7 +75,7 @@ int main(){
         {
 		 EuropeanOptionLogPrice<2> d
 	 (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-	  -0.2, 0.1, 1., 200., top+3, 50);
+	  -0.2, 0.1, 1., 200., i+3, 50);
         
 			gettimeofday(&start, NULL);
 			inizio=clock();
