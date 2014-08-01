@@ -56,7 +56,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace dealii;
 	using namespace std;
         
-        std::cout<< "I'm computing J from LevyPrice<2>\n";
+//         std::cout<< "I'm computing J from LevyPrice<2>\n";
     const unsigned N(sol.size());
 	J1.reinit(N);
     J2.reinit(N);
