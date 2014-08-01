@@ -18,6 +18,23 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{lstautogobble}
+%\usepackage{color}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  %frame=L,
+  xleftmargin=\parindent,
+  language=C++,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{red},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+}
+
+\lstset{style=customc}
 
 
 \hypersetup{
@@ -432,7 +449,8 @@ A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u
 \subsection{NAHUEL'S BUSINESS}
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
-
+\section{\emph{Mesh refinement}}
+In questo programma abbiamo implementato anche una funzione che permette di adattare la griglia al problema, in particolare di raffinare o de-raffinare la \emph{mesh} dove ce ne sia bisogno. Per capire in quali punti adattare la griglia abbiamo utilizzato lo stimatore di Kelly, implementato direttamente nella libreria \emph{dealii}. Esso stima l'errore soltanto per l'equazione generalizzata di Poisson: $$-\nabla\left(a(\underline{x})\nabla u\right)=f,$$tuttavia \`e uno stimatore utilizzato spesso perch\'e permette di stimare la differenza fra i gradienti della soluzione in due celle vicine. Qualora questa differenza sia troppa grande, ovvero la soluzione cambi molto inclinazione fra celle vicine, allora \`e necessario raffinare la griglia. Se invece la differenza fra i gradienti \`e nulla o molto piccola, allora \`e possibile de-raffinare la \emph{mesh}.
 \chapter{Pacchetti usati}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
@@ -463,7 +481,7 @@ Le classi per Opzioni sono la componente centrale del programma e permettono di 
 \item \textsf{virtual void run()}, metodo pubblico che chiama in ordine tutti i precedenti e calcola la soluzione.
 \end{enumerate}
 \end{itemize}
-A questi metodi sono stati aggiunti altre funzioni che permettono di impostare alcune variabili del problema.\\Per quanto riguarda la struttura gerarchica di queste classi, poich\'e il nostro scopo \`e calcolare il prezzo di opzioni europee americane con trasformazioni \emph{price} e \emph{logprice} e poich\'e alcuni metodi sono comuni ai diversi problemi e alle diverse trasformazioni, abbiamo deciso di sfruttare l'ereditariet\`a delle classi permessa dal c++ facendo chiamare al programma per ogni problema i metodi opportuni.
+A questi metodi sono stati aggiunti altre funzioni che permettono di impostare alcune variabili del problema.\\Per quanto riguarda la struttura gerarchica di queste classi, poich\'e il nostro scopo \`e calcolare il prezzo di opzioni europee e americane con trasformazioni \emph{price} e \emph{logprice} e poich\'e alcuni metodi sono comuni ai diversi problemi e alle diverse trasformazioni, abbiamo deciso di sfruttare l'ereditariet\`a delle classi permessa dal c++ facendo chiamare al programma per ogni problema i metodi opportuni.
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=12cm]{img/classOptionBase.eps}
@@ -472,16 +490,19 @@ A questi metodi sono stati aggiunti altre funzioni che permettono di impostare a
 \label{optionbase}
 \end{figure}
 \subsection{\textsf{OptionBase$<$dim$>$}}
-Entrando pi\`u nel dettaglio, come possiamo osservare nella figura \ref{optionbase}, abbiamo scritto una classe base \textsf{OptionBase$<$dim$>$}, nel cui campo \textsf{protected} sono contenute tutte le variabili del problema, quali gli oggetti \textsf{dealii::FE\_Q$<$dim$>$}, \textsf{dealii::DoFHandler$<$dim$>$} e \textsf{dealii::dealii::Triangulation$<$dim$>$} che gestiscono elementi finiti, gradi di libert\`a e \emph{mesh}, gli oggetti che memorizzano le matrici e i \textsf{dealii::Vector$<$double$>$} della soluzione e dell'\emph{right hand side}. Per quanto riguarda l'oggetto che gestisce la matrice di sistema, poich\'e uno dei nostri problemi necessita di un \emph{solver} particolare non presente nella libreria utilizzata, ovvero il SOR, abbiamo deciso di scrivere un piccolo decoratore. Questo oggetto, \textsf{dealii::SparseMatrix\_PSOR$<$double, dim$>$} eredita pubblicamente da \textsf{dealii::SparseMatrix$<$double$>$} e aggiunge due metodi: uno che risolve il problema con l'ostacolo nel caso \emph{price} e uno nel caso \emph{logprice}. Come sappiamo, i costruttori non vengono ereditati, perci\`o sono stati riscritti in modo che chiamino i costruttori della classe base. Inoltre, siccome i metodi di \textsf{dealii::SparseMatrix$<$double$>$} non sono \textsf{virtual}, abbiamo aggiunto all'interno della nostra classe:
-\begin{verbatim}
+Entrando pi\`u nel dettaglio, come possiamo osservare nella figura \ref{optionbase}, abbiamo scritto una classe base \textsf{OptionBase$<$dim$>$} astratta, nel cui campo \textsf{protected} sono contenute tutte le variabili del problema, quali gli oggetti \textsf{dealii::FE\_Q$<$dim$>$}, \textsf{dealii::DoFHandler$<$dim$>$} e \textsf{dealii::Triangulation$<$dim$>$} che gestiscono elementi finiti, gradi di libert\`a e \emph{mesh}, gli oggetti che memorizzano le matrici e i \textsf{dealii::Vector$<$double$>$} della soluzione e del \emph{right hand side}. Per quanto riguarda l'oggetto che gestisce la matrice di sistema, poich\'e uno dei nostri problemi necessita di un \emph{solver} particolare non presente nella libreria utilizzata, ovvero il SOR, abbiamo deciso di scrivere un piccolo decoratore. Questo oggetto, \textsf{dealii::SparseMatrix\_PSOR$<$double, dim$>$} eredita pubblicamente da \textsf{dealii::SparseMatrix$<$double$>$} e aggiunge due metodi: uno che risolve il problema con l'ostacolo nel caso \emph{price} e uno nel caso \emph{logprice}. Come sappiamo, i costruttori non vengono ereditati, perci\`o sono stati riscritti in modo che chiamino i costruttori della classe base. Inoltre, siccome i metodi di \textsf{dealii::SparseMatrix$<$double$>$} non sono \textsf{virtual}, abbiamo aggiunto all'interno della nostra classe:
+\begin{lstlisting}
 // SparseMatrix methods
-using SparseMatrix<number>::reinit;
-using SparseMatrix<number>::add;
-\end{verbatim}
-in modo che il compilatore capisca che deve utilizzare i metodi \textsf{reinit} e \textsf{add} di \textsf{dealii::SparseMatrix$<$double$>$}.\\\\Per quanto riguarda i costruttori di questa classe, essi sono specializzati per $1$ e $2$ dimensioni.\\\\Per quanto riguarda i metodi istanziati da questa classe, in essa abbiamo scritto la funzione \textsf{virtual void setup\_system()}, che si occupa di associare 
-\subsection{\textsf{OptionBasePrice$<$dim$>$}}
-\subsection{\textsf{OptionBaseLogPrice$<$dim$>$}}
+using dealii::SparseMatrix<number>::reinit;
+using dealii::SparseMatrix<number>::add;
+\end{lstlisting}
+in modo che il compilatore capisca che deve utilizzare i metodi \textsf{reinit} e \textsf{add} di \textsf{dealii::SparseMatrix$<$double$>$}.\\\\Per quanto riguarda i costruttori di questa classe, essi sono specializzati per $1$ e $2$ dimensioni. In particolare, il costruttore $1$d prende un puntatore alla classe base \textsf{Model} e i vari parametri dell'opzione (quali tasso di interesse, scadenza e \emph{strike}), mentre il costruttore $2$d prende due puntatori a \textsf{Model} e i vari dati dell'opzione. I costruttori si occupano di creare gli oggetti relativi agli elementi finiti e li collegano alla \emph{mesh}. I metodi invece che implementiamo qui sono \textsf{void setup\_system()} che si occupa di creare lo \emph{sparsity pattern} delle matrici e inizializzarle e \textsf{void refine\_grid()} che esegue un adattamento della griglia.
+\subsection{\textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$}}
+Le classi \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$}, anch'esse astratte, ereditano da \textsf{OptionBase$<$dim$>$} e definisco parte dei metodi descritti nell'introduzione. Le due classi implementano la funzione \textsf{void make\_grid()} che crea la \emph{mesh} nei casi \emph{price} e \emph{logprice}, ovvero con le opportune trasformazioni, il metodo \textsf{void assemble\_system()} che integra gli elementi finiti e costruisce le matrici di sistema in 1d e 2d e il metodo \textsf{double get\_price()}, che valuta la soluzione nel punto $\underline{x}=\underline{0}$ per il \emph{logprice} e $\underline{S}=(S_0^1, S_0^2)$ per il \emph{price}, ovvero che restituisce il prezzo dell'opzione. Infine, la classe \textsf{OptionBasePrice$<$dim$>$} implementa qui il metodo \textsf{void setup\_integral()} che istanzia dinamicamente un oggetto di tipo \textsf{LevyIntegral}, che si occupa di calcolare la parte integrale. \textsf{OptionBaseLogPrice$<$dim$>$} invece non lo istanzia qui ma nel "livello" di ereditarier\`a successivo poich\'e in questa trasformazione occorre conoscere le condizioni al bordo per poter calcolare l'integrale.
+\subsection{\textsf{AmericanOption$<$dim$>$} e \textsf{EuropeanOption$<$dim$>$}}
+Queste quattro classi alla base della piramide sono gli oggetti utilizzati per risolvere i vari problemi. Essi implementano le varie funzioni \textsf{void solve()} che risolvono il sistema lineare. In primo luogo quindi viene proiettata sulla \emph{mesh} la condizione finale (ovviamente diversa fra Put e Call, \emph{price} e \emph{logprice}) e successivamente parte il ciclo temporale che applica le condizioni al bordo, calcola il vettore integral $J$ se il modello non \`e \emph{Black\&Scholes} e risolve il sistema. Per quanto riguarda quest'ultimo passaggio, per l'europea abbiamo utilizzato un \emph{solver} utilizzato da \emph{dealii}, ovvero \textsf{SparseDirectUMFPACK}, mentre per l'americana usiamo i \emph{solver} scritti all'interno del decoratore di \textsf{dealii::SparseMatrix$<$double$>$}.
 \section{Classi per il calcolo degli integrali}
+\subsection{NAHUEL'S BUSINESS}
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=12cm]{img/classLevyIntegralBase.eps}
@@ -489,6 +510,15 @@ in modo che il compilatore capisca che deve utilizzare i metodi \textsf{reinit} 
 \end{center}
 \end{figure}
 \section{\emph{Factory}}
+Data la complessit\`a strutturale delle classi Opzioni, abbiamo deciso di scrivere utilizzare il \emph{design pattern} della \emph{factory}, altrimenti noto come costruttore virtuale, per permettere a un qualsiasi utente di istanziare l'oggetto giusto per il suo problema. Abbiamo quindi creato una classe, \textsf{OptionFactory} che ha costruttore di default, costruttore di copia e operatore di copia privati, perci\`o non \`e possibile istanziare la classe e abbiamo scritto il seguente metodo:
+\begin{lstlisting}
+static OptionFactory * instance()
+        {
+                static OptionFactory instance;
+                return &instance;
+        }
+\end{lstlisting}
+Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{OptionFactory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e vari parametri dell'opzione.
 \section{Come utilizzare la libreria}
 
 \chapter{Risultati}
