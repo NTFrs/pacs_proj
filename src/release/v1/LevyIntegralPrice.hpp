@@ -59,7 +59,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         std::cout<< "I'm computing J from LevyPrice<2>\n";
     const unsigned N(sol.size());
 	J1.reinit(N);
-        J2.reinit(N);
+    J2.reinit(N);
         
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
@@ -79,7 +79,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                 
                 Point<2> actual_vertex(vertices[it]);
 
-                                typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
+                typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
                 bool left(false),  bottom(false);
                 
                 if (fabs(actual_vertex(0)-lower_limit(0))<constants::grid_toll) {
