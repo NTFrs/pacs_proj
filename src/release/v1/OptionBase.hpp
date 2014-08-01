@@ -94,6 +94,7 @@ protected:
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
         virtual void setup_integral() = 0;
+        virtual void refine_grid();
         
 public:
         //! Constructor 1d
@@ -321,5 +322,28 @@ void OptionBase<dim>::setup_system()
         return;
         
 }
+
+template<unsigned dim>
+void OptionBase<dim>::refine_grid()
+{
+	Vector<float> estimated_error_per_cell (this->triangulation.n_active_cells());
+	KellyErrorEstimator<dim>::estimate (this->dof_handler, QGauss<dim-1>(3), typename FunctionMap<dim>::type(),	 this->solution,	 estimated_error_per_cell);
+
+	SolutionTransfer<dim> solution_trans(this->dof_handler);
+	Vector<double> previous_solution;
+	previous_solution = this->solution;
+	this->triangulation.prepare_coarsening_and_refinement();
+	solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
+
+	this->triangulation.execute_coarsening_and_refinement ();
+	this->setup_system ();
+
+	solution_trans.interpolate(previous_solution, solution);
+	this->assemble_system();
+}
+	
+	
+
+
 
 #endif

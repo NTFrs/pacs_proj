@@ -62,12 +62,14 @@ void OptionBaseLogPrice<dim>::make_grid(){
                 (this->T)+(*(this->models[i])).get_vol()*sqrt(this->T)*6)/
                 ((*(this->models[i])).get_spot()));
                 
-                refinement[i]=pow(2, this->refs);
+                refinement[i]=pow(2, this->refs-2);
         }
         
         GridGenerator::subdivided_hyper_rectangle (this->triangulation, refinement,
                                                    this->Smin, this->Smax);
+        this->triangulation.refine_global(2);
         
+        //TODO ma servono questi? 
         this->grid_points=this->triangulation.get_vertices();
         
         return;

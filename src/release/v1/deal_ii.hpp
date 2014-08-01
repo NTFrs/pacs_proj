@@ -40,6 +40,12 @@
 #include <deal.II/lac/precondition.h>
 #include <boost/graph/graph_concepts.hpp>
 
+# include <deal.II/grid/grid_refinement.h>
+# include <deal.II/numerics/error_estimator.h>
+# include <deal.II/fe/mapping_q1.h>
+# include <deal.II/numerics/derivative_approximation.h>
+# include <deal.II/numerics/solution_transfer.h>
+
 #include <iostream>
 
 #endif
