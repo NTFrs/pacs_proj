@@ -28,7 +28,7 @@ public:
         LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_, upper_limit_, Models_, std::move(BC_)),
         adapting(apt) {
                 if (!adapting)
-                        this->setup_quadratures(16);
+                        this->setup_quadratures(64);
                 else
                         this->setup_quadratures(2);
 	}
@@ -122,14 +122,14 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
 	for (unsigned d=0;d<dim;++d) {
                 tools::Solution_Trimmer<dim> func(d,*(this->boundary), dof_handler, sol, this->lower_limit, this->lower_limit);
                 
-                //#pragma omp parallel for
+                #pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
                 {
                         std::vector< Point<dim> > quad_points(leftQuads[d].get_order()+rightQuads[d].get_order());
                         std::vector<double> f_u(leftQuads[d].get_order()+rightQuads[d].get_order());
                         
                         for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
-                                quad_points[i][d]=this->leftQuads[d].get_nodes()[i] + vertices[it][d];
+                                quad_points[i][d]=-this->leftQuads[d].get_nodes()[i] + vertices[it][d];
                                 if (dim==2) {
                                         quad_points[i][1-d]=vertices[it][1-d];
                                 }
