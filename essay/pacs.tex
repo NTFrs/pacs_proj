@@ -440,27 +440,52 @@ Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto p
 \section{Introduzione}
 In questo capitolo descriviamo come il problema \`e stato implementato da un punto di vista computazionale, elencando le varie classi scritte e le loro caratteristiche. Inizialmente mostriamo delle piccole classi che si occupano di gestire i parametri dei modelli e le loro densit\`a. Nella seconda sezione descriviamo gli oggetti opzione che costruiscono il sistema per risolvere il problema a elementi finiti in una e due dimensione. Questi oggetti utilizzano poi le funzioni di altri oggetti, \textsf{LevyIntegral}, per il calcolo della parte integrale. Successivamente, descriviamo brevemente la \emph{Factory} che abbiamo scritto per instanziare gli oggetti opzione e infine spieghiamo brevemente le linee guida per utilizzare questa libreria.
 \section{Classi per i Modelli}
+Il primo blocco di classi scritto nel nostro codice permette di gestire i vari modelli utilizzati per descrivere la dinamica del sottostante, in particolare i modelli di \emph{Blach\&Scholes}, \emph{Kou} e \emph{Merton}. Abbiamo quindi deciso di scrivere una classe astratta \textsf{Model}, che contenga i parametri comuni ai diversi oggetti e tutti i metodi utilizzati. Come possiamo osservare in figura \ref{modelbase}, da questa classe ereditano in maniera pubblica le tre classi modello non pi\`u astratte, ed esse contengono i parametri propri di ogni modello.
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=12cm]{img/classModel.eps}
-\label{model}
+\caption{Gerarchia delle classi modello}
 \end{center}
+\label{modelbase}
 \end{figure}
 \section{Classi per Opzioni}
+Le classi per Opzioni sono la componente centrale del programma e permettono di istanziare e gestire il problema di differenziale. Sono state scritte secondo le linee guida della libreria \emph{dealii}. Le loro caratteristiche principali sono dunque le seguenti:
+\begin{itemize}
+\item {come tutte classi presentate nei \emph{tutorial} di \emph{dealii}, anche le nostre classi hanno la dimensione (nel nostro caso 1 o 2) come parametro \textsf{template},}
+\item {i pi\`u importanti metodi privati (o protetti) e pubblici dell'oggetto Opzione sono i seguenti:}
+\begin{enumerate}
+\item \textsf{virtual void setup\_system()};
+\item \textsf{virtual void make\_grid()};
+\item \textsf{virtual void assemble\_system()};
+\item \textsf{virtual void refine\_grid()};
+\item \textsf{virtual void setup\_integral()}, aggiunto da noi per allocare le classi che si occupano della parte integrale;
+\item \textsf{virtual void solve()}, metodo che risolve il sistema lineare;
+\item \textsf{virtual void run()}, metodo pubblico che chiama in ordine tutti i precedenti e calcola la soluzione.
+\end{enumerate}
+\end{itemize}
+A questi metodi sono stati aggiunti altre funzioni che permettono di impostare alcune variabili del problema.\\Per quanto riguarda la struttura gerarchica di queste classi, poich\'e il nostro scopo \`e calcolare il prezzo di opzioni europee americane con trasformazioni \emph{price} e \emph{logprice} e poich\'e alcuni metodi sono comuni ai diversi problemi e alle diverse trasformazioni, abbiamo deciso di sfruttare l'ereditariet\`a delle classi permessa dal c++ facendo chiamare al programma per ogni problema i metodi opportuni.
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=12cm]{img/classOptionBase.eps}
-\label{model}
+\caption{Gerarchia delle classi opzione}
 \end{center}
+\label{optionbase}
 \end{figure}
-\subsection{\textsf{OptionBase}}
-\subsection{\textsf{OptionBasePrice}}
-\subsection{\textsf{OptionBaseLogPrice}}
+\subsection{\textsf{OptionBase$<$dim$>$}}
+Entrando pi\`u nel dettaglio, come possiamo osservare nella figura \ref{optionbase}, abbiamo scritto una classe base \textsf{OptionBase$<$dim$>$}, nel cui campo \textsf{protected} sono contenute tutte le variabili del problema, quali gli oggetti \textsf{dealii::FE\_Q$<$dim$>$}, \textsf{dealii::DoFHandler$<$dim$>$} e \textsf{dealii::dealii::Triangulation$<$dim$>$} che gestiscono elementi finiti, gradi di libert\`a e \emph{mesh}, gli oggetti che memorizzano le matrici e i \textsf{dealii::Vector$<$double$>$} della soluzione e dell'\emph{right hand side}. Per quanto riguarda l'oggetto che gestisce la matrice di sistema, poich\'e uno dei nostri problemi necessita di un \emph{solver} particolare non presente nella libreria utilizzata, ovvero il SOR, abbiamo deciso di scrivere un piccolo decoratore. Questo oggetto, \textsf{dealii::SparseMatrix\_PSOR$<$double, dim$>$} eredita pubblicamente da \textsf{dealii::SparseMatrix$<$double$>$} e aggiunge due metodi: uno che risolve il problema con l'ostacolo nel caso \emph{price} e uno nel caso \emph{logprice}. Come sappiamo, i costruttori non vengono ereditati, perci\`o sono stati riscritti in modo che chiamino i costruttori della classe base. Inoltre, siccome i metodi di \textsf{dealii::SparseMatrix$<$double$>$} non sono \textsf{virtual}, abbiamo aggiunto all'interno della nostra classe:
+\begin{verbatim}
+// SparseMatrix methods
+using SparseMatrix<number>::reinit;
+using SparseMatrix<number>::add;
+\end{verbatim}
+in modo che il compilatore capisca che deve utilizzare i metodi \textsf{reinit} e \textsf{add} di \textsf{dealii::SparseMatrix$<$double$>$}.\\\\Per quanto riguarda i costruttori di questa classe, essi sono specializzati per $1$ e $2$ dimensioni.\\\\Per quanto riguarda i metodi istanziati da questa classe, in essa abbiamo scritto la funzione \textsf{virtual void setup\_system()}, che si occupa di associare 
+\subsection{\textsf{OptionBasePrice$<$dim$>$}}
+\subsection{\textsf{OptionBaseLogPrice$<$dim$>$}}
 \section{Classi per il calcolo degli integrali}
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=12cm]{img/classLevyIntegralBase.eps}
-\label{model}
+\label{levybase}
 \end{center}
 \end{figure}
 \section{\emph{Factory}}
