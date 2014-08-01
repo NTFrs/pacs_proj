@@ -93,6 +93,8 @@ protected:
         virtual void make_grid() = 0;
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
+        //TODO
+        virtual void solve_one_step(double time)=0;
         virtual void setup_integral() = 0;
         virtual void refine_grid();
         
