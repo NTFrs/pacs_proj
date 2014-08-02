@@ -76,6 +76,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         
 	std::vector<Point <2> > quad_points(n_q_points);
 	std::vector<double> sol_values(n_q_points);
+	Point<2> actual_vertex;
     for (;cell !=endc;++cell) {
 				
 		if (cell->face(0)->at_boundary()) {
@@ -87,7 +88,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 		  
 		  for (unsigned it=0;it<N;++it)
 			{
-			   Point<2> actual_vertex(vertices[it]);
+			   actual_vertex=vertices[it];
 			   if (fabs(actual_vertex(0)-this->lower_limit(0))<constants::grid_toll) {
 				  for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 					z=quad_points[q_point](1);
@@ -106,7 +107,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 			
 			for (unsigned it=0;it<N;++it)
 			   {
-				Point<2> actual_vertex(vertices[it]);
+				actual_vertex=vertices[it];
 				if (fabs(actual_vertex(1)-this->lower_limit(1))<constants::grid_toll) {
 					for (unsigned q_point=0;q_point<n_q_points;++q_point) {
 					  z=quad_points[q_point](0);
@@ -128,7 +129,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 		fe_face.get_function_values(sol,  sol_values);
 		
 		for (unsigned it=0;it<N;++it) {
-		  Point<2> actual_vertex(vertices[it]);
+		  actual_vertex=vertices[it];
 		  if (fabs(actual_vertex(1)-center)<constants::grid_toll)
 			{
 			   for (unsigned q_point=0;q_point<n_q_points;++q_point) {
@@ -149,7 +150,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 		  fe_face.get_function_values(sol,  sol_values);
 
 		  for (unsigned it=0;it<N;++it) {
-		   Point<2> actual_vertex(vertices[it]);
+		   actual_vertex=vertices[it];
 		   if (fabs(actual_vertex(0)-center)<constants::grid_toll)
 		   {
 			for (unsigned q_point=0;q_point<n_q_points;++q_point) {
