@@ -56,9 +56,11 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace dealii;
 	using namespace std;
         
+
     const unsigned N(sol.size());
+
 	J1.reinit(N);
-    J2.reinit(N);
+        J2.reinit(N);
         
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
@@ -66,18 +68,17 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	const unsigned int n_q_points=quad1D.size();
         
 	typename DoFHandler<2>::active_cell_iterator   endc=dof_handler.end();
-    
+
 	std::vector< Point<2> > vertices(dof_handler.n_dofs());
 	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
 
-	
-		
 	double z, karg;
         
 	typename DoFHandler<2>::active_cell_iterator cell=dof_handler.begin_active();
         
 	std::vector<Point <2> > quad_points(n_q_points);
 	std::vector<double> sol_values(n_q_points);
+
 	Point<2> actual_vertex;
     for (;cell !=endc;++cell) {
 				
@@ -173,6 +174,7 @@ j_ran=true;
 
 //         ofstream out("JdiLevy", ios_base::app);
 //         out<< "J1 is \n"<< J1<<"\n\nJ2 is \n"<< J2<< "\n";
+
 }
 
 

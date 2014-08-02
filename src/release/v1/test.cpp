@@ -1,4 +1,4 @@
-#include <iostream>
+g#include <iostream>
 //#include "Levy.hpp"
 #include "Factory.hpp"
 
@@ -37,8 +37,8 @@ int main(){
 		*/
 // 		a.set_refine_status(true);
 // 		b.set_refine_status(true);
-// 		c.set_refine_status(true);		
-// 		d.set_refine_status(true);
+//         c.set_refine_status(true);		
+//         d.set_refine_status(true);
 		
 //         a.run();
 //         b.run();
@@ -50,6 +50,7 @@ int main(){
 //         cout<<c.get_price()<<"\n";
 //         cout<<d.get_price()<<"\n";
         
+
 	const int top=7-3+1;
 	double T[2][top], result[2][top], real_T[2][top];
 
