@@ -82,7 +82,9 @@ protected:
         double                  dt;
         double                  price;
         double                  f;
-	bool                    ran;
+		bool                    ran;
+		
+		bool 					refine;
         
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;       
@@ -93,8 +95,6 @@ protected:
         virtual void make_grid() = 0;
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
-        //TODO
-        virtual void solve_one_step(double time)=0;
         virtual void setup_integral() = 0;
         virtual void refine_grid();
         
@@ -154,6 +154,10 @@ public:
                         f=f_;
         };
         
+        virtual void set_refine(bool status) {
+			refine=status;
+        };
+        
         //!
         /*!
          * This function returns the price of the option
@@ -196,7 +200,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false)
+ran(false), 
+refine(false)
 //levy(NULL)
 {
         models.push_back(model);
@@ -259,7 +264,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false)
+ran(false), 
+refine(false)
 //levy(NULL)
 {
         models.push_back(model1);

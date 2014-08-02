@@ -34,7 +34,9 @@ int main(){
         EuropeanOptionLogPrice<2> d
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
-
+		
+		d.set_refine(true);
+		
         a.run();
         b.run();
         c.run();
