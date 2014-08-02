@@ -61,12 +61,14 @@ void OptionBasePrice<dim>::make_grid(){
                 exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*(this->T)
                     +(*(this->models[i])).get_vol()*sqrt(this->T)*6);
                 
-                refinement[i]=pow(2, this->refs);
+                refinement[i]=pow(2, this->refs-2);
         }
         
         dealii::GridGenerator::subdivided_hyper_rectangle (this->triangulation, refinement,
                                                    this->Smin, this->Smax);
         
+        this->triangulation.refine_global(2);
+        //TODO inutili vero? 
         this->grid_points=this->triangulation.get_vertices();
         
         return;

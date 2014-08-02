@@ -82,7 +82,9 @@ protected:
         double                  dt;
         double                  price;
         double                  f;
-	bool                    ran;
+		bool                    ran;
+		
+		bool 					refine;
         
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;       
@@ -94,6 +96,7 @@ protected:
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
         virtual void setup_integral() = 0;
+        virtual void refine_grid();
         
 public:
         //! Constructor 1d
@@ -151,6 +154,14 @@ public:
                         f=f_;
         };
         
+        virtual void set_refine_status(bool status) {
+			refine=status;
+        };
+        
+        virtual bool get_refine_status() {
+			return refine;
+        };
+        
         //!
         /*!
          * This function returns the price of the option
@@ -193,7 +204,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false)
+ran(false), 
+refine(false)
 //levy(NULL)
 {
         models.push_back(model);
@@ -256,7 +268,8 @@ time_step(time_step_),
 dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
-ran(false)
+ran(false), 
+refine(false)
 //levy(NULL)
 {
         models.push_back(model1);
@@ -321,5 +334,30 @@ void OptionBase<dim>::setup_system()
         return;
         
 }
+
+template<unsigned dim>
+void OptionBase<dim>::refine_grid()
+{
+	Vector<float> estimated_error_per_cell (this->triangulation.n_active_cells());
+	KellyErrorEstimator<dim>::estimate (this->dof_handler, QGauss<dim-1>(3), typename FunctionMap<dim>::type(),	 this->solution,	 estimated_error_per_cell);
+
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
+	
+	SolutionTransfer<dim> solution_trans(this->dof_handler);
+	Vector<double> previous_solution;
+	previous_solution = this->solution;
+	this->triangulation.prepare_coarsening_and_refinement();
+	solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
+
+	this->triangulation.execute_coarsening_and_refinement ();
+	this->setup_system ();
+
+	solution_trans.interpolate(previous_solution, solution);
+	this->assemble_system();
+}
+	
+	
+
+
 
 #endif

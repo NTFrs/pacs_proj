@@ -167,6 +167,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 }
         
 j_ran=true;
+
 //         ofstream out("JdiLevy", ios_base::app);
 //         out<< "J1 is \n"<< J1<<"\n\nJ2 is \n"<< J2<< "\n";
 }

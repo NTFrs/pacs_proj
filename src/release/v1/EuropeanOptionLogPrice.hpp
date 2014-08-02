@@ -136,7 +136,8 @@ void EuropeanOptionLogPrice<dim>::solve ()
 	for (double time=this->T-this->dt;time >=0;time-=this->dt, --Step) {
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
-                
+                if (this->refine && Step%20==0)
+					this->refine_grid();
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
@@ -241,4 +242,84 @@ void EuropeanOptionLogPrice<dim>::solve ()
         
 }
 
+/*
+template<unsigned int>
+void EuropeanOptionLogPrice::solve_one_step(double time)
+{
+	using namespace dealii;
+	BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
+
+	if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
+
+	 Vector<double> *J_x;
+	 Vector<double> *J_y;
+	 Vector<double> temp;
+
+	 this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+
+	 if (dim==1)
+	 this->levy->get_j_1(J_x);
+	 else
+	 this->levy->get_j_both(J_x, J_y);
+
+	 (this->system_M2).vmult(this->system_rhs,this->solution);
+
+	 temp.reinit(this->dof_handler.n_dofs());
+
+	 (this->ff_matrix).vmult(temp, *J_x);
+
+	 this->system_rhs+=temp;
+
+	 if (dim==2) {
+	  temp.reinit(this->dof_handler.n_dofs());
+
+	  this->ff_matrix.vmult(temp, *J_y);
+
+	  this->system_rhs+=temp;
+	}
+
+   }
+
+	else
+	this->system_M2.vmult(this->system_rhs, this->solution);
+
+	//
+
+	bc.set_time(this->dt);
+
+	{
+
+	 std::map<types::global_dof_index,double> boundary_values;
+
+	 VectorTools::interpolate_boundary_values (this->dof_handler,
+	  0,
+	  bc,
+	  boundary_values);
+
+	 if (dim==1) {
+	  VectorTools::interpolate_boundary_values (this->dof_handler,
+	   1,
+	   bc,
+	   boundary_values);
+	}
+
+	 MatrixTools::apply_boundary_values (boundary_values,
+	  (this->system_matrix),
+	  this->solution,
+	  this->system_rhs, false);
+
+ }
+
+	auto pointer=static_cast<SparseMatrix<double> *> (&(this->system_matrix));
+
+	SparseDirectUMFPACK solver;
+	solver.initialize(this->sparsity_pattern);
+	solver.factorize(*pointer);
+	solver.solve(this->system_rhs);
+
+	this->solution=this->system_rhs;
+
+}
+
+*/
 #endif
