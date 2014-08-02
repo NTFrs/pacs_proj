@@ -67,9 +67,11 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         
 	typename DoFHandler<2>::active_cell_iterator   endc=dof_handler.end();
     
-	std::map<types::global_dof_index, Point<2> > vertices;
+	std::vector< Point<2> > vertices(dof_handler.n_dofs());
 	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
-    
+
+	
+		
 	double z, karg;
         
 	typename DoFHandler<2>::active_cell_iterator cell=dof_handler.begin_active();
