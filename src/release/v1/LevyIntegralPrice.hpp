@@ -56,10 +56,10 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace dealii;
 	using namespace std;
         
-//         std::cout<< "I'm computing J from LevyPrice<2>\n";
-    const unsigned N(sol.size());
+        //         std::cout<< "I'm computing J from LevyPrice<2>\n";
+        const unsigned N(sol.size());
 	J1.reinit(N);
-    J2.reinit(N);
+        J2.reinit(N);
         
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
@@ -67,10 +67,10 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	const unsigned int n_q_points=quad1D.size();
         
 	typename DoFHandler<2>::active_cell_iterator   endc=dof_handler.end();
-    
+        
 	std::map<types::global_dof_index, Point<2> > vertices;
 	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
-    
+        
 	double z, karg;
         
 	std::vector<Point <2> > quad_points(n_q_points);
@@ -80,7 +80,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	{
                 
                 Point<2> actual_vertex(vertices[it]);
-
+                
                 typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
                 bool left(false),  bottom(false);
                 
@@ -95,7 +95,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                 
                 for (;inner_cell !=endc;++inner_cell)
                 {
-					
+                        
                         if (left && inner_cell->face(0)->at_boundary())
                         {
                                 // 		  cout<< "\t boundary cell left\n";
@@ -168,10 +168,10 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                         
                         
                 }
-		 }
+        }
         j_ran=true;
-//         ofstream out("JdiLevy", ios_base::app);
-//         out<< "J1 is \n"<< J1<<"\n\nJ2 is \n"<< J2<< "\n";
+        //         ofstream out("JdiLevy", ios_base::app);
+        //         out<< "J1 is \n"<< J1<<"\n\nJ2 is \n"<< J2<< "\n";
 }
 
 

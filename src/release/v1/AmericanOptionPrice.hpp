@@ -98,6 +98,9 @@ void AmericanOptionPrice<dim>::solve ()
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
+                if (this->refine && Step%20==0)
+                        this->refine_grid();
+                
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
                         Vector<double> *J_x;
@@ -177,7 +180,7 @@ void AmericanOptionPrice<dim>::solve ()
                         
                         
                         if (k==maxiter) {
-                                cout<<"Warning: maxiter reached. Error="<<temp.linfty_norm()<<"\n";
+                                cout<<"Warning: maxiter reached, with error="<<temp.linfty_norm()<<"\n";
                         }
                         
                 }

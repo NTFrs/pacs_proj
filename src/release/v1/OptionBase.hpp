@@ -339,9 +339,14 @@ template<unsigned dim>
 void OptionBase<dim>::refine_grid()
 {
 	Vector<float> estimated_error_per_cell (this->triangulation.n_active_cells());
-	KellyErrorEstimator<dim>::estimate (this->dof_handler, QGauss<dim-1>(3), typename FunctionMap<dim>::type(),	 this->solution,	 estimated_error_per_cell);
+	KellyErrorEstimator<dim>::estimate (this->dof_handler, QGauss<dim-1>(3),
+                                            typename FunctionMap<dim>::type(),
+                                            this->solution,
+                                            estimated_error_per_cell);
 
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation,
+                                                         estimated_error_per_cell,
+                                                         0.1, 0.25);
 	
 	SolutionTransfer<dim> solution_trans(this->dof_handler);
 	Vector<double> previous_solution;

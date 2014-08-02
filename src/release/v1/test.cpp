@@ -37,18 +37,18 @@ int main(){
 		
 // 		a.set_refine_status(true);
 // 		b.set_refine_status(true);
-// 		c.set_refine_status(true);		
-// 		d.set_refine_status(true);
+        c.set_refine_status(true);		
+        d.set_refine_status(true);
 		
 //         a.run();
 //         b.run();
-        c.run();
-//         d.run();
+//        c.run();
+        d.run();
 		
 //         cout<<a.get_price()<<"\n";
 //         cout<<b.get_price()<<"\n";
-        cout<<c.get_price()<<"\n";
-//         cout<<d.get_price()<<"\n";
+//        cout<<c.get_price()<<"\n";
+        cout<<d.get_price()<<"\n";
         /*
 	const int top=7-3+1;
 	double T[2][top], result[2][top], real_T[2][top];
