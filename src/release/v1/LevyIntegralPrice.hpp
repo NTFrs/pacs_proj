@@ -73,7 +73,9 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
     
 	double z, karg;
         
-        
+	std::vector<Point <2> > quad_points(n_q_points);
+	std::vector<double> sol_values(n_q_points);
+	
 	for (unsigned it=0;it<N;++it)
 	{
                 
@@ -81,6 +83,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 
                 typename DoFHandler<2>::active_cell_iterator inner_cell=dof_handler.begin_active();
                 bool left(false),  bottom(false);
+                
                 
                 if (fabs(actual_vertex(0)-lower_limit(0))<constants::grid_toll) {
                         left=true;
@@ -92,14 +95,14 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                 
                 for (;inner_cell !=endc;++inner_cell)
                 {
+					
                         if (left && inner_cell->face(0)->at_boundary())
                         {
                                 // 		  cout<< "\t boundary cell left\n";
                                 unsigned actual_face(0);
                                 fe_face.reinit(inner_cell, actual_face);
-                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+                                quad_points=fe_face.get_quadrature_points();
                                 
-                                std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
                                 
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
@@ -115,9 +118,8 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 // 		  cout<< "\t boundary cell bottom\n";
                                 unsigned actual_face(2);
                                 fe_face.reinit(inner_cell, actual_face);
-                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+                                quad_points=fe_face.get_quadrature_points();
                                 
-                                std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
                                 
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
@@ -134,9 +136,9 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 // 		  cout<< "\t\t operating on upper face\n";
                                 unsigned face(3);
                                 fe_face.reinit(inner_cell, face);
-                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+                                quad_points=fe_face.get_quadrature_points();
                                 
-                                std::vector<double> sol_values(n_q_points);
+                                
                                 fe_face.get_function_values(sol,  sol_values);
                                 
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
@@ -152,9 +154,8 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 // 			cout<< "\t\t Operating on right face\n";
                                 unsigned face(1);
                                 fe_face.reinit(inner_cell, face);
-                                std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+                                quad_points=fe_face.get_quadrature_points();
                                 
-                                std::vector<double> sol_values(n_q_points);
                                 fe_face.get_function_values(sol,  sol_values);
                                 
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
