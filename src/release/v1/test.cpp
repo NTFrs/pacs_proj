@@ -29,13 +29,16 @@ int main(){
         
         EuropeanOptionPrice<2> c
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 5, 100);
         
         EuropeanOptionLogPrice<2> d
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 5, 100);
 		
-		d.set_refine(true);
+		a.set_refine_status(true);
+		b.set_refine_status(true);
+		c.set_refine_status(true);		
+		d.set_refine_status(true);
 		
         a.run();
         b.run();
