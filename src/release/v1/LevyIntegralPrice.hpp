@@ -56,7 +56,6 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace dealii;
 	using namespace std;
         
-        std::cout<< "I'm computing J from LevyPrice<2>\n";
     const unsigned N(sol.size());
 	J1.reinit(N);
     J2.reinit(N);
@@ -75,14 +74,15 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         
 	typename DoFHandler<2>::active_cell_iterator cell=dof_handler.begin_active();
         
+	std::vector<Point <2> > quad_points(n_q_points);
+	std::vector<double> sol_values(n_q_points);
     for (;cell !=endc;++cell) {
 				
 		if (cell->face(0)->at_boundary()) {
 	  
 		  fe_face.reinit(cell,0);
-		  std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+		  quad_points=fe_face.get_quadrature_points();
 
-		  std::vector<double> sol_values(n_q_points);
 		  fe_face.get_function_values(sol,  sol_values);
 		  
 		  for (unsigned it=0;it<N;++it)
@@ -101,8 +101,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 		if (cell->face(2)->at_boundary()) {
 	    
 		    fe_face.reinit(cell, 2);
-		    std::vector< Point<2> > quad_points(fe_face.get_quadrature_points());
-		    std::vector<double> sol_values(n_q_points);
+		    quad_points=fe_face.get_quadrature_points();
 			fe_face.get_function_values(sol,  sol_values);
 			
 			for (unsigned it=0;it<N;++it)
@@ -124,9 +123,8 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 		double center(cell->face(3)->center()(1));
 		fe_face.reinit(cell, 3);
 		
-		std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+		quad_points=fe_face.get_quadrature_points();
 
-		std::vector<double> sol_values(n_q_points);
 		fe_face.get_function_values(sol,  sol_values);
 		
 		for (unsigned it=0;it<N;++it) {
@@ -146,9 +144,8 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 		  double center(cell->face(1)->center()(0));
 		  fe_face.reinit(cell, 1);
 
-		  std::vector<Point <2> > quad_points(fe_face.get_quadrature_points());
+		  quad_points=fe_face.get_quadrature_points();
 
-		  std::vector<double> sol_values(n_q_points);
 		  fe_face.get_function_values(sol,  sol_values);
 
 		  for (unsigned it=0;it<N;++it) {
