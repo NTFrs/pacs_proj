@@ -22,11 +22,10 @@ int main(){
         
         MertonModel model6(80., 0.2, -0.390078, 0.338796, 0.174814);
         MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
-        /*
+        
         EuropeanOptionPrice<1> a(OptionType::Call, model6.get_pointer(), 0.0367, 1., 100., 8, 100);
         EuropeanOptionLogPrice<1> b(OptionType::Call, model6.get_pointer(), 0.0367, 1., 100., 8, 100);
-        */
-        /*
+        
         EuropeanOptionPrice<2> c
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
@@ -34,23 +33,23 @@ int main(){
         EuropeanOptionLogPrice<2> d
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
-		*/
+		
 // 		a.set_refine_status(true);
 // 		b.set_refine_status(true);
 //         c.set_refine_status(true);		
 //         d.set_refine_status(true);
 		
-//         a.run();
-//         b.run();
-//         c.run();
-//         d.run();
+        a.run();
+        b.run();
+        c.run();
+        d.run();
 		
-//         cout<<a.get_price()<<"\n";
-//         cout<<b.get_price()<<"\n";
-//         cout<<c.get_price()<<"\n";
-//         cout<<d.get_price()<<"\n";
+        cout<<a.get_price()<<"\n";
+        cout<<b.get_price()<<"\n";
+        cout<<c.get_price()<<"\n";
+        cout<<d.get_price()<<"\n";
         
-
+	/*
 	const int top=7-3+1;
 	double T[2][top], result[2][top], real_T[2][top];
 
@@ -108,7 +107,7 @@ int main(){
 	 T[1][i]/1e6<<"s\trealtime\t"<<real_T[1][i]/1e6<<"s\n";
    }
 		 
-        
+        */
         
         /*
         EuropeanOptionPrice<1> foo
