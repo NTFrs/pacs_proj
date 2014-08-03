@@ -23,30 +23,30 @@ int main(){
         MertonModel model6(80., 0.2, -0.390078, 0.338796, 0.174814);
         MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
         
-        EuropeanOptionPrice<1> a(OptionType::Call, model6.get_pointer(), 0.0367, 1., 100., 8, 100);
-        EuropeanOptionLogPrice<1> b(OptionType::Call, model6.get_pointer(), 0.0367, 1., 100., 8, 100);
+        EuropeanOptionPrice<1> a(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
+        EuropeanOptionLogPrice<1> b(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
         
         EuropeanOptionPrice<2> c
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 7, 100);
+         -0.2, 0.1, 1., 200., 5, 100);
         
         EuropeanOptionLogPrice<2> d
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 5, 100);
 		
-// 		a.set_refine_status(true);
-// 		b.set_refine_status(true);
-//         c.set_refine_status(true);		
-//         d.set_refine_status(true);
+        //a.set_refine_status(true);
+ 	//b.set_refine_status(true);
+        //c.set_refine_status(true);		
+        //d.set_refine_status(true);
 		
-//         a.run();
-//         b.run();
-//         c.run();
+        //a.run();
+        //b.run();
+        c.run();
         d.run();
 		
-//         cout<<a.get_price()<<"\n";
-//         cout<<b.get_price()<<"\n";
-//         cout<<c.get_price()<<"\n";
+        //cout<<a.get_price()<<"\n";
+        //cout<<b.get_price()<<"\n";
+        cout<<c.get_price()<<"\n";
         cout<<d.get_price()<<"\n";
         
 	/*

@@ -103,7 +103,7 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
-                if (this->refine && Step%20==0)
+                if (this->refine && Step%20==0 && Step!=this->time_step)
 				 this->refine_grid();
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
