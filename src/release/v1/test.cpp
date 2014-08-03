@@ -28,7 +28,7 @@ int main(){
         
         EuropeanOptionPrice<2> c
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 7, 100);
         
         EuropeanOptionLogPrice<2> d
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
@@ -39,14 +39,14 @@ int main(){
 //         c.set_refine_status(true);		
 //         d.set_refine_status(true);
 		
-        a.run();
-        b.run();
-        c.run();
+//         a.run();
+//         b.run();
+//         c.run();
         d.run();
 		
-        cout<<a.get_price()<<"\n";
-        cout<<b.get_price()<<"\n";
-        cout<<c.get_price()<<"\n";
+//         cout<<a.get_price()<<"\n";
+//         cout<<b.get_price()<<"\n";
+//         cout<<c.get_price()<<"\n";
         cout<<d.get_price()<<"\n";
         
 	/*

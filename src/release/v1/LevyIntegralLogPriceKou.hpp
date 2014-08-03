@@ -28,7 +28,7 @@ public:
         LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_, upper_limit_, Models_, std::move(BC_)),
         adapting(apt) {
                 if (!adapting)
-                        this->setup_quadratures(64);
+                        this->setup_quadratures(32);
                 else
                         this->setup_quadratures(2);
 	}
@@ -119,7 +119,7 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
         
 	for (unsigned d=0;d<dim;++d) {
-                tools::Solution_Trimmer<dim> func(d,*(this->boundary), dof_handler, sol, this->lower_limit, this->lower_limit);
+                tools::Solution_Trimmer<dim> func(d,*(this->boundary), dof_handler, sol, this->lower_limit, this->upper_limit);
                 
                 #pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)

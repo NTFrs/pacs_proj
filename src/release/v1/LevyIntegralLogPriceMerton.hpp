@@ -106,7 +106,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
         
 	for (unsigned d=0;d<dim;++d) {
-                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->lower_limit);
+	 tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
                 
                 //#pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)

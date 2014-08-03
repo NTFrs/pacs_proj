@@ -34,7 +34,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
 	
         for (unsigned d=0;d<dim;++d) {
-                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->lower_limit);
+                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
 		
                 Triangulation<1> integral_triangulation;
                 GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, 5), this->Bmin(d), this->Bmax(d));
