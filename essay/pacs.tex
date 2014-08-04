@@ -452,6 +452,11 @@ Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam
 \section{\emph{Mesh refinement}}
 In questo programma abbiamo implementato anche una funzione che permette di adattare la griglia al problema, in particolare di raffinare o de-raffinare la \emph{mesh} dove ce ne sia bisogno. Per capire in quali punti adattare la griglia abbiamo utilizzato lo stimatore di Kelly, implementato direttamente nella libreria \emph{dealii}. Esso stima l'errore soltanto per l'equazione generalizzata di Poisson: $$-\nabla\left(a(\underline{x})\nabla u\right)=f,$$tuttavia \`e uno stimatore utilizzato spesso perch\'e permette di stimare la differenza fra i gradienti della soluzione in due celle vicine. Qualora questa differenza sia troppa grande, ovvero la soluzione cambi molto inclinazione fra celle vicine, allora \`e necessario raffinare la griglia. Se invece la differenza fra i gradienti \`e nulla o molto piccola, allora \`e possibile de-raffinare la \emph{mesh}.
 \chapter{Pacchetti usati}
+\section{\emph{dealii}}
+\emph{dealii} \`e una libreria scritta in c++ che permette di risolvere tramite metodi a elementi finiti per una grande variet\`a di problemi alle derivate parziali. Fra i suoi maggiori pregi, oltre alla presenza di elementi finiti di ogni ordine, troviamo la grande scalabilit\`a (\`e stato infatti provato che questa libreria riesce a scalare fino a 16.000 processori), la possibilit\`a di interfacciarsi con molte librerie come \textsf{PETSc}, \textsf{Trilinos}, \textsf{METIS}, \textsf{BLAS}, \textsf{LAPACK}, e la vastit\`a e la precisione della documentazione. Soffermandoci un attimo su questo ultimo punto, vorremmo proprio sottolineare la presenza di una documentazione (quasi) sempre precisa e ben organizzata. Oltre a questa, ci sono inoltre 51 tutorial che insegnano a utilizzare la libreria dalla semplice creazione di una \emph{mesh} bidimensionale fino alla risoluzione di problemi iperbolici di meccanica non lineare in 3d con \emph{mesh refinement}. Per scrivere il nostro codice abbiamo sfruttato molto la massiccia documentazione della libreria, e siamo stati quasi sempre in grado di trovare le funzioni che facevano al caso nostro. In una occasione tuttavia non siamo riusciti a trovare un metodo e abbiamo deciso di scrivere sul gruppo \url{https://groups.google.com/forum/#!forum/dealii}, ottenendo una risposta precisa in breve tempo.\\\\Altro?
+\section{\textsf{Cmake}}
+\section{GitHub}
+\section{\textsf{Doxygen}}
 Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 
 \chapter{Codice}
@@ -510,7 +515,7 @@ Queste quattro classi alla base della piramide sono gli oggetti utilizzati per r
 \end{center}
 \end{figure}
 \section{\emph{Factory}}
-Data la complessit\`a strutturale delle classi Opzioni, abbiamo deciso di scrivere utilizzare il \emph{design pattern} della \emph{factory}, altrimenti noto come costruttore virtuale, per permettere a un qualsiasi utente di istanziare l'oggetto giusto per il suo problema. Abbiamo quindi creato una classe, \textsf{OptionFactory} che ha costruttore di default, costruttore di copia e operatore di copia privati, perci\`o non \`e possibile istanziare la classe e abbiamo scritto il seguente metodo:
+Data la complessit\`a strutturale delle classi Opzioni, abbiamo deciso di scrivere utilizzare il \emph{design pattern} della \emph{factory}, altrimenti noto come costruttore virtuale, per permettere a un qualsiasi utente di istanziare l'oggetto giusto per il suo problema. Abbiamo quindi creato una classe, \textsf{OptionFactory} che ha costruttore di default, costruttore di copia e operatore di copia privati, perci\`o non \`e possibile istanziare la classe, e abbiamo scritto il seguente metodo:
 \begin{lstlisting}
 static OptionFactory * instance()
         {
@@ -518,12 +523,14 @@ static OptionFactory * instance()
                 return &instance;
         }
 \end{lstlisting}
-Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{OptionFactory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e vari parametri dell'opzione.
+Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{OptionFactory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
 \section{Come utilizzare la libreria}
 
 \chapter{Risultati}
 \chapter{Estensioni}
-Aggiungere altri modelli (NIG, VG), provare altre opzioni, farlo in 3d, Heston?, memoria distribuita.
+Il programma che abbiamo scritto si presta molto a possibili estensioni, su molti livelli. In particolare, a partire dalle classi base \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$} \`e possibile scrivere dei \emph{solver} che prezzino tutte le opzioni barriera, ovvero opzioni caratterizzate da condizioni al bordi di \emph{Dirichlet} nulle in alcune parti o su tutto il bordo dominio.\\\`E inoltre possibile estendere la libreria in modo che prezzi opzioni con altri modelli, per esempio ad attivit\`a infinita, caratterizzati cio\`e da misure di L\'evy non limitate (come, ad esempio, il \emph{Normal Inverse Gaussian} e il \emph{Variance Gamma}). Per fare ci\`o occorre modificare le classi integrale, in modo che calcolino il parametro $\lambda$, che per questi modelli \`e incognito e calcolare all'interno della classe opzione la diffusione che approssima i piccoli salti (che in questo caso, sono infiniti).\\Un'altra estensione possibile, ma abbastanza delicata, \`e estendere il programma al calcolo di opzioni con tre sottostanti, ovvero risolvere un PIDE 3d. Teoricamente l'equazione sarebbe formalmente la stessa, con l'aggiunta di un terzo integrale su $\mathbb{R}$. Occorrerebbe tuttavia prestare attenzione a dove integrare i vari integrali: in 2d, infatti, abbiamo calcolato gli integrali sui lati dei quadrilateri che costituiscono la \emph{mesh}, in 3d si dovrebbe invece integrare sui lati delle facce dei parallelepipedi????\\Si potrebbe provare poi a utilizzare le funzioni offerte dalla libreria \emph{dealii} per la soluzione del problema con memoria distribuita. Per quanto riguarda la parte PDE si pu\`o sfruttare quanto implementato nella libreria, mentre per il calcolo dell'integrale in \emph{price} occorrerebbe spedire tutta la soluzione a tutti i processi (perch\'e il termine \`e non locale), in \emph{log-price} invece tutti i processi devono conoscere tutta la griglia, per poter valutare la funzione nei punti $y+x$ (\ref{intnonlocal}).\\\\
+Heston?
+%Aggiungere altri modelli (NIG, VG), provare altre opzioni, farlo in 3d, Heston?, memoria distribuita.
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliografia}
 \begin{thebibliography}{9}
