@@ -97,14 +97,30 @@ void EuropeanOptionPrice<dim>::solve ()
         
         BoundaryConditionPrice<dim> bc(this->K, this->T,  this->r, this->type2);
         
+        if (dim==2 && this->refine) {
+                std::string name("plot/Mesh-");
+                name.append(to_string(this->id));
+                name.append("-");
+                name.append(to_string(Step));
+                this->print_grid(name);
+        }
+        
 	cout<< "time step is"<< this->time_step << endl;
 	
 	for (double time=this->T-this->dt;time >=0;time-=this->dt, --Step) {
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
-                if (this->refine && Step%20==0 && Step!=this->time_step)
-				 this->refine_grid();
+                if (this->refine && Step%20==0 && Step!=this->time_step){
+                        this->refine_grid();
+                        if (dim==2) {
+                                std::string name("plot/Mesh-");
+                                name.append(to_string(this->id));
+                                name.append("-");
+                                name.append(to_string(Step));
+                                this->print_grid(name);
+                        }
+                }
                 //
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
@@ -129,9 +145,9 @@ void EuropeanOptionPrice<dim>::solve ()
                         
                         if (dim==2) {
                                 temp.reinit(this->dof_handler.n_dofs());
-                        
+                                
                                 this->ff_matrix.vmult(temp, *J_y);
-                        
+                                
                                 this->system_rhs+=temp;
                         }
                         

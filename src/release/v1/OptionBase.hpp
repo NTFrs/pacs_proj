@@ -17,6 +17,7 @@
 #include <string>
 #include <memory>
 #include <exception>
+//#include <direct.h>
 
 #include "BoundaryConditionsPrice.hpp"
 #include "BoundaryConditionsLogPrice.hpp"
@@ -82,9 +83,13 @@ protected:
         double                  dt;
         double                  price;
         double                  f;
-		bool                    ran;
-		
-		bool 					refine;
+        bool                    ran;
+        
+        bool 			refine;
+        float                   coarse_index;
+        float                   refine_index;
+        
+        static unsigned         id;
         
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;       
@@ -154,12 +159,14 @@ public:
                         f=f_;
         };
         
-        virtual void set_refine_status(bool status) {
-			refine=status;
+        virtual void set_refine_status(bool status, float refine_=0.2, float coarse_=0.03) {
+                refine=status;
+                refine_index=refine_;
+                coarse_index=coarse_;
         };
         
         virtual bool get_refine_status() {
-			return refine;
+                return refine;
         };
         
         //!
@@ -168,30 +175,32 @@ public:
          */
         virtual inline double get_price()=0;
         
-		virtual void estimate_doubling(double time, Vector<float> & errors);
+        virtual void estimate_doubling(double time, Vector<float> & errors);
         
         //TODO add output functions
         
         virtual void print_grid(std::string name) {
-			
-			name.append(".eps");
-			std::ofstream out (name);
-			GridOut grid_out;
-			grid_out.write_eps (triangulation, out);
+                name.append(".eps");
+                std::ofstream out (name);
+                GridOut grid_out;
+                grid_out.write_eps (triangulation, out);
         };
         
         virtual void print_solution_gnuplot(std::string name) {
-			DataOut<dim> data_out;
-			data_out.attach_dof_handler(dof_handler);
-			data_out.add_data_vector(solution, name);
-			
-			name.append(".gpl");
-			data_out.build_patches();
-			std::ofstream out(name);
-			data_out.write_gnuplot(out);
+                DataOut<dim> data_out;
+                data_out.attach_dof_handler(dof_handler);
+                data_out.add_data_vector(solution, name);
+                
+                name.append(".gpl");
+                data_out.build_patches();
+                std::ofstream out(name);
+                data_out.write_gnuplot(out);
         };
         
 };
+
+template<unsigned dim>
+unsigned OptionBase<dim>::id=1;
 
 // Constructor 1d
 template <unsigned dim>
@@ -231,6 +240,13 @@ ran(false),
 refine(false)
 //levy(NULL)
 {
+        ++id;
+        
+        if (system( NULL ))
+                system("mkdir -p plot");
+        else
+                std::exit(-1);
+        
         models.push_back(model);
         
         BlackScholesModel       *     bs(dynamic_cast<BlackScholesModel *> (model));
@@ -295,6 +311,13 @@ ran(false),
 refine(false)
 //levy(NULL)
 {
+        ++id;
+        
+        if (system( NULL ))
+                system("mkdir -p plot");
+        else
+                std::exit(-1);
+        
         models.push_back(model1);
         models.push_back(model2);
         
@@ -366,25 +389,25 @@ void OptionBase<dim>::refine_grid()
                                             typename FunctionMap<dim>::type(),
                                             this->solution,
                                             estimated_error_per_cell);
-
+        
 	GridRefinement::refine_and_coarsen_fixed_number (triangulation,
                                                          estimated_error_per_cell,
-                                                         0.05, 0.05);
+                                                         refine_index, coarse_index);
 	
 	SolutionTransfer<dim> solution_trans(this->dof_handler);
 	Vector<double> previous_solution;
 	previous_solution = this->solution;
 	this->triangulation.prepare_coarsening_and_refinement();
 	solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
-
+        
 	this->triangulation.execute_coarsening_and_refinement ();
 	this->setup_system ();
-
+        
 	solution_trans.interpolate(previous_solution, solution);
 	this->assemble_system();
 }
-	
-	
+
+
 template<unsigned dim>
 void OptionBase<dim>::estimate_doubling(double time, Vector< float >& errors)
 {
@@ -399,49 +422,49 @@ void OptionBase<dim>::estimate_doubling(double time, Vector< float >& errors)
 	old_dof.distribute_dofs(old_fe);
 	Vector<double> old_solution=solution;
 	{
-	 Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
-
-	 triangulation.refine_global(1);
-	 setup_system();
-	 VectorTools::interpolate(dof_handler, moveSol, solution);
- }
+                Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
+                
+                triangulation.refine_global(1);
+                setup_system();
+                VectorTools::interpolate(dof_handler, moveSol, solution);
+        }
 	assemble_system();
 	//TODO need a solve_one_step here if using this
-// solve_one_step(time);
+        // solve_one_step(time);
 	{
-	 Functions::FEFieldFunction<dim> moveSol(dof_handler, solution); 
-	 cerr<< "dof size "<< dof_handler.n_dofs()<< " solution size "<< solution.size()<< endl;
-	 cerr<< "olddof size "<< old_dof.n_dofs()<< " oldsolution size "<< old_solution.size()<< endl;
-
-	 Vector<double> temp(old_dof.n_dofs());
-	 cerr<< "this one2\n";
-	 VectorTools::interpolate(old_dof, moveSol, temp);
-	 cerr<< "this one2\n";
-	 solution=temp;
- }
+                Functions::FEFieldFunction<dim> moveSol(dof_handler, solution); 
+                cerr<< "dof size "<< dof_handler.n_dofs()<< " solution size "<< solution.size()<< endl;
+                cerr<< "olddof size "<< old_dof.n_dofs()<< " oldsolution size "<< old_solution.size()<< endl;
+                
+                Vector<double> temp(old_dof.n_dofs());
+                cerr<< "this one2\n";
+                VectorTools::interpolate(old_dof, moveSol, temp);
+                cerr<< "this one2\n";
+                solution=temp;
+        }
 	triangulation.clear();
 	triangulation.copy_triangulation(old_tria);
 	setup_system();
 	assemble_system();
-
+        
 	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
 	vector<types::global_dof_index> local_dof_indices(fe.dofs_per_cell);
 	errors.reinit(old_tria.n_active_cells());
 	double err(0);
 	unsigned ind(0),  count(0);
 	for (;cell !=endc;++cell) {
-	 err=0;
-	 cell->get_dof_indices(local_dof_indices);
-	 for (unsigned i=0;i<fe.dofs_per_cell;++i) {
-	  ind=local_dof_indices[i];
-	  err+=(solution[ind]-old_solution[ind])*(solution[ind]-old_solution[ind]);
-	}
-	 errors[count]=(err);
-	 count++;
-   }
-
+                err=0;
+                cell->get_dof_indices(local_dof_indices);
+                for (unsigned i=0;i<fe.dofs_per_cell;++i) {
+                        ind=local_dof_indices[i];
+                        err+=(solution[ind]-old_solution[ind])*(solution[ind]-old_solution[ind]);
+                }
+                errors[count]=(err);
+                count++;
+        }
+        
 	solution=old_solution;
-  }
+}
 
 
 
