@@ -168,6 +168,28 @@ public:
          */
         virtual inline double get_price()=0;
         
+        
+        //TODO add output functions
+        
+        virtual void print_grid(std::string name) {
+			
+			name.append(".eps");
+			std::ofstream out (name);
+			GridOut grid_out;
+			grid_out.write_eps (triangulation, out);
+        };
+        
+        virtual void print_solution_gnuplot(std::string name) {
+			DataOut<dim> data_out;
+			data_out.attach_dof_handler(dof_handler);
+			data_out.add_data_vector(solution, name);
+			
+			name.append(".gpl");
+			data_out.build_patches();
+			std::ofstream out(name);
+			data_out.write_gnuplot(out);
+        };
+        
 };
 
 // Constructor 1d
@@ -346,7 +368,7 @@ void OptionBase<dim>::refine_grid()
 
 	GridRefinement::refine_and_coarsen_fixed_number (triangulation,
                                                          estimated_error_per_cell,
-                                                         0.1, 0.25);
+                                                         0.1, 0.1);
 	
 	SolutionTransfer<dim> solution_trans(this->dof_handler);
 	Vector<double> previous_solution;

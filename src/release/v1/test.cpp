@@ -37,16 +37,17 @@ int main(){
         //a.set_refine_status(true);
  	//b.set_refine_status(true);
         //c.set_refine_status(true);		
-        //d.set_refine_status(true);
+        d.set_refine_status(true);
 		
         //a.run();
         //b.run();
-        c.run();
+//         c.run();
         d.run();
-		
+		d.print_grid("Griglia");
+		d.print_solution_gnuplot("Soluzione");
         //cout<<a.get_price()<<"\n";
         //cout<<b.get_price()<<"\n";
-        cout<<c.get_price()<<"\n";
+//         cout<<c.get_price()<<"\n";
         cout<<d.get_price()<<"\n";
         
 	/*
