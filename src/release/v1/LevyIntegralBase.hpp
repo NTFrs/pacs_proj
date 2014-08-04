@@ -47,6 +47,7 @@ public:
 	
 	//would be nice to make it protected,  but need to pass arguments
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) =0;
+	virtual inline void set_time(double tm) {};
 	
 	virtual double get_alpha_1() {
                 if (!alpha_ran)

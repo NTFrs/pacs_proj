@@ -12,6 +12,7 @@ protected:
 public:
 	
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe);
+	virtual inline void set_time(double tm) {boundary->set_time(tm);};
 	
 	LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
