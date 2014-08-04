@@ -149,7 +149,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                         Vector<double> *J_x;
                         Vector<double> *J_y;
                         Vector<double> temp;
-                        
+                        this->levy->set_time(time);
                         this->levy->compute_J(this->solution, this->dof_handler, this->fe);
                         
                         if (dim==1)
@@ -180,7 +180,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 
                 //
                 
-                bc.set_time(this->dt);
+                bc.set_time(time);
                 
                 {
                         
