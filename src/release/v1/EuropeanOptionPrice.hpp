@@ -142,7 +142,7 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 //
                 
-                bc.set_time(this->dt);
+                bc.set_time(time);
                 
                 {
                         
