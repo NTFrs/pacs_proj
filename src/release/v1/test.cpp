@@ -29,7 +29,7 @@ int main(){
         
         Model * x=new KouModel(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
         
-        //KouModel model5(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
+        KouModel model5(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
         
         MertonModel model6(80., 0.2, -0.390078, 0.338796, 0.174814);
         MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
@@ -38,7 +38,7 @@ int main(){
         EuropeanOptionLogPrice<1> b(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
         
         EuropeanOptionPrice<2> c
-        (OptionType::Call, model4.get_pointer(), x/*model5.get_pointer()*/,
+        (OptionType::Call, model4.get_pointer(), /*x*/model5.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
         /*
         EuropeanOptionLogPrice<2> d
@@ -52,8 +52,8 @@ int main(){
         //c.set_refine_status(true, 0.1);		
         //         d.set_refine_status(true);
         
-        a.run();
-        b.run();
+        //a.run();
+        //b.run();
         c.run();
         //        d.run();
         // 		d.print_grid("Griglia");

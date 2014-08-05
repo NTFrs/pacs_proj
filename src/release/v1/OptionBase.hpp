@@ -144,13 +144,6 @@ public:
          */
         virtual void run()
         {
-                // Checking whether the models have been mistakenly deleted.
-                for (unsigned d=0; d<dim; ++d) {
-                        if (this->models[d]==nullptr) {
-                                throw(std::logic_error("Error! A model has been deleted!\n"));
-                        }
-                }
-                
                 make_grid();
                 setup_system();
                 setup_integral();
