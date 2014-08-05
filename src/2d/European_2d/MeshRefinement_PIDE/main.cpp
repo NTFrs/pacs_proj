@@ -825,7 +825,7 @@ void Opzione<dim>::refine_grid (){
 // 	else if (estimated_error_per_cell[i]>up)
 // 	cell->set_refine_flag();
 // 	
-// 	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
+	GridRefinement::refine_and_coarsen_fixed_number (triangulation, estimated_error_per_cell, 0.1, 0.25);
 
 	SolutionTransfer<dim> solution_trans(dof_handler);
 	Vector<double> previous_solution;
