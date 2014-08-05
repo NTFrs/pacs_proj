@@ -2,7 +2,10 @@
 # define __levy_integral_log_price__
 
 #include "LevyIntegralBase.hpp"
-
+//! Class that handles the integral part with the LogPrice transformation for a generic model
+/*!
+ * This class computes the integral parts of the equation when written with the \f$x=log\left(\frac{S}{S_0}\right)\f$ transformation. It should be noted that, since this transformation requires a boundary condition,  it stores a unique_ptr to a Function object that is intended to be the boundary condition.
+ */
 template<unsigned dim>
 class LevyIntegralLogPrice: public LevyIntegralBase<dim> {
 	
@@ -15,7 +18,14 @@ public:
         LevyIntegralLogPrice(const LevyIntegralLogPrice &)=delete;
         
         LevyIntegralLogPrice& operator=(const LevyIntegralLogPrice &)=delete;
-        
+        //! Only constructor of this class
+		/*!
+		 * Similar to constructor of base class,  adds the space for a boundary condition.
+		 * \param lower_limit_ 		the left-bottom limit of the domain		
+		 * \param upper_limit_ 		the rigth-upper limit of the domain
+		 * \param Models_			A vector containing the needed models
+		 * \param BC_ 				Pointer to the BoundaryCondition
+		 */
         LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
                              std::vector<Model *> & models_,
@@ -24,8 +34,14 @@ public:
         LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_),
         boundary(std::move(BC_))
         {};
-	
+        
+	//! Computes the J part of the integral for a logprice transformation
+	/*!
+     * 
+     */
 	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe);
+	
+	//! used to set the time for the boundary condition (if it needs any)
 	virtual inline void set_time(double tm) {boundary->set_time(tm);};
 	
 };

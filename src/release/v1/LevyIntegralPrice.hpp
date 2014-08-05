@@ -2,14 +2,23 @@
 # define __integral_levy_price_hpp
 
 #include "LevyIntegralBase.hpp"
-
+//! Class that handles the integral part with the Price transformation for a generic model
+/*!
+ * This class computes the integral parts of the equation when written with the \f$z=Se^y\f$ transformation in the integral part
+ */
 template<unsigned dim>
 class LevyIntegralPrice: public LevyIntegralBase< dim > {
 public:
         LevyIntegralPrice()=delete;
         
         LevyIntegralPrice(const LevyIntegralPrice &)=delete;
-	
+	//! Only constructor of the class
+	/*!
+     * Same as the constructor of the base class.
+	 * \param lower_limit_ 		the left-bottom limit of the domain		
+	 * \param upper_limit_ 		the rigth-upper limit of the domain
+	 * \param Models_			A vector containing the needed models
+     */
 	LevyIntegralPrice(dealii::Point<dim> lower_limit_,
                           dealii::Point<dim> upper_limit_,
                           std::vector<Model *> & Models_)
@@ -20,7 +29,6 @@ public:
         LevyIntegralPrice& operator=(const LevyIntegralPrice &)=delete;
         
 	//TODO add exception
-	
 	//! Computes the j part of the integrals
 	/*!
          * This method computes the j part of the integrals and stores them inside j1 and j2 members. In a generic dimension does nothing,  it is only specialized for dimension 1 and 2.
@@ -90,31 +98,37 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace std;
         
         
-        const unsigned N(dof_handler.n_dofs());
+    const unsigned N(dof_handler.n_dofs());
         
+    //we clear these dealii Vectors to be all zero
 	j1.reinit(N);
     j2.reinit(N);
         
+    //we need a one dimensional quadrature formula, as well as the object that handles the values of FE on the faces of cells
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
         
 	const unsigned int n_q_points=quad1D.size();
         
-	typename DoFHandler<2>::active_cell_iterator   endc=dof_handler.end();
+    //an iterator over cells and the final condition
+	typename DoFHandler<2>::active_cell_iterator cell=dof_handler.begin_active(), endc=dof_handler.end();
         
+    //the mapping between the dof_index and the points
 	std::vector< Point<2> > vertices(dof_handler.n_dofs());
 	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
         
 	double z, karg;
-        
-	typename DoFHandler<2>::active_cell_iterator cell=dof_handler.begin_active();
-        
+    
+	//vectors that will contain values of the solution and quadrature points on the current face 
 	std::vector<Point <2> > quad_points(n_q_points);
 	std::vector<double> sol_values(n_q_points);
         
 	Point<2> actual_vertex;
+	
+		//we loop over all cells
         for (;cell !=endc;++cell) {
-                
+        
+        //if this cell is at the left boundary,  we need to add the contribution to the vertices on this boundary.
 		if (cell->face(0)->at_boundary()) {
                         
                         fe_face.reinit(cell,0);
@@ -135,6 +149,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 
 			}
 		}
+		//same for the bottom boundary
 		if (cell->face(2)->at_boundary()) {
                         
                         fe_face.reinit(cell, 2);
@@ -156,18 +171,25 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                                 
                         }
                 }
-		{	  
+		
+		//now the upper side of the cell (number 3)
+		{
+						//since this call is costly,  we save its value
                         double center(cell->face(3)->center()(1));
+                        //we tell fe_face wich face we are on
                         fe_face.reinit(cell, 3);
                         
+                        //we save the quadrature points and values of the solution since they will be used multiple times
                         quad_points=fe_face.get_quadrature_points();
-                        
                         fe_face.get_function_values(sol,  sol_values);
                         
+                        //loop over all vertices
                         for (unsigned it=0;it<N;++it) {
                                 actual_vertex=vertices[it];
+                                //only the vertices whoose y coordiate is on this face get the contribute to j1[it]
                                 if (fabs(actual_vertex(1)-center)<constants::grid_toll)
                                 {
+										//we finally calculate the contribute to j1
                                         for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                                 z=quad_points[q_point](0);
                                                 karg=log(z/actual_vertex(0));
@@ -178,6 +200,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
                         }
 		}
 		{	  
+						//the same but on the right face,  inverting x and y coordinates
                         double center(cell->face(1)->center()(0));
                         fe_face.reinit(cell, 1);
                         

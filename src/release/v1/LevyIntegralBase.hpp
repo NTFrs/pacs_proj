@@ -51,11 +51,11 @@ public:
         LevyIntegralBase(const LevyIntegralBase &)=delete;
         
         //! Constructor
-	/*!
+		/*!
          *  This is the only provided constructor. Since this is an abstract class,  it only serves when called by classes derived from this one.
          * \param lower_limit_ 		the left-bottom limit of the domain		
-	 * \param upper_limit_ 		the rigth-upper limit of the domain
-	 * \param Models_			A vector containing the needed models
+		 * \param upper_limit_ 		the rigth-upper limit of the domain
+		 * \param Models_			A vector containing the needed models
          */
 	LevyIntegralBase(dealii::Point<dim> lower_limit_,
                          dealii::Point<dim> upper_limit_,
