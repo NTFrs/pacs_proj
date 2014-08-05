@@ -28,7 +28,7 @@ int main(){
         
         EuropeanOptionPrice<2> c
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 7, 100);
         
         EuropeanOptionLogPrice<2> d
         (OptionType::Call, model4.get_pointer(), model5.get_pointer(),
@@ -36,18 +36,18 @@ int main(){
 		
         //a.set_refine_status(true);
  	//b.set_refine_status(true);
-        //c.set_refine_status(true, 0.1);		
+        c.set_refine_status(true, 0.1);		
 //         d.set_refine_status(true);
 		
-        a.run();
-        b.run();
-//        c.run();
+//         a.run();
+//         b.run();
+       c.run();
 //        d.run();
 // 		d.print_grid("Griglia");
 // 		d.print_solution_gnuplot("Soluzione");
-        cout<<a.get_price()<<"\n";
-        cout<<b.get_price()<<"\n";
-//        cout<<c.get_price()<<"\n";
+//         cout<<a.get_price()<<"\n";
+//         cout<<b.get_price()<<"\n";
+       cout<<c.get_price()<<"\n";
 //        cout<<d.get_price()<<"\n";
         
 	/*
