@@ -41,17 +41,23 @@ void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	
 	using namespace dealii;
 	//make j1 a vector of zeros with the same size as solution
-	j1.reinit(sol.size());
+	j1.reinit(dof_handler.n_dofs());
 	
+	//we need a quadrature formula on each cell,  as well as FEValues that handles FE and quadratures altogether
 	QGauss<1> quadrature_formula(5);
 	FEValues<1> fe_values(fe, quadrature_formula,  update_quadrature_points | update_values | update_JxW_values);
         
 	const unsigned int n_q_points(quadrature_formula.size());
+	
+	//we declare an iterator over cells
 	typename DoFHandler<1>::active_cell_iterator cell=dof_handler.begin_active(), endc=dof_handler.end();
-        
+    
+    //this vector will contain the values of the solution in the present cell at quadrature points
 	std::vector<double> sol_cell(n_q_points);
         
+	//this will contain the quad points of the present cell
 	std::vector< Point <1> > quad_points(n_q_points);
+	
 	double logz(0.);
         
 	std::vector< Point<1> > vertices(dof_handler.n_dofs());
@@ -84,10 +90,10 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	using namespace std;
         
         
-        const unsigned N(sol.size());
+        const unsigned N(dof_handler.n_dofs());
         
 	j1.reinit(N);
-        j2.reinit(N);
+    j2.reinit(N);
         
 	QGauss<1> quad1D(3);    
 	FEFaceValues<2> fe_face(fe, quad1D, update_values  | update_quadrature_points | update_JxW_values);
@@ -198,10 +204,7 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         }
         
         j_ran=true;
-        
-        //         ofstream out("JdiLevy", ios_base::app);
-        //         out<< "j1 is \n"<< j1<<"\n\nj2 is \n"<< j2<< "\n";
-        
+                
 }
 
 
