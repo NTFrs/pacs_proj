@@ -19,12 +19,25 @@ protected:
 	
 public:
 	LevyIntegralPriceKou()=delete;
-	LevyIntegralPriceKou(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,std::vector<Model *> & Models_,  bool apt=true): LevyIntegralPrice<dim>::LevyIntegralPrice(lower_limit_, upper_limit_, Models_), adapting(apt) {
+        
+        LevyIntegralPriceKou(const LevyIntegralPriceKou &)=delete;
+	
+	LevyIntegralPriceKou(dealii::Point<dim> lower_limit_,
+                             dealii::Point<dim> upper_limit_,
+                             std::vector<Model *> & Models_,
+                             bool apt=true)
+        :
+        LevyIntegralPrice<dim>::LevyIntegralPrice(lower_limit_,
+                                                  upper_limit_,
+                                                  Models_),
+        adapting(apt) {
                 if (!adapting)
 			this->setup_quadratures(16);
                 else
 			this->setup_quadratures(2);   
 	}
+        
+        LevyIntegralPriceKou& operator=(const LevyIntegralPriceKou &)=delete;
         
 };
 

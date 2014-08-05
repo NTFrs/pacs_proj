@@ -56,7 +56,7 @@ double BoundaryConditionPrice<dim>::value(const dealii::Point<dim> &p, const uns
         else
                 return  (point-K*exp(-r*(T-this->get_time()))>0.)?
                 (point-K*exp(-r*(T-this->get_time()))):0.;
-                
+        
 }
 
 #endif

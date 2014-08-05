@@ -11,6 +11,10 @@ protected:
         virtual void setup_integral();
         virtual void solve()=0;
 public:
+        OptionBasePrice()=delete;
+        
+        OptionBasePrice(const OptionBasePrice &)=delete;
+        
         //! Constructor 1d
         /*!
          * Constructor 1d called by inherited classes.
@@ -42,6 +46,8 @@ public:
         OptionBase<dim>::OptionBase(type_, model1, model2, rho_, r_, T_, K_, refs_, time_step_)
         {};
         
+        OptionBasePrice& operator=(const OptionBasePrice &)=delete;
+        
         virtual inline double get_price();
 };
 
@@ -65,7 +71,7 @@ void OptionBasePrice<dim>::make_grid(){
         }
         
         dealii::GridGenerator::subdivided_hyper_rectangle (this->triangulation, refinement,
-                                                   this->Smin, this->Smax);
+                                                           this->Smin, this->Smax);
         
         this->triangulation.refine_global();
         //TODO inutili vero? 
@@ -82,7 +88,7 @@ void OptionBasePrice<dim>::setup_integral(){
                 this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models));
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
-			this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models));
         }
 }
 
@@ -93,7 +99,7 @@ void OptionBasePrice<dim>::assemble_system()
         using namespace dealii;
         
         std::vector<double> alpha(dim,0.);
-
+        
         if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes)
                 this->levy->get_alpha(alpha);
         

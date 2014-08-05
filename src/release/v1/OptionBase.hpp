@@ -17,7 +17,6 @@
 #include <string>
 #include <memory>
 #include <exception>
-//#include <direct.h>
 
 #include "BoundaryConditionsPrice.hpp"
 #include "BoundaryConditionsLogPrice.hpp"
@@ -94,16 +93,20 @@ protected:
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;       
         
-        // Private methods
+        // Protected methods
         virtual void setup_system();
+        virtual void refine_grid();
         // Pure abstract methods
         virtual void make_grid() = 0;
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
         virtual void setup_integral() = 0;
-        virtual void refine_grid();
         
 public:
+        OptionBase()=delete;
+        
+        OptionBase(const OptionBase &)=delete;
+        
         //! Constructor 1d
         /*!
          * Constructor 1d called by inherited classes.
@@ -133,12 +136,21 @@ public:
         //! Destructor
         virtual ~OptionBase()=default;
         
+        OptionBase& operator=(const OptionBase &)=delete;
+        
         //! 
         /*!
          * This function creates the system and solves it.
          */
         virtual void run()
         {
+                // Checking whether the models have been mistakenly deleted.
+                for (unsigned d=0; d<dim; ++d) {
+                        if (this->models[d]==nullptr) {
+                                throw(std::logic_error("Error! A model has been deleted!\n"));
+                        }
+                }
+                
                 make_grid();
                 setup_system();
                 setup_integral();

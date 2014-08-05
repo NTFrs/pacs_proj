@@ -1,10 +1,10 @@
 #ifndef __levy_hpp
 #define __levy_hpp
 /*
-#include "OptionBase.hpp"
-#include "EuropeanOption.hpp"
-#include "AmericanOption.hpp"
-*/
+ #include "OptionBase.hpp"
+ #include "EuropeanOption.hpp"
+ #include "AmericanOption.hpp"
+ */
 #include "LevyIntegralBase.hpp"
 #include "LevyIntegralLogPrice.hpp"
 #include "LevyIntegralPrice.hpp"

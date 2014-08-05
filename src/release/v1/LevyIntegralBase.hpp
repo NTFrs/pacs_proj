@@ -37,63 +37,84 @@ protected:
 	
 	//! Computes the alpha part of both integrals
 	/*!
-     * Computes the alpha part of the integrals without using the generic Gauss quadrature nodes, thus working with any model.
-     */
+         * Computes the alpha part of the integrals without using the generic Gauss quadrature nodes, thus working with any model.
+         */
 	virtual void compute_alpha();
 	//! Computes the bounds needed to compute the integral with Gauss nodes.
 	virtual void compute_bounds();
 	
 public:
+        virtual ~LevyIntegralBase()=default;
         
 	LevyIntegralBase()=delete;
-	
-	//! Constructor
+        
+        LevyIntegralBase(const LevyIntegralBase &)=delete;
+        
+        //! Constructor
 	/*!
-     *  This is the only provided constructor. Since this is an abstract class,  it only serves when called by classes derived from this one.
-     * \param lower_limit_ 		the left-bottom limit of the domain		
+         *  This is the only provided constructor. Since this is an abstract class,  it only serves when called by classes derived from this one.
+         * \param lower_limit_ 		the left-bottom limit of the domain		
 	 * \param upper_limit_ 		the rigth-upper limit of the domain
 	 * \param Models_			A vector containing the needed models
-    */
-	LevyIntegralBase(dealii::Point<dim> lower_limit_,  dealii::Point<dim> upper_limit_,  std::vector<Model *> & Models_): lower_limit(lower_limit_), upper_limit(upper_limit_), mods(Models_),  alpha_ran(false) , j_ran(false) {if (Models_.size() !=dim)
-				//TODO add exception
+         */
+	LevyIntegralBase(dealii::Point<dim> lower_limit_,
+                         dealii::Point<dim> upper_limit_,
+                         std::vector<Model *> & Models_)
+        :
+        lower_limit(lower_limit_),
+        upper_limit(upper_limit_),
+        mods(Models_),
+        alpha_ran(false),
+        j_ran(false)
+        {
+                if (Models_.size() !=dim)
+                //TODO add exception
                 std::cerr<< "Wrong dimension! Number of models is different from option dimension\n";
-                this->compute_bounds();};
+                this->compute_bounds();
+        };
 	
+	LevyIntegralBase& operator=(const LevyIntegralBase &)=delete;
 	
-	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) =0;
+	virtual void compute_J(dealii::Vector<double> & sol, 
+                               dealii::DoFHandler<dim> & dof_handler,
+                               dealii::FE_Q<dim> & fe)=0;
 	
-	virtual inline void set_time(double tm) {};
+	virtual inline void set_time(double tm){};
 	
 	//! Returns the value of the alpha part of the first integral
 	virtual double get_alpha_1() {
-                if (!alpha_ran)
+                if (!alpha_ran) {
                         this->compute_alpha();
+                }
                 return alpha[0];
         }
 	//! Returns the value of the alpha part of the second integral
 	virtual double get_alpha_2() {
-				//TODO add exception
-				if (dim<2) {
-					std::cerr<< "Dimension of this object is 1,  can't calculate alpha_2\n";
-					exit(-1);
-				}
-                if (!alpha_ran)                      // add exception if dim < 2
+                //TODO add exception
+                if (dim<2) {
+                        std::cerr<< "Dimension of this object is 1,  can't calculate alpha_2\n";
+                        exit(-1);
+                }
+                if (!alpha_ran) {                    // add exception if dim < 2
                         this->compute_alpha();
+                }
                 return alpha[1];
         }
-    //! Fills a vector with the values of the alpha part
+        //! Fills a vector with the values of the alpha part
 	virtual void get_alpha(std::vector<double> & alp) {
-                if (!alpha_ran)
+                if (!alpha_ran) {
                         this->compute_alpha();
+                }
                 alp=alpha;
                 return;
         }
 	
 	//! Used to get the j part of the first integral
 	virtual void get_j_1(dealii::Vector<double> * &J_x) {
-                if (!j_ran)
-						 //TODO add exception
+                if (!j_ran) {
+                        //TODO add exception
                         std::cerr<< "Run J first!"<< std::endl;
+                }
                 else {
                         J_x=&j1;
                         j_ran=false;
@@ -101,10 +122,11 @@ public:
                 return;
         }
         
-    //! Used to get j parts of both integrals
+        //! Used to get j parts of both integrals
 	virtual void get_j_both(dealii::Vector<double> * &J_x, dealii::Vector<double> * &J_y) {
-                if (!j_ran)
+                if (!j_ran) {
                         std::cerr<< "Run J first!"<< std::endl;
+                }
                 else{
                         J_x=&j1;
                         J_y=&j2;
@@ -113,7 +135,6 @@ public:
                 return;
         }
 	
-	virtual ~LevyIntegralBase() {for (unsigned d=0;d<dim;++d) mods[d]=nullptr;}
 };
 
 template<unsigned dim>
@@ -135,7 +156,7 @@ void LevyIntegralBase<dim>::compute_alpha()
 {
 	using namespace dealii;
 	alpha=std::vector<double>(dim, 0.);
-		//an alpha is computed for each dimension
+        //an alpha is computed for each dimension
         for (unsigned d=0;d<dim;++d) {
                 
                 //a one dimensional grid is built,  along with the finite elements
@@ -160,11 +181,11 @@ void LevyIntegralBase<dim>::compute_alpha()
                 
                 //we thus loop over all cells
                 for (; cell !=endc;++cell) {
-					
+                        
                         fe_values.reinit(cell);
                         std::vector< Point<1> > quad_points_1D(fe_values.get_quadrature_points());
-						
-						//in each cell we compute the contribution to alpha[d]. fe_values.JxW is the jacobian (respect to a reference cell) and the quadrature weight provided by dealii.
+                        
+                        //in each cell we compute the contribution to alpha[d]. fe_values.JxW is the jacobian (respect to a reference cell) and the quadrature weight provided by dealii.
                         for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                                 double p;
                                 p=quad_points_1D[q_point][0];

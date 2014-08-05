@@ -5,6 +5,7 @@ TODO:
 -> commentare codice (sia Doxygen che altro)
 -> organizzare i CmakeList per inludere la cartella sopra e compilare quadrature una sola volta
 -> funziona stampa matlab
+-> usare reference_wrapper
 
 TODO aggiunte:
 	->estimate_doubling

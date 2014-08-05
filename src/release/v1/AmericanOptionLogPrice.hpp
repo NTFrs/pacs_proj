@@ -16,6 +16,10 @@ private:
         virtual void setup_integral();
         virtual void solve();
 public:
+        AmericanOptionLogPrice()=delete;
+        
+        AmericanOptionLogPrice(const AmericanOptionLogPrice &)=delete;
+        
         //! 1d Constructor
         /*!
          * Constructor for American Option with payoff max(K-S_T,0).
@@ -27,11 +31,11 @@ public:
          * \param time_step_    Number of TimeStep
          */
         AmericanOptionLogPrice(Model * const model,
-                            double r_,
-                            double T_,
-                            double K_,
-                            unsigned refs_,
-                            unsigned time_step_)
+                               double r_,
+                               double T_,
+                               double K_,
+                               unsigned refs_,
+                               unsigned time_step_)
         :
         OptionBaseLogPrice<dim>::OptionBaseLogPrice(ExerciseType::US, model, r_, T_, K_, refs_, time_step_),
         us(ExerciseType::US)
@@ -51,19 +55,20 @@ public:
          * \note                model1 and model2 MUST be of the same type.
          */
         AmericanOptionLogPrice(Model * const model1,
-                            Model * const model2,
-                            double rho_,
-                            double r_,
-                            double T_,
-                            double K_,
-                            unsigned refs_,
-                            unsigned time_step_)
+                               Model * const model2,
+                               double rho_,
+                               double r_,
+                               double T_,
+                               double K_,
+                               unsigned refs_,
+                               unsigned time_step_)
         :
         OptionBaseLogPrice<dim>::OptionBaseLogPrice(ExerciseType::US, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
         us(ExerciseType::US)
         {};
         
-        
+        AmericanOptionLogPrice& operator=(const AmericanOptionLogPrice &)=delete;
+
 };
 
 template <unsigned dim>
@@ -165,7 +170,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
                 //
-                bc.set_time(this->dt);
+                bc.set_time(time);
                 
                 {
                         

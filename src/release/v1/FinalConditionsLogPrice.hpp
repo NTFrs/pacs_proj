@@ -37,7 +37,7 @@ private:
 
 template<unsigned dim>
 double FinalConditionLogPrice<dim>::value (const dealii::Point<dim>  &p,
-                                   const unsigned int component) const
+                                           const unsigned int component) const
 {
         using namespace dealii;
         
@@ -49,7 +49,7 @@ double FinalConditionLogPrice<dim>::value (const dealii::Point<dim>  &p,
                 point+=S0[i]*exp(p(i));
                 
         }
-
+        
         if (type==OptionType::Put)
                 return (K-point>0.)?(K-point):0.;
         else

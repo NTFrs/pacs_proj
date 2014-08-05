@@ -10,11 +10,13 @@ protected:
 	//TODO if done like this can cause problems if Levy is called with LevyIntegralLogPrice(-.-.-.BC<>())
 	std::unique_ptr<dealii::Function<dim> > boundary;
 public:
-	
-	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe);
-	virtual inline void set_time(double tm) {boundary->set_time(tm);};
-	
-	LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
+        LevyIntegralLogPrice()=delete;
+        
+        LevyIntegralLogPrice(const LevyIntegralLogPrice &)=delete;
+        
+        LevyIntegralLogPrice& operator=(const LevyIntegralLogPrice &)=delete;
+        
+        LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
                              std::vector<Model *> & models_,
                              std::unique_ptr<dealii::Function<dim> > BC_)
@@ -22,6 +24,10 @@ public:
         LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_),
         boundary(std::move(BC_))
         {};
+	
+	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe);
+	virtual inline void set_time(double tm) {boundary->set_time(tm);};
+	
 };
 
 template<unsigned dim>
@@ -75,7 +81,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                                 // This way,  the 1_i point of integration becomes (q_i, 0)
                                 for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
                                         quad_points[q_point][d]=quad_points_1D[q_point](0);
-                                        }
+                                }
                                 std::vector<double> kern(n_q_points),  f_u(n_q_points);
                                 
                                 //and we compute the value of the density on that point (note the y coordinate is useless here) 

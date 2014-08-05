@@ -35,7 +35,7 @@ private:
 
 template<unsigned dim>
 double FinalConditionPrice<dim>::value (const dealii::Point<dim>  &p,
-                           const unsigned int component) const
+                                        const unsigned int component) const
 {
         using namespace dealii;
         
@@ -45,7 +45,7 @@ double FinalConditionPrice<dim>::value (const dealii::Point<dim>  &p,
         
         for (unsigned i=0; i<dim; ++i) {
                 point+=p(i);
-        
+                
         }
         
         if (type==OptionType::Put)

@@ -15,6 +15,10 @@ private:
         
         virtual void solve();
 public:
+        AmericanOptionPrice()=delete;
+        
+        AmericanOptionPrice(const AmericanOptionPrice &)=delete;
+        
         //! 1d Constructor
         /*!
          * Constructor for American Option with payoff max(K-S_T,0).
@@ -62,6 +66,7 @@ public:
         us(ExerciseType::US)
         {};
         
+        AmericanOptionPrice& operator=(const AmericanOptionPrice &)=delete;
         
 };
 
@@ -135,7 +140,7 @@ void AmericanOptionPrice<dim>::solve ()
                 else
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
-                bc.set_time(this->dt);
+                bc.set_time(time);
                 
                 {
                         

@@ -11,6 +11,10 @@ protected:
         virtual void assemble_system();
         virtual void solve()=0;
 public:
+        OptionBaseLogPrice()=delete;
+        
+        OptionBaseLogPrice(const OptionBaseLogPrice &)=delete;
+        
         //! Constructor 1d
         /*!
          * Constructor 1d called by inherited classes.
@@ -42,6 +46,8 @@ public:
         OptionBase<dim>::OptionBase(type_, model1, model2, rho_, r_, T_, K_, refs_, time_step_)
         {};
         
+        OptionBaseLogPrice& operator=(const OptionBaseLogPrice &)=delete;
+        
         virtual inline double get_price();
 };
 
@@ -53,14 +59,14 @@ void OptionBaseLogPrice<dim>::make_grid(){
         for (unsigned i=0; i<dim; ++i) {
                 
                 this->Smin[i]=log((1-this->f)*(*(this->models[i])).get_spot()*
-                exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*
-                (this->T)-(*(this->models[i])).get_vol()*sqrt(this->T)*6)/
-                ((*(this->models[i])).get_spot()));
+                                  exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*
+                                      (this->T)-(*(this->models[i])).get_vol()*sqrt(this->T)*6)/
+                                  ((*(this->models[i])).get_spot()));
                 
                 this->Smax[i]=log((1+this->f)*(*(this->models[i])).get_spot()*
-                exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*
-                (this->T)+(*(this->models[i])).get_vol()*sqrt(this->T)*6)/
-                ((*(this->models[i])).get_spot()));
+                                  exp((this->r-(*(this->models[i])).get_vol()*(*(this->models[i])).get_vol()/2)*
+                                      (this->T)+(*(this->models[i])).get_vol()*sqrt(this->T)*6)/
+                                  ((*(this->models[i])).get_spot()));
                 
                 refinement[i]=pow(2, this->refs-1);
         }
@@ -93,7 +99,7 @@ void OptionBaseLogPrice<dim>::assemble_system()
         dealii::QGauss<dim> quadrature_formula(2*dim);
 	dealii::FEValues<dim> fe_values (this->fe, quadrature_formula, update_values |
                                          update_gradients |
-                                 update_JxW_values | update_quadrature_points);
+                                         update_JxW_values | update_quadrature_points);
         
 	const unsigned int   dofs_per_cell = (this->fe).dofs_per_cell;
 	const unsigned int   n_q_points    = quadrature_formula.size();

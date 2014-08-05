@@ -1,71 +1,71 @@
 #include <iostream>
 #include "Levy.hpp"
 /*
-#include "LevyIntegralPrice.hpp"
-#include "LevyIntegralLogPrice.hpp"
-#include "LevyIntegralPriceKou.hpp"
-#include "LevyIntegralPriceMerton.hpp"
-#include <vector>
-#include "models.hpp"
-#include "BoundaryConditionsPrice.hpp"
-#include "OptionTypes.hpp"
-
-
-
-/// ////////////////////////////////////////////////////////
-#include <deal.II/grid/tria.h>
-#include <deal.II/dofs/dof_handler.h>
-// And this is the file in which the functions are declared that create grids:
-#include <deal.II/grid/grid_generator.h>
-
-// The next three files contain classes which are needed for loops over all
-// cells and to get the information from the cell objects. The first two have
-// been used before to get geometric information from cells; the last one is
-// new and provides information about the degrees of freedom local to a cell:
-#include <deal.II/grid/tria_accessor.h>
-#include <deal.II/grid/tria_iterator.h>
-#include <deal.II/dofs/dof_accessor.h>
-
-// In this file contains the description of the Lagrange interpolation finite
-// element:
-#include <deal.II/fe/fe_q.h>
-
-// And this file is needed for the creation of sparsity patterns of sparse
-// matrices, as shown in previous examples:
-#include <deal.II/dofs/dof_tools.h>
-
-// The next two file are needed for assembling the matrix using quadrature on
-// each cell. The classes declared in them will be explained below:
-#include <deal.II/fe/fe_values.h>
-#include <deal.II/base/quadrature_lib.h>
-
-// The following three include files we need for the treatment of boundary
-// values:
-#include <deal.II/base/function.h>
-#include <deal.II/numerics/vector_tools.h>
-#include <deal.II/numerics/matrix_tools.h>
-
-// We're now almost to the end. The second to last group of include files is
-// for the linear algebra which we employ to solve the system of equations
-// arising from the finite element discretization of the Laplace equation. We
-// will use vectors and full matrices for assembling the system of equations
-// locally on each cell, and transfer the results into a sparse matrix. We
-// will then use a Conjugate Gradient solver to solve the problem, for which
-// we need a preconditioner (in this program, we use the identity
-// preconditioner which does nothing, but we need to include the file anyway):
-#include <deal.II/lac/vector.h>
-#include <deal.II/lac/full_matrix.h>
-#include <deal.II/lac/sparse_matrix.h>
-#include <deal.II/lac/compressed_sparsity_pattern.h>
-#include <deal.II/lac/solver_cg.h>
-#include <deal.II/lac/precondition.h>
-
-// Finally, this is for output to a file and to the console:
-#include <deal.II/numerics/data_out.h>
-#include <boost/graph/stoer_wagner_min_cut.hpp>
-#include <fstream>
-#include <iostream>
-*/
+ #include "LevyIntegralPrice.hpp"
+ #include "LevyIntegralLogPrice.hpp"
+ #include "LevyIntegralPriceKou.hpp"
+ #include "LevyIntegralPriceMerton.hpp"
+ #include <vector>
+ #include "models.hpp"
+ #include "BoundaryConditionsPrice.hpp"
+ #include "OptionTypes.hpp"
+ 
+ 
+ 
+ /// ////////////////////////////////////////////////////////
+ #include <deal.II/grid/tria.h>
+ #include <deal.II/dofs/dof_handler.h>
+ // And this is the file in which the functions are declared that create grids:
+ #include <deal.II/grid/grid_generator.h>
+ 
+ // The next three files contain classes which are needed for loops over all
+ // cells and to get the information from the cell objects. The first two have
+ // been used before to get geometric information from cells; the last one is
+ // new and provides information about the degrees of freedom local to a cell:
+ #include <deal.II/grid/tria_accessor.h>
+ #include <deal.II/grid/tria_iterator.h>
+ #include <deal.II/dofs/dof_accessor.h>
+ 
+ // In this file contains the description of the Lagrange interpolation finite
+ // element:
+ #include <deal.II/fe/fe_q.h>
+ 
+ // And this file is needed for the creation of sparsity patterns of sparse
+ // matrices, as shown in previous examples:
+ #include <deal.II/dofs/dof_tools.h>
+ 
+ // The next two file are needed for assembling the matrix using quadrature on
+ // each cell. The classes declared in them will be explained below:
+ #include <deal.II/fe/fe_values.h>
+ #include <deal.II/base/quadrature_lib.h>
+ 
+ // The following three include files we need for the treatment of boundary
+ // values:
+ #include <deal.II/base/function.h>
+ #include <deal.II/numerics/vector_tools.h>
+ #include <deal.II/numerics/matrix_tools.h>
+ 
+ // We're now almost to the end. The second to last group of include files is
+ // for the linear algebra which we employ to solve the system of equations
+ // arising from the finite element discretization of the Laplace equation. We
+ // will use vectors and full matrices for assembling the system of equations
+ // locally on each cell, and transfer the results into a sparse matrix. We
+ // will then use a Conjugate Gradient solver to solve the problem, for which
+ // we need a preconditioner (in this program, we use the identity
+ // preconditioner which does nothing, but we need to include the file anyway):
+ #include <deal.II/lac/vector.h>
+ #include <deal.II/lac/full_matrix.h>
+ #include <deal.II/lac/sparse_matrix.h>
+ #include <deal.II/lac/compressed_sparsity_pattern.h>
+ #include <deal.II/lac/solver_cg.h>
+ #include <deal.II/lac/precondition.h>
+ 
+ // Finally, this is for output to a file and to the console:
+ #include <deal.II/numerics/data_out.h>
+ #include <boost/graph/stoer_wagner_min_cut.hpp>
+ #include <fstream>
+ #include <iostream>
+ */
 /////////////////////////////////////////////////////////////////////
 
 using namespace std;
@@ -152,18 +152,18 @@ int main(){
         
         AmericanOptionLogPrice<1> minnie2(model.get_pointer(), 0.0367, 1., 90., 12, 250);
         /*
-        EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
-                                      -0.2, 0.1, 1., 200., 7, 100);
-        
-        EuropeanOptionLogPrice<2> mickey2(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
-                                      -0.2, 0.1, 1., 200., 7, 100);
+         EuropeanOptionPrice<2> mickey(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
+         -0.2, 0.1, 1., 200., 7, 100);
+         
+         EuropeanOptionLogPrice<2> mickey2(OptionType::Call, model1.get_pointer(), model2.get_pointer(),
+         -0.2, 0.1, 1., 200., 7, 100);
          */
         /*
-        EuropeanOptionPrice<2> mickey2(OptionType::Call, model5.get_pointer(), model4.get_pointer(),
-                                      -0.2, 0.1, 1., 200., 7, 25);
-        
-        EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
-        */
+         EuropeanOptionPrice<2> mickey2(OptionType::Call, model5.get_pointer(), model4.get_pointer(),
+         -0.2, 0.1, 1., 200., 7, 25);
+         
+         EuropeanOptionPrice<1> duffy(OptionType::Call, model3.get_pointer(), 0.0367, 1., 90., 8, 100);
+         */
         
         foo.run();
         foo2.run();

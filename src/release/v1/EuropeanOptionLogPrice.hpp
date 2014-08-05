@@ -16,6 +16,10 @@ private:
         virtual void setup_integral();
         virtual void solve();
 public:
+        EuropeanOptionLogPrice()=delete;
+        
+        EuropeanOptionLogPrice(const EuropeanOptionLogPrice &)=delete;
+        
         //! 1d Constructor
         /*!
          * Constructor for European Option with payoff max(S_T-K,0) and max(K-S_T,0).
@@ -69,7 +73,8 @@ public:
         eu(ExerciseType::EU)
         {};
         
-        
+        EuropeanOptionLogPrice& operator=(const EuropeanOptionLogPrice &)=delete;
+
 };
 
 template <unsigned dim>

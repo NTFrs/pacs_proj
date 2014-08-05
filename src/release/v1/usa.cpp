@@ -16,7 +16,7 @@ int main(){
                                           -0.2, 0.1, 1., 200., 7, 100);
         
         AmericanOptionPrice<2> mickey3(model1.get_pointer(), model2.get_pointer(),
-                                      -0.2, 0.1, 1., 200., 7, 100);
+                                       -0.2, 0.1, 1., 200., 7, 100);
         
         AmericanOptionLogPrice<2> mickey4(model1.get_pointer(), model2.get_pointer(),
                                           -0.2, 0.1, 1., 200., 7, 100);

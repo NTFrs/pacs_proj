@@ -17,19 +17,27 @@ protected:
 	
 public:
 	LevyIntegralLogPriceMerton()=delete;
-	LevyIntegralLogPriceMerton(dealii::Point<dim> lower_limit_,
+        
+        LevyIntegralLogPriceMerton(const LevyIntegralLogPriceMerton &)=delete;
+        
+        LevyIntegralLogPriceMerton(dealii::Point<dim> lower_limit_,
                                    dealii::Point<dim> upper_limit_,
                                    std::vector<Model *> & Models_,
                                    std::unique_ptr<dealii::Function<dim> > BC_,
                                    bool apt=true)
         :
-        LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_, upper_limit_, Models_, std::move(BC_)), 
+        LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_,
+                                                        upper_limit_,
+                                                        Models_,
+                                                        std::move(BC_)), 
         adapting(apt) {
                 if (!adapting)
                         this->setup_quadratures(16);
                 else
                         this->setup_quadratures(2);
         }
+        
+        LevyIntegralLogPriceMerton& operator=(const LevyIntegralLogPriceMerton &)=delete;
         
 	virtual void compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe);
         
@@ -106,7 +114,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
 	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
         
 	for (unsigned d=0;d<dim;++d) {
-	 tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
+                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
                 
                 //#pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
@@ -145,7 +153,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
         }
         
         this->j_ran=true;
-
+        
 }
 
 

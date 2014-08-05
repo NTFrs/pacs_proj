@@ -19,19 +19,27 @@ protected:
 	
 public:
 	LevyIntegralLogPriceKou()=delete;
-	LevyIntegralLogPriceKou(dealii::Point<dim> lower_limit_,
+        
+        LevyIntegralLogPriceKou(const LevyIntegralLogPriceKou &)=delete;
+        
+        LevyIntegralLogPriceKou(dealii::Point<dim> lower_limit_,
                                 dealii::Point<dim> upper_limit_,
                                 std::vector<Model *> & Models_,
                                 std::unique_ptr<dealii::Function<dim> > BC_,
                                 bool apt=true)
         :
-        LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_, upper_limit_, Models_, std::move(BC_)),
+        LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_,
+                                                        upper_limit_,
+                                                        Models_,
+                                                        std::move(BC_)),
         adapting(apt) {
                 if (!adapting)
                         this->setup_quadratures(32);
                 else
                         this->setup_quadratures(2);
 	}
+        
+        LevyIntegralLogPriceKou& operator=(const LevyIntegralLogPriceKou &)=delete;
 	
 	virtual void compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe);
 };
@@ -121,7 +129,7 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
 	for (unsigned d=0;d<dim;++d) {
                 tools::Solution_Trimmer<dim> func(d,*(this->boundary), dof_handler, sol, this->lower_limit, this->upper_limit);
                 
-                #pragma omp parallel for
+#pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
                 {
                         std::vector< Point<dim> > quad_points(leftQuads[d].get_order()+rightQuads[d].get_order());
