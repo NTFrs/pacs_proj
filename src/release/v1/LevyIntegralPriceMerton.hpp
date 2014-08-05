@@ -33,7 +33,7 @@ void LevyIntegralPriceMerton<dim>::setup_quadratures(unsigned int n)
 	quadratures.clear();
 	using namespace std;
 	for (unsigned d=0;d<dim;++d) {
-                quadratures.emplace_back(Quadrature_Hermite(n, (this->Mods[d])->get_nu(), (this->Mods[d])->get_delta() ));
+                quadratures.emplace_back(Quadrature_Hermite(n, (this->mods[d])->get_nu(), (this->mods[d])->get_delta() ));
         }
 }
 
@@ -49,7 +49,7 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
                 for (unsigned d=0;d<dim;++d) {
                         for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
-                                ((this->Mods[d])->get_lambda())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+                                ((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
                                 *(quadratures[d].get_weights())[i];
                         }
                 }
@@ -67,7 +67,7 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
                         for (unsigned d=0;d<dim;++d) {
                                 for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
                                         this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
-                                        ((this->Mods[d])->get_lambda())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+                                        ((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
                                         *(quadratures[d].get_weights())[i];
                                 }
                                 

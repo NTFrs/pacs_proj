@@ -41,7 +41,7 @@ void LevyIntegralLogPriceMerton<dim>::setup_quadratures(unsigned int n)
 	quadratures.clear();
 	using namespace std;
 	for (unsigned d=0;d<dim;++d) {
-                quadratures.emplace_back(Quadrature_Hermite(n, (this->Mods[d])->get_nu(), (this->Mods[d])->get_delta() ));
+                quadratures.emplace_back(Quadrature_Hermite(n, (this->mods[d])->get_nu(), (this->mods[d])->get_delta() ));
         }
 }
 
@@ -56,7 +56,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
                 for (unsigned d=0;d<dim;++d) {
                         for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
-                                ((this->Mods[d])->get_lambda())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+                                ((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
                                 *(quadratures[d].get_weights())[i];
                         }
                 }
@@ -74,7 +74,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
                         for (unsigned d=0;d<dim;++d) {
                                 for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
                                         this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
-                                        ((this->Mods[d])->get_lambda())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+                                        ((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
                                         *(quadratures[d].get_weights())[i];
                                 }
                                 
@@ -127,7 +127,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
                         
                         // Integro dividendo fra parte sinistra e parte destra dell'integrale
                         for (unsigned i=0;i<quadratures[d].get_order();++i) {
-                                J[d*N+it]+=f_u[i]*((this->Mods[d])->get_lambda())/(((this->Mods[d])->get_delta())*sqrt(2*constants::pi))
+                                J[d*N+it]+=f_u[i]*((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
                                 *(quadratures[d].get_weights())[i];
                         }
                         
@@ -135,13 +135,13 @@ void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, d
                 }
                 
         }
-	this->J1.reinit(N);
-	for (unsigned i=0;i<this->J1.size();++i)
-                this->J1[i]=J[i];
+	this->j1.reinit(N);
+	for (unsigned i=0;i<this->j1.size();++i)
+                this->j1[i]=J[i];
 	if (dim==2) {
-                this->J2.reinit(N);
-                for (unsigned i=0;i<this->J1.size();++i)
-                        this->J2[i]=J[i+N];
+                this->j2.reinit(N);
+                for (unsigned i=0;i<this->j2.size();++i)
+                        this->j2[i]=J[i+N];
         }
         
         this->j_ran=true;

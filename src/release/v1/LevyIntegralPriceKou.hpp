@@ -34,8 +34,8 @@ void LevyIntegralPriceKou<dim>::setup_quadratures(unsigned int n)
 	leftQuads.clear();rightQuads.clear();
         
 	for (unsigned d=0;d<dim;++d) {
-                leftQuads.emplace_back(Quadrature_Laguerre(n, (this->Mods[d])->get_lambda_m()));
-                rightQuads.emplace_back(Quadrature_Laguerre(n, (this->Mods[d])->get_lambda_p()));
+                leftQuads.emplace_back(Quadrature_Laguerre(n, (this->mods[d])->get_lambda_m()));
+                rightQuads.emplace_back(Quadrature_Laguerre(n, (this->mods[d])->get_lambda_p()));
 	}
 }
 
@@ -49,14 +49,14 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
                 for (unsigned d=0;d<dim;++d) {
                         for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
-                                ((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-                                ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+                                ((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
+                                ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
                         }
                         
                         for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
-                                (1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-                                ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+                                (1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
+                                ((this->mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
                         }
                         
                 }
@@ -74,14 +74,14 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
                         for (unsigned d=0;d<dim;++d) {
                                 for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                         this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
-                                        ((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-                                        ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+                                        ((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
+                                        ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
                                 }
                                 
                                 for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
                                         this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
-                                        (1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-                                        ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+                                        (1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
+                                        ((this->mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
                                 }
                         }
                         

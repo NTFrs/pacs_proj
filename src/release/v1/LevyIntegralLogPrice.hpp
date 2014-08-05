@@ -16,10 +16,10 @@ public:
 	
 	LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
-                             std::vector<Model *> & Models_,
+                             std::vector<Model *> & models_,
                              std::unique_ptr<dealii::Function<dim> > BC_)
         :
-        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_),
+        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_),
         boundary(std::move(BC_))
         {};
 };
@@ -38,7 +38,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                 tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
 		
                 Triangulation<1> integral_triangulation;
-                GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, 5), this->Bmin(d), this->Bmax(d));
+                GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, 5), this->bMin(d), this->bMax(d));
                 
                 FE_Q<1> fe_integral(1);
                 DoFHandler<1> dof_integral(integral_triangulation);
@@ -80,7 +80,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                                 
                                 //and we compute the value of the density on that point (note the y coordinate is useless here) 
                                 for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                        kern[q_point]=(*this->Mods[d]).density(quad_points[q_point](d));
+                                        kern[q_point]=(*this->mods[d]).density(quad_points[q_point](d));
                                 
                                 //here we add the actual where we are, in order to obtain u(t, x_it+q_i, y_it)
                                 //we have thus a vector of (q_i+x_it, y_it)
@@ -99,13 +99,13 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                 }
                 
         }
-        this->J1.reinit(N);
-        for (unsigned i=0;i<this->J1.size();++i)
-                this->J1[i]=J[i];
+        this->j1.reinit(N);
+        for (unsigned i=0;i<this->j1.size();++i)
+                this->j1[i]=J[i];
         if (dim==2) {
-                this->J2.reinit(N);
-                for (unsigned i=0;i<this->J1.size();++i)
-                        this->J2[i]=J[i+N];
+                this->j2.reinit(N);
+                for (unsigned i=0;i<this->j2.size();++i)
+                        this->j2[i]=J[i+N];
         }
         this->j_ran=true;
 }

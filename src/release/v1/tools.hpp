@@ -2,8 +2,11 @@
 #define __tools_hpp
 
 #include "deal_ii.hpp"
-
-namespace tools{
+//! This namespace contains tools that are used in the library
+/*!
+ * Here are gathered the functions and auxiliary classes that should not be members the classes in the library.
+ */
+namespace tools {
         
         
         //! An iterator used to cycle on verices of a triangulation
@@ -102,8 +105,11 @@ namespace tools{
         }
         
         
-        //same,  added a private variable indicating wih ax
         //TODO delete default constructor
+        //! A small class that implements the extension of a function when out of domain
+        /*!
+         * This class has a two goals. On one side, uses the boundary conditions to give a value to the function outside its domain. Secondly,  it uses DealII tools to obtain the value of the solution if the point where it is needed is not one of the degrees of freedom.
+         */
         template<int dim>
         class Solution_Trimmer: public dealii::Function<dim>
         {

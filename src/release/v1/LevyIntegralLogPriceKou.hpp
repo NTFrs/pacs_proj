@@ -43,8 +43,8 @@ void LevyIntegralLogPriceKou<dim>::setup_quadratures(unsigned int n)
         rightQuads.clear();
         
 	for (unsigned d=0;d<dim;++d) {
-                leftQuads.emplace_back(Quadrature_Laguerre(n, (this->Mods[d])->get_lambda_m()));
-                rightQuads.emplace_back(Quadrature_Laguerre(n, (this->Mods[d])->get_lambda_p()));
+                leftQuads.emplace_back(Quadrature_Laguerre(n, (this->mods[d])->get_lambda_m()));
+                rightQuads.emplace_back(Quadrature_Laguerre(n, (this->mods[d])->get_lambda_p()));
         }
         
 }
@@ -57,14 +57,14 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                 for (unsigned d=0;d<dim;++d) {
                         for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
-                                ((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-                                ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+                                ((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
+                                ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
                         }
                         
                         for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
-                                (1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-                                ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+                                (1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
+                                ((this->mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
                         }
                         
                 }
@@ -82,14 +82,14 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                         for (unsigned d=0;d<dim;++d) {
                                 for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                         this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
-                                        ((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-                                        ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+                                        ((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
+                                        ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
                                 }
                                 
                                 for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
                                         this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
-                                        (1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-                                        ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+                                        (1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
+                                        ((this->mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
                                 }
                         }
                         
@@ -147,25 +147,25 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                         
                         // Integro dividendo fra parte sinistra e parte destra dell'integrale
                         for (unsigned i=0;i<leftQuads[d].get_order();++i) {
-                                J[d*N+it]+=f_u[i]*(1-((this->Mods[d])->get_p()))*((this->Mods[d])->get_lambda())*
-                                ((this->Mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
+                                J[d*N+it]+=f_u[i]*(1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
+                                ((this->mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
                         }
                         
                         for (unsigned i=0;i<rightQuads[d].get_order();++i) {
-                                J[d*N+it]+=f_u[i+leftQuads[d].get_order()]*((this->Mods[d])->get_p())*((this->Mods[d])->get_lambda())*
-                                ((this->Mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
+                                J[d*N+it]+=f_u[i+leftQuads[d].get_order()]*((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
+                                ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
                         }
                         
                 }
                 
         }
-	this->J1.reinit(N);
-	for (unsigned i=0;i<this->J1.size();++i)
-                this->J1[i]=J[i];
+	this->j1.reinit(N);
+	for (unsigned i=0;i<this->j1.size();++i)
+                this->j1[i]=J[i];
 	if (dim==2) {
-                this->J2.reinit(N);
-                for (unsigned i=0;i<this->J1.size();++i)
-                        this->J2[i]=J[i+N];
+                this->j2.reinit(N);
+                for (unsigned i=0;i<this->j2.size();++i)
+                        this->j2[i]=J[i+N];
         }
         
         //std::cout<<"***J***\n"<<this->J1<<"\n";
