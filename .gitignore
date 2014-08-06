@@ -46,7 +46,7 @@ makefile
 *.synctex.gz
 *.toc
 *converted-to*
-
+*.tdo
 #doxy
 @ONLY
 
