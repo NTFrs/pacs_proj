@@ -453,6 +453,8 @@ e la discretizzazione in tempo con uno schema di Eulero Implicito:
 A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+DJ_1^{n+1}+DJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $D$ \`e la matrice di massa.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%PRICES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{\emph{Prices}}
 Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello shift dei nodi.
 \subsection{Equazione in 1d}
@@ -488,20 +490,47 @@ Notiamo che il dominio della funzione e dell'integrale coincidono, ossia sono en
 Scegliamo il troncamento del dominio in modo analogo al caso logprice, ossia definiamo $S_{min}$ ed $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
 
 \subsection{Discretizzazione della parte PDE monodimensionale}
-Concentriamoci prima sulla parte differenziale. Come nel caso della logprice, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t_n)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\ Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $u_h$ al posto di $u$ otteniamo la discretizzazione della formulazione debole del problema \eqref{eq:pide1dlog}:
+Concentriamoci prima sulla parte differenziale. Come nel caso della logprice, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. \todo{magari dire che le funzioni di base sono quelle di lagrange?} Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\
+Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $C_h$ al posto di $C$ otteniamo la discretizzazione della formulazione debole del problema \eqref{eq:pide1dlog}:
 
 \begin{multline*}
-\sum_{j=1}^{N-1}\frac{\partial}{\partial t}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS+(r-\hat{\alpha})\sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
-+\frac{\sigma^2}{2} \sum_{j=1}^{N-1} a_j(t)\int_{\Omega_h} S^2 \phi_j''(S)\phi_i(S)dS -(r+\lambda) \sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
+\sum_{j=1}^{N-1}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS+(r-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
++\frac{\sigma^2}{2} \sum_{j=1}^{N-1} \gamma_j(t)\int_{\Omega_h} S^2 \phi_j''(S)\phi_i(S)dS -(r+\lambda) \sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
 \end{multline*}
-e integrando per parti il termine con la derivata seconda otteniamo
+e integrando per parti il termine con la derivata seconda otteniamo, ricordando che i termini di bordo si annullano, 
 
 \begin{multline*}
-\sum_{j=1}^{N-1}\frac{\partial}{\partial t}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
-+(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
-+\frac{\sigma^2}{2}\sum_{j=1}^{N-1} a_j(t)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
--(r+\lambda)\sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
+\sum_{j=1}^{N-1}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
++(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
+-\frac{\sigma^2}{2}\sum_{j=1}^{N-1} \gamma_j(t)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
+-(r+\lambda)\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
 \end{multline*}
+
+Questa equazione deve valere per ogni $i$, ossia per ogni elemento della base.
+Inroduciamo ora una discretizzazione temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ dell'intervallo $[0,T]$. Se consideriamo uno schema temporale del tipo Eulero Implicito, con la discretizzazione nel tempo l'equazione sopra diventa
+
+\begin{multline}
+\label{eq:discretizedPDEprice}\frac{\sigma^2}{2}\sum_{j=1}^{N-1} \gamma_j(t_n)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
+-(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
++\left(r+\lambda+\frac{1}{dt}\right)\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=\sum_{j=1}^{N-1}\frac{\gamma_j(t_{n+1})}{dt}\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \\ \forall i \in \left\lbrace 1,\dots,N \right\rbrace \qquad \forall n \in \lbrace0,\dots,T-1\rbrace
+\end{multline}
+
+Definendo il vettore  $\underline{\gamma}^k$ come il vettore dei valori $\gamma_j(t_k)$ e le matrici seguenti
+\begin{multline*}
+ (M_1)_{ij}=\frac{\sigma^2}{2}\int_{\Omega_h}S^2\phi_j'(S)\phi_i'(S)dS-(r-\sigma^2-\hat{\alpha})\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
+ +\left(r+\lambda+\frac{1}{dt}\right)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
+\end{multline*}
+
+\begin{equation*}
+(M)_{ij}=\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \quad M_2=\frac{1}{dt}M
+\end{equation*}
+
+il sistema d'equazionioni si può dunque scrivere in forma matriciale come 
+
+\begin{equation}
+ \label{eq:PDEpriceMatrixes}
+ M_1 \underline{\gamma}^n=M_2\underline{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+\end{equation}
 
 
 
