@@ -456,7 +456,8 @@ A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%PRICES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{\emph{Prices}}
+\section{La trasformazione \emph{Price}}
+\label{sec:Price}
 Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello shift dei nodi.
 \subsection{Equazione in 1d}
 Per semplicità, illustriamo il cambio di variabile e la relativa discretizzazione nel caso di un equazione su un solo sottostante, per poi estenderlo al caso bidimensionale. Riportiamo l'equazione in questione:
@@ -652,14 +653,37 @@ in modo che il compilatore capisca che deve utilizzare i metodi \textsf{reinit} 
 Le classi \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$}, anch'esse astratte, ereditano da \textsf{OptionBase$<$dim$>$} e definisco parte dei metodi descritti nell'introduzione. Le due classi implementano la funzione \textsf{void make\_grid()} che crea la \emph{mesh} nei casi \emph{price} e \emph{logprice}, ovvero con le opportune trasformazioni, il metodo \textsf{void assemble\_system()} che integra gli elementi finiti e costruisce le matrici di sistema in 1d e 2d e il metodo \textsf{double get\_price()}, che valuta la soluzione nel punto $\underline{x}=\underline{0}$ per il \emph{logprice} e $\underline{S}=(S_0^1, S_0^2)$ per il \emph{price}, ovvero che restituisce il prezzo dell'opzione. Infine, la classe \textsf{OptionBasePrice$<$dim$>$} implementa qui il metodo \textsf{void setup\_integral()} che istanzia dinamicamente un oggetto di tipo \textsf{LevyIntegral}, che si occupa di calcolare la parte integrale. \textsf{OptionBaseLogPrice$<$dim$>$} invece non lo istanzia qui ma nel "livello" di ereditarier\`a successivo poich\'e in questa trasformazione occorre conoscere le condizioni al bordo per poter calcolare l'integrale.
 \subsection{\textsf{AmericanOption$<$dim$>$} e \textsf{EuropeanOption$<$dim$>$}}
 Queste quattro classi alla base della piramide sono gli oggetti utilizzati per risolvere i vari problemi. Essi implementano le varie funzioni \textsf{void solve()} che risolvono il sistema lineare. In primo luogo quindi viene proiettata sulla \emph{mesh} la condizione finale (ovviamente diversa fra Put e Call, \emph{price} e \emph{logprice}) e successivamente parte il ciclo temporale che applica le condizioni al bordo, calcola il vettore integral $J$ se il modello non \`e \emph{Black\&Scholes} e risolve il sistema. Per quanto riguarda quest'ultimo passaggio, per l'europea abbiamo utilizzato un \emph{solver} utilizzato da \textsf{deal.ii}, ovvero \textsf{SparseDirectUMFPACK}, mentre per l'americana usiamo i \emph{solver} scritti all'interno del decoratore di \textsf{dealii::SparseMatrix$<$double$>$}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Classi per il calcolo degli integrali}
-\subsection{NAHUEL'S BUSINESS}
+Per il calcolo della parte integrale dell'equazione, ossia la quadratura di $\hat{\alpha}$ e il calcolo dei vettori $\mathbf{J}^i$ ad ogni iterazione temporale, sono state costruite una serie di classi. Tali classi ereditano da una classe comune di base che definisce l'interfaccia. Usando questo schema con ereditarietà (che si può vedere in figura \ref{fig:levybase}) si riesce a mantenere un interfaccia comune, e permette di allocare classi specifiche per modelli specifici. Cosi come le classi opzione, anche queste sono classi templatizzate sulla dimensione, poiché il calcolo dell'integrale può essere anche molto diverso fra una dimensione e l'altra.
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=12cm]{img/classLevyIntegralBase.eps}
-\label{levybase}
+\label{fig:levybase}
 \end{center}
 \end{figure}
+\subsection{La classe base \textsf{LevyIntegralBase}}
+Questa classe astratta serve per definire un interfaccia che tutte le classi per la quadratura dell'integrale dovrebbero sfruttare. Inoltre a implementa alcuni metodi di base che possono essere utili alle classi figlie.\\
+I due metodi \emph{core} della classe sono \textsf{compute\_alpha()}, che calcola il valore degli $\hat{\alpha}^i$, e \textsf{compute\_J()}, che calcola il valore della parte integrale da usare nel \emph{rhs}. È interessante notare che questa classe base definisce già una funzione che calcola $\hat{\alpha}^i$ generica, ossia con una quadratura composita con nodi di Gauss, e che funziona dunque con qualsiasi modello.
+
+\subsection{Le classi \textsf{LevyIntegralPrice} e \textsf{LevyIntegralLogPrice}}
+La seconda parte dell'integrale, i vettori $\mathbf{J}^i$ è totalmente diversa a seconda che si utilizzi la forma Price o la forma LogPrice. Per questo vi sono queste due classi che ereditano da \textsf{LevyIntegralBase}. Siccome sono ancora generiche e non per un modello specifico, ereditano da quest'ultima il metodo \textsf{compute\_alpha()}. Inoltre queste funzionano con un modello qualunque.
+
+\paragraph{\textsf{LevyIntegralLogPrice}}
+Questa classe implementa \textsf{compute\_J()} per la forma logprice, ed è sostanzialmente più semplice, ma anche più lenta rispetto a price.\\
+In sostanza, sia in una che in due dimensioni (e potenzialmente in più), il calcolo di $\mathbf{J}^i$ viene svolto facendo un ciclo su tutti i nodi della griglia e in ciascuno calcolando il valore dell'integrale in quel punto e per fare ciò fa ricorso alla classe ausiliaria \textsf{Solution\_Trimmer}. Tale classe è praticamente un funtore che, inizializzato con la soluzione e la mappatura dei gradi di libertà di Deal.II (il \textsf{DoFHandler}) agisce diversamente a seconda che il punto stia dentro o fuori dal dominio. Nel primo caso chiama una funzione di Deal.II che individua in che cella si trova il nodo e restituisce il valore della funzione in tale punto, nel secondo caso impone il valore al bordo. La parte computazionalmente costosa è appunto la valutazione in un punto interno al dominio, poiché deve individuare in quale cella si trova (ricordiamo qui che la funzione incognita va valutata nel punto $y_l+x_i$, dove $y_l$ sono i nodi di quadratura e $x_i$ il nodo attuale, quindi ad ogni nodo in punti diversi).\\
+Una volta ottenuto il valore della soluzione nel punto (sia esso dentro o fuori dal dominio) è possibile effettuare la quadratura dell'integrale. A questo livello, utilizza una quadratura generica poiché non vi è un modello specifico.
+\paragraph{\textsf{LevyIntegralPrice}}
+Questa classe implementa \textsf{compute\_J()} specializzando il metodo sul parametro template, ossia la dimensione. Infatti, come già spiegato nella sezione \ref{sec:Price}, il modo in cui calcolare $\mathbf{J}^i$ è fondamentalmente diverso.\\
+In una dimensione, per ogni nodo della griglia, bisogna integrare sulla stessa griglia, e quindi si scorrono tutte le celle calcolando il contributo. In due dimensioni, il contributo a $\mathbf{J}^1$ nel nodo $S_i$ è calcolato sulla retta monodimensionale parallela all'asse delle ascisse, mentre il contributo a $\mathbf{J}^2$ è calcolato lungo la retta parallela all'asse delle ordinate. Quindi si scorrono le facce delle celle della griglia, e su ciascuna faccia si calcola il contributo a ogni nodo appartenente alla retta su cui giace la faccia in questione. Sebbene è una procedura complicata \todo{richiede una griglia strutturata?} e richiede che tutti i nodi vengano visitati ma solo alcuni usati per la faccia corrente, è più rapida rispetto al calcolo con il metodo logprice. Infatti, in questo caso la funzione va valutata nei nodi di quadratura che cadono sulla faccia attuale, quindi dalla posizione nota.
+
+\subsection{Le classi figlie per modelli specifici}
+
+Come si nota in figura \ref{fig:levybase}, esistono poi delle classi derivate da \textsf{LevyIntegralPrice} e \textsf{LevyIntegralLogPrice}. Esse implementano di nuovo i metodi per il calcolo delle parti integrali con dei nodi di quadratura specifici ai modelli. In particolare \textsf{LevyIntegralPriceKou} e \textsf{LevyIntegralLogPriceKou} utilizzano nodi di Gauss-Laguerre, mentr \textsf{LevyIntegralPriceMerton} e \textsf{LevyIntegralLogPriceMerton} utilizzano nodi di Gauss-Hermite. Le due classi ereditate da \textsf{LevyIntegralPrice} reimplementano solo la parte relativa ad $\hat{\alpha}^i$, poiché la parte $\mathbf{J}$ rimane uguale.\\
+
+Nel caso si vogliano aggiungere alla libreria alri modelli, questo design permette di creare nuove classi specifiche per l'integrale che ereditano dal secondo livello, dovendo modificare solo una piccola parte.
+
 \section{\emph{Factory}}
 Data la complessit\`a strutturale delle classi Opzioni, abbiamo deciso di scrivere utilizzare il \emph{design pattern} della \emph{factory}, altrimenti noto come costruttore virtuale, per permettere a un qualsiasi utente di istanziare l'oggetto giusto per il suo problema. Abbiamo quindi creato una classe, \textsf{OptionFactory} che ha costruttore di default, costruttore di copia e operatore di copia privati, perci\`o non \`e possibile istanziare la classe, e abbiamo scritto il seguente metodo:
 \begin{lstlisting}
