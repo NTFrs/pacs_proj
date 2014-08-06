@@ -2,6 +2,7 @@
 #define __tools_hpp
 
 #include "deal_ii.hpp"
+#include "models.hpp"
 //! This namespace contains tools that are used in the library
 /*!
  * Here are gathered the functions and auxiliary classes that should not be members the classes in the library.
@@ -167,7 +168,56 @@ namespace tools {
                                 values[i]=_fe_func.value(points[i]);
                 }
         }
+       
+        ////////////the next functions are helpers used in the assembling of mass matrix//////////////////
         
-        
+		//! Fills the tensor trasp_ with the coefficients for Price transformation
+		/*!
+         * Creates the value of the tensor t needed when calculating \f$\int_{Q_k} \phi_i \mathbf{t}^T \nabla\phi_j\f$ on the cell \f$Q_k\f$. Works with price transformation
+         */
+        template<int dim>
+		void make_trasp(dealii::Tensor< 1 , dim, double > & trasp_, std::vector<Model *> & Models_,  double r_, double rho_,  std::vector<double> alpha_,  dealii::Point<dim> const & qpt_) {
+			//TODO add exception
+			std::cerr<< "Not defined in this dimension\n";
+		}
+
+		//! Specialization of make_trasp<dim>() for 1 dimension
+		template<>
+		void make_trasp<1>(dealii::Tensor< 1 , 1, double > & trasp_, std::vector<Model *> & Models_,  double r_, double rho_, std::vector<double> alpha_, dealii::Point<1> const & qpt_) {
+		  trasp_[0]=(r_-(Models_[0])->get_vol()*(Models_[0])->get_vol()-alpha_[0])*qpt_(0);
+		}
+		
+
+		//! Specialization of make_trasp<dim>() for 2 dimensions
+		template<>
+		void make_trasp<2>(dealii::Tensor< 1 , 2, double > & trasp_, std::vector<Model *> & Models_,  double r_, double rho_, std::vector<double> alpha_,  dealii::Point<2> const & qpt_) {
+		  trasp_[0]=(r_-alpha_[0]-(Models_[0])->get_vol()*(Models_[0])->get_vol()-0.5*rho_*(Models_[0])->get_vol()*(Models_[1])->get_vol())*qpt_(0);
+		  trasp_[1]=(r_-alpha_[1]-(Models_[1])->get_vol()*(Models_[1])->get_vol()-0.5*rho_*(Models_[0])->get_vol()*(Models_[1])->get_vol())*qpt_(1);
+		}
+		//!Fills the tensor diff_ with the coefficients for Price transformation
+		/*!
+		 * Creates the values of the tensor D needed when calculating \f$\int_{Q_k} \nabla\phi_i D \nabla\phi_j\f$ on the cell \f$Q_k\f$. Works with price transformation
+		 */
+		template<unsigned dim>
+		void make_diff(dealii::Tensor< 2 , dim, double > & diff_,std::vector<Model *> & Models_, double rho_,  dealii::Point<dim> const & qpt_ ) {
+			  //TODO add exception
+			  std::cerr<< "Not defined in this dimension\n";
+		}
+		
+		//! Specialization of make_diff<dim>() for 1 dimension
+		template<>
+		void make_diff<1>(dealii::Tensor<2, 1, double> & diff_, std::vector<Model *> & Models_, double rho_,  dealii::Point<1> const & qpt_ ) {
+			diff_[0][0]=0.5*(Models_[0])->get_vol()*(Models_[0])->get_vol()*qpt_(0)*qpt_(0);
+		}
+
+		//! Specialization of make_diff<dim>() for 2 dimensions
+		template<>
+		void make_diff<2>(dealii::Tensor< 2 , 2, double > & diff_,std::vector<Model *> & Models_, double rho_,  dealii::Point<2> const & qpt_ ) {
+		  diff_[0][0]=0.5*(Models_[0])->get_vol()*(Models_[0])->get_vol()*qpt_(0)*qpt_(0);
+		  diff_[1][1]=0.5*(Models_[1])->get_vol()*(Models_[1])->get_vol()*qpt_(1)*qpt_(1);
+		  diff_[0][1]=0.5*rho_*(Models_[0])->get_vol()*(Models_[1])->get_vol()*qpt_(0)*qpt_(1);
+		  diff_[1][0]=diff_[0][1];
+		}
+
 }
 #endif

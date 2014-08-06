@@ -47,13 +47,13 @@ int main(){
         */
         delete x;
         
-        a.set_refine_status(true);
-        b.set_refine_status(true);
+//         a.set_refine_status(true);
+//         b.set_refine_status(true);
         //c.set_refine_status(true, 0.1);		
         //         d.set_refine_status(true);
         
-        //a.run();
-        //b.run();
+        a.run();
+        b.run();
         c.run();
         //        d.run();
         // 		d.print_grid("Griglia");

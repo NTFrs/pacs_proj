@@ -2,6 +2,7 @@
 #define __option_base_price_hpp
 
 #include "OptionBase.hpp"
+#include "tools.hpp"
 
 template <unsigned dim>
 class OptionBasePrice: public OptionBase<dim> {
@@ -141,8 +142,13 @@ void OptionBasePrice<dim>::assemble_system()
                 
                 for (unsigned q_point=0;q_point<n_q_points;++q_point) {
                         
+                        tools::make_trasp<dim>(trasp, this->models, this->r, this->rho, alpha, quad_points[q_point]);
+                        tools::make_diff<dim>(sig_mat, this->models, this->rho, quad_points[q_point]);
+					/*
                         if (dim==1) {
+								
                                 trasp[0]=(this->r-(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()-alpha[0])*quad_points[q_point][0];
+                                
                                 sig_mat[0][0]=0.5*(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
                         }
@@ -159,6 +165,7 @@ void OptionBasePrice<dim>::assemble_system()
                                            (*(this->models[1])).get_vol()*quad_points[q_point][1]
                                            +(alpha[1]-this->r)*quad_points[q_point][1]);
                                 
+							   
                                 sig_mat[0][0]=0.5*(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
                                 *quad_points[q_point][0]*quad_points[q_point][0];
                                 sig_mat[1][1]=0.5*(*(this->models[1])).get_vol()*(*(this->models[1])).get_vol()
@@ -167,7 +174,7 @@ void OptionBasePrice<dim>::assemble_system()
                                 quad_points[q_point][0]*quad_points[q_point][1];
                                 sig_mat[1][0]=sig_mat[0][1];
                         }
-                        
+                        */
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
