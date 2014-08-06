@@ -340,6 +340,7 @@ Ci occupiamo ora di mostrare la discretizzazione dell'equazione con il primo cam
 \subsection{Equazione 1d}
 Il primo cambio di variabili che studiamo \`e il seguente: $x=log(\sfrac{S}{S_0}),$ che permette di portare l'equazione a coefficienti costanti. Posta quindi $u: \mathbb{R}\times[0,T]\rightarrow\mathbb{R}^+$, $u=u(x,t)$, incognita della PIDE monodimensionale, otteniamo:
 \begin{equation}
+\label{eq:pide1dlog}
 \begin{cases}
 \displaystyle
 \der{u}{t}+\left(r-\frac{\sigma^2}{2}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-ru\\
@@ -380,7 +381,7 @@ c_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i'(x)dx.
 \end{align*}
 Otteniamo quindi la seguente discretizzazione per la PDE:$$\sum_{j=1}^{N-1}\alpha_j(t_{n+1})\frac{a_{ij}}{\Delta t}=\sum_{j=1}^{N-1}\alpha_j(t_{n})\left(\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij}\right).$$
 \subsection{La parte integrale}
-Concentriamoci ora sulla parte integrale della \ref{pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che,\todo{non è perché la misura è finita però} poich\'e la misura \`e finita:$$\nu(dy)=\nu(y)dy.$$ Possiamo quindi spezzare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
+Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che,\todo{non è perché la misura è finita però} poich\'e la misura \`e finita:$$\nu(dy)=\nu(y)dy.$$ Possiamo quindi spezzare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
 \begin{align*}
 \hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
 \hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
@@ -476,9 +477,10 @@ Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ va calcol
  z=Se^y
 \end{equation*}
 e l'equazione diventa
-\begin{equation*}
+\begin{equation}
+\label{eq:PIDEinPrice}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz=0.
-\end{equation*}
+\end{equation}
 
 \subsection{Troncamento del dominio}
 
@@ -486,7 +488,23 @@ Notiamo che il dominio della funzione e dell'integrale coincidono, ossia sono en
 Scegliamo il troncamento del dominio in modo analogo al caso logprice, ossia definiamo $S_{min}$ ed $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
 
 \subsection{Discretizzazione della parte PDE monodimensionale}
-Concentriamoci prima sulla parte differenziale. Come
+Concentriamoci prima sulla parte differenziale. Come nel caso della logprice, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t_n)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\ Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $u_h$ al posto di $u$ otteniamo la discretizzazione della formulazione debole del problema \eqref{eq:pide1dlog}:
+
+\begin{multline*}
+\sum_{j=1}^{N-1}\frac{\partial}{\partial t}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS+(r-\hat{\alpha})\sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
++\frac{\sigma^2}{2} \sum_{j=1}^{N-1} a_j(t)\int_{\Omega_h} S^2 \phi_j''(S)\phi_i(S)dS -(r+\lambda) \sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
+\end{multline*}
+e integrando per parti il termine con la derivata seconda otteniamo
+
+\begin{multline*}
+\sum_{j=1}^{N-1}\frac{\partial}{\partial t}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
++(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
++\frac{\sigma^2}{2}\sum_{j=1}^{N-1} a_j(t)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
+-(r+\lambda)\sum_{j=1}^{N-1}a_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
+\end{multline*}
+
+
+
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=\max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
 \section{\emph{Mesh refinement}}
