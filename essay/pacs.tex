@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{xfrac}
+\usepackage{bm}
 \usepackage{hyperref}
 
 \usepackage{amsmath}
@@ -474,7 +475,7 @@ l'equazione diventa
 \begin{equation*}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_\mathbb{R}C(t,Se^y)\nu(y)dy=0.
 \end{equation*}
-Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ va calcolato tramite una qualche formula di quadratura. A questo punto introduciamo nell'integrale il cambio d variabile
+Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ va calcolato tramite una qualche formula di quadratura, esattamente come nel caso logprice. A questo punto introduciamo nell'integrale il cambio d variabile
 \begin{equation*}
  z=Se^y
 \end{equation*}
@@ -515,7 +516,7 @@ Inroduciamo ora una discretizzazione temporale $\mathcal{T}=\left\{0= t_0\leq t_
 +\left(r+\lambda+\frac{1}{dt}\right)\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=\sum_{j=1}^{N-1}\frac{\gamma_j(t_{n+1})}{dt}\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \\ \forall i \in \left\lbrace 1,\dots,N \right\rbrace \qquad \forall n \in \lbrace0,\dots,T-1\rbrace
 \end{multline}
 
-Definendo il vettore  $\underline{\gamma}^k$ come il vettore dei valori $\gamma_j(t_k)$ e le matrici seguenti
+Definendo il vettore  $\bm{\gamma}^k$ come il vettore dei valori $\gamma_j(t_k)$ e le matrici seguenti
 \begin{multline*}
  (M_1)_{ij}=\frac{\sigma^2}{2}\int_{\Omega_h}S^2\phi_j'(S)\phi_i'(S)dS-(r-\sigma^2-\hat{\alpha})\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
  +\left(r+\lambda+\frac{1}{dt}\right)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
@@ -529,10 +530,38 @@ il sistema d'equazionioni si può dunque scrivere in forma matriciale come
 
 \begin{equation}
  \label{eq:PDEpriceMatrixes}
- M_1 \underline{\gamma}^n=M_2\underline{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+ M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
 \end{equation}
 
+\subsection{La parte integrale}
+Al sistema \eqref{eq:PDEpriceMatrixes} va aggiunta la parte integrale. Anche in questo caso viene trattata esplicitamente e messa nel \emph{rhs}. Si tratta dunque di calcolare il seguente integrale
 
+\begin{equation*}
+ J(S)=\int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz
+\end{equation*}
+ che poi andrà scritto come elemento dello spazio $\mathcal{P}_h^1$. In pratica, si calcola l'integrale nei punti $S_i$ della griglia, ottenendo un vettore $\mathbf{J}$ dove $\mathbf{J}_i=J(S_i)$. La \eqref{eq:PDEpriceMatrixes} diventa dunque 
+ 
+\begin{equation}
+ \label{eq:PDEpriceMatrixeswithJ}
+ M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1}+M\mathbf{J}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+\end{equation}
+
+Il problema si riduce dunque a calcolare la seguente quantità
+
+\begin{equation*}
+ J^n(S_i)=\int_0^\infty \frac{C(t_n,z)}{z}\nu\left(\log\left(\frac{z}{S_i}\right) \right)dz
+\end{equation*}
+per ogni nodo della griglia.\\
+Notiamo che rispetto al metodo logprice non c'è più il problema dello shift sui nodi della griglia, ma il termine è comunque non locale perché per ogni vertice si integra su tutto il dominio.\\
+Per il calcolo di tale termine, abbiamo deciso di adottare la seguente procedura: Per ogni cella della griglia, si calcola il valore della funzione $$\frac{C(t_k,z_l)}{z}$$ su opportuni nodi di quadratura. Poi, per ogni nodo $S_i$ della griglia si calcola il contributo di tale cella al valore di $\mathbf{J}^n_i$ valutandola contro la densità calcolata in $\log(\sfrac{z_l}{S_i})$
+Riassumendo il termine $i$-esimo di $\mathbf{J}^k$ viene calcolato come
+\begin{equation*}
+ \mathbf{J}^n_i=\sum\limits_{Q_k\in \Omega_h}\left( \sum\limits_{z_l\in Q_k}\frac{C(t_n,z_l)}{z_l}\nu\left(\log\left(\frac{z_l}{S_i}\right)\right)\omega_l\right)
+\end{equation*}
+dove $Q_k$ sono le celle della griglia, e $z_l$ e $\omega_l$ sono i punti e i pesi di quadratura in quella cella. Notiamo che siccome la densità è calcolata in $\log(\sfrac{z_l}{S_i})$, non è più utile fare ricorso a formule di quadratura speciali per i modelli di Kou e Merton.
+
+\subsection{Il caso bidimensionale}
+\todo{BIG TODO HERE: 2d price}
 
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=\max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
@@ -541,8 +570,9 @@ In questo programma abbiamo implementato anche una funzione che permette di adat
 \chapter{Pacchetti usati}
 \section{\textsf{deal.ii}}
 \textsf{deal.ii} \`e una libreria scritta in c++ che permette di risolvere tramite metodi a elementi finiti per una grande variet\`a di problemi alle derivate parziali. Fra i suoi maggiori pregi, oltre alla presenza di elementi finiti di ogni ordine, troviamo la grande scalabilit\`a (\`e stato infatti provato che questa libreria riesce a scalare fino a 16.000 processori), la possibilit\`a di interfacciarsi con molte librerie come \textsf{PETSc}, \textsf{Trilinos}, \textsf{METIS}, \textsf{BLAS}, \textsf{LAPACK}, e la vastit\`a e la precisione della documentazione. Soffermandoci un attimo su questo ultimo punto, vorremmo proprio sottolineare la presenza di una documentazione (quasi) sempre precisa e ben organizzata. Oltre a questa, ci sono inoltre 51 tutorial che insegnano a utilizzare la libreria dalla semplice creazione di una \emph{mesh} bidimensionale fino alla risoluzione di problemi iperbolici di meccanica non lineare in 3d con \emph{mesh refinement}. Per scrivere il nostro codice abbiamo sfruttato molto la massiccia documentazione della libreria, e siamo stati quasi sempre in grado di trovare le funzioni che facevano al caso nostro. In una occasione tuttavia non siamo riusciti a trovare un metodo e abbiamo deciso di scrivere sul gruppo \url{https://groups.google.com/forum/#!forum/dealii}, ottenendo una risposta precisa in breve tempo.\\\\Altro?
+
 \section{\textsf{Cmake}}
-La libreria \textsf{deal.ii} utilizza \textsf{Cmake} per compilare i codici dei tutorial. Per ci\`o anche noi abbiamo utilizzato questo \emph{tool}. In particolare, in un qualsiasi file \textsf{CMakeLists.txt} occorre aggiungere tutti i file sorgente, scrivere il nome dell'eseguibile desiderato e il \textsf{CMake} crea da solo il \textsf{Makefile} specificando dove si trovano gli \emph{header file} da includere e le librerie di \textsf{deal.ii} da linkare. Utilizzando due sistemi operativi diversi, il \textsf{CMake} \`e stato molto utile per poter lavorare sui codici senza avere problemi di portabilit\`a che pu\`o avere il semplice \textsf{Makefile}. Inoltre, siccome abbiamo utilizzato nel nostro codice \textsf{OpenMP} e il \textsf{CMakeLists.txt} di \textsf{deal.ii} non lo prevede, abbiamo aggiunto:
+La libreria \textsf{deal.ii} utilizza \textsf{Cmake} per compilare i codici dei tutorial. Per ci\`o anche noi abbiamo utilizzato questo \emph{tool}. In particolare, in un qualsiasi file \textsf{CMakeLists.txt} occorre aggiungere tutti i file sorgente, scrivere il nome dell'eseguibile desiderato e il \textsf{CMake} crea da solo il \textsf{Makefile} specificando dove si trovano gli \emph{header file} da includere e le librerie di \textsf{deal.ii} da linkare. Utilizzando due sistemi operativi diversi, il \textsf{CMake} \`e stato molto utile per poter lavorare sui codici senza avere problemi di portabilit\`a che pu\`o avere il semplice \textsf{Makefile}. \todo{questo da accorciare secondo me, basta dire che abbiamo aggiunto openMP e Doxygen}Inoltre, siccome abbiamo utilizzato nel nostro codice \textsf{OpenMP} e il \textsf{CMakeLists.txt} di \textsf{deal.ii} non lo prevede, abbiamo aggiunto:
 \begin{lstlisting}
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -564,10 +594,16 @@ ADD_CUSTOM_TARGET(doc
 \end{lstlisting}
 in modo da creare il \emph{target} \textsf{doc} che generi la documentazione con \textsf{Doxygen}.
 \section{GitHub}
-Durante lo sviluppo di questo progetto, abbiamo sempre utilizzato GitHub, un servizio di \emph{web hosting} per lo sviluppo di progetti software. Abbiamo quindi creato una \emph{repository} all'indirizzo \url{https://github.com/NTFrs/pacs_proj}. Commenti?!?!
+Durante lo sviluppo di questo progetto, abbiamo sempre utilizzato il sistema di controllo di versioni Git e il servizio di \emph{web hosting} GitHub per lo sviluppo di progetti software. Abbiamo quindi creato una \emph{repository} remota all'indirizzo \url{https://github.com/NTFrs/pacs_proj}. L'uso di git ci ha permesso di lavorare in contemporane sul progetto senza dover preoccuparci di fare cambiamenti allo stesso file, anche attraverso l'uso di diversi branch.
+
 \section{\textsf{Doxygen}}
-Infine, tutto il codice \`e commentato con \textsf{Doxygen}. 
+Infine, tutto il codice \`e commentato con il \emph{lexical-scanner} \textsf{Doxygen}, di molto facile utilizzo. 
 %Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
+
+\section{Profiler}
+\paragraph{gprof}
+Durante la scrittura dei codici finali, abbiamo trovato che alcune parti del programma era eccessivamente più lente rispetto a quando era stata fatta su file semplici. L'utilizzo del profiler \emph{gprof} ci ha permesso di analizzare e ristrutturare quella parte ottenendo uno speedup considerevole. In particolare, si trattava del calcolo dell'integrale con la trasformazione Price, e abbiamo scoperto che una delle funzioni di dealii di accesso a elementi della griglia era particolarmente lenta. Abbiamo risolto diminuendo quanto possibile il numero di chiamate ad essa.
+
 
 \chapter{Codice}
 \section{Introduzione}
