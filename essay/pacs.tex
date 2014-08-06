@@ -353,11 +353,11 @@ u(x,T)=\max(S_0e^x-K,0),\\
 per la \emph{call} europea.
 \subsection{Troncamento del dominio}
 Come \`e facile osservare $x\in(-\infty,\infty)$, perci\`o \`e necessario adottare un troncamento del dominio monodimensionale. Generalmente, in finanza si applica il seguente troncamento:
-\begin{align*}
+\begin{align}
 S_{min}&=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\right),\\
-S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right),
+S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right), \nonumber
 \label{cut}
-\end{align*}
+\end{align}
 dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$x_{min}=log(\sfrac{S_{min}}{S_0}), \qquad x_{max}=log(\sfrac{S_{max}}{S_0}).$$
 \subsection{Discretizzazione della PDE}
 Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`e la sola PDE del modello di \emph{Black\&Scholes}. Siano quindi $\Omega_h$ una triangolazione con $N+1$ nodi di $\Omega=[x_{min},x_{max}]$ e $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ una griglia temporale. Cerchiamo una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}a_j(t_n)\phi_j(x),$$ dove $a_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\Passiamo ora alla formulazione debole del problema \ref{callbs1d}:
@@ -450,8 +450,43 @@ e la discretizzazione in tempo con uno schema di Eulero Implicito:
 +(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
 \end{multline}
 A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+DJ_1^{n+1}+DJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $D$ \`e la matrice di massa.
+
+
 \section{\emph{Prices}}
-\subsection{NAHUEL'S BUSINESS}
+Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello shift dei nodi.
+\subsection{Equazione in 1d}
+Per semplicità, illustriamo il cambio di variabile e la relativa discretizzazione nel caso di un equazione su un solo sottostante, per poi estenderlo al caso bidimensionale. Riportiamo l'equazione in questione:
+
+\begin{multline*}
+\label{eq:PIDE1d_will_price}
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+rS\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(y)dy=0.
+\end{multline*}
+
+Come nel caso precedente, siccome la misura di Lévy $\nu$ è finita, è possibile separare gli ultimi due addendi dentro l'integrale, e definendo
+\begin{align*}
+ \hat{\alpha}&=S\der{C}{S}(t,S)\int_\mathbb{R}(e^y-1)\nu(y)dy \\
+ \hat{\lambda}&=C(t,S)\int_\mathbb{R}\nu(y)dy
+\end{align*}
+l'equazione diventa
+\begin{equation*}
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_\mathbb{R}C(t,Se^y)\nu(y)dy=0.
+\end{equation*}
+Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ va calcolato tramite una qualche formula di quadratura. A questo punto introduciamo nell'integrale il cambio d variabile
+\begin{equation*}
+ z=Se^y
+\end{equation*}
+e l'equazione diventa
+\begin{equation*}
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz=0.
+\end{equation*}
+
+\subsection{Troncamento del dominio}
+
+Notiamo che il dominio della funzione e dell'integrale coincidono, ossia sono entrambi $(0,\infty)$.
+Scegliamo il troncamento del dominio in modo analogo al caso logprice, ossia definiamo $S_{min}$ ed $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
+
+\subsection{Discretizzazione della parte PDE monodimensionale}
+Concentriamoci prima sulla parte differenziale. Come
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=\max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
 \section{\emph{Mesh refinement}}
