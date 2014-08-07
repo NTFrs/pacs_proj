@@ -72,7 +72,7 @@
 
 \theoremstyle{remark}
 \newtheorem{osservazione}{Osservazione}[chapter]
-\newtheorem{esempio}{Esempio}[chapter]
+\newtheorem{esempio}{Esempio}%[chapter]
 
 \begin{document}
 
@@ -137,14 +137,14 @@
 \chapter{Modello di Black \& Scholes}
 
 \section{Introduzione}
-In questo capitolo descriviamo i modelli basilari utilizzati per descrivere il mercato finanziario, seguendo le argomentazioni di Merton (1973). Consideriamo quindi un mercato finanziario molto semplificato, costituito da un titolo \emph{risk-free} descritto dal processo $B$ e un titolo azionario con valore pari al processo $S$. Definiamo quindi questi due processi.
+In questo capitolo descriviamo i modelli basilari utilizzati per descrivere il mercato finanziario, seguendo le argomentazioni di Merton (1973), trattate in \cite{bjork2009arbitrage}. Consideriamo quindi un mercato finanziario molto semplificato, costituito da un titolo \emph{risk-free} descritto dal processo $B$ e un titolo azionario con valore pari al processo $S$. Definiamo quindi questi due processi.
 \begin{definition}
 Sia $(\Omega,\mathcal{F},\mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in [ 0,T ]}$ una filtrazione. Allora, il processo B descrive il valore di un titolo \emph{risk-free} se la sua dinamica \`e del tipo: $$dB(t)=r(t)B(t)dt,$$dove $r$ \`e un qualsiasi processo $\mathcal{F}_t$-adattato.
 \end{definition}
-La caratteristica pi\`u importante quindi dei processi \emph{risk-free} \`e l'assenza di aleatoriet\`a data da un processo stocastico casuale. Integrando l'equazione precedente, otteniamo: $$B(t)=B(0)\int_0^tr(s)ds.$$ Un caso particolare \`e quello in cui $r$ \`e una costante deterministica, in tal modo $B$ descrive l'andamento di un'obbligazione.\\\\Assumiamo poi che la dinamica di $S$ sia data da: $$dS(t)=S(t)\mu(t,S(t))dt+S(t)\sigma(t,S(t))dW(t),$$ in cui $W_t$ \`e un processo di Wiener (cio\`e, un moto browniano) e $\mu$ e $\sigma$ due funzioni deterministiche. La funzione $\sigma$ \`e detta volatilit\`a del titolo, $\mu$ \`e il \emph{local mean rate of return} ?!?!? di $S$.
-\begin{osservazione}
-Osserviamo la differenza fra il tasso di ritorno di un titolo \emph{risk-free} e quello di un titolo rischioso. Il tasso di $B$ \`e: $$\frac{dB(t)}{B(t)dt}=r(t),$$ ovvero totalmente deterministico, mentre quello di $S$ \`e dato da: $$\frac{dS(t)}{S(t)dt}=\mu(t,S(t))+\sigma(t,S(t)) \frac{dW(t)}{dt},$$ oggetto che non \`e osservabile al tempo $t$. Esso \`e infatti costituito da $\mu$ e $\sigma$ che sono entrambi osservabili al tempo $t$, pi\`u un rumore bianco $W(t)$ che \`e del tutto casuale. Quindi, al contrario del titolo \emph{risk-free}, l'azione ha un tasso di ritorno stocastico, anche su una scala infinitesima.
-\end{osservazione}
+La caratteristica pi\`u importante quindi dei processi \emph{risk-free} \`e l'assenza di aleatoriet\`a data da un processo stocastico casuale. Integrando l'equazione precedente, otteniamo: $$B(t)=B(0)\int_0^tr(s)ds.$$ Un caso particolare \`e quello in cui $r$ \`e una costante deterministica, in tal modo $B$ descrive l'andamento di un'obbligazione.\\\\Assumiamo poi che la dinamica di $S$ sia data da: $$dS(t)=S(t)\mu(t,S(t))dt+S(t)\sigma(t,S(t))dW(t),$$ in cui $W_t$ \`e un processo di Wiener (cio\`e, un moto browniano) e $\mu$ e $\sigma$ due funzioni deterministiche. La funzione $\sigma$ \`e detta volatilit\`a del titolo, $\mu$ \`e il tasso di ritorno di $S$.
+%\begin{osservazione}
+%Osserviamo la differenza fra il tasso di ritorno di un titolo \emph{risk-free} e quello di un titolo rischioso. Il tasso di $B$ \`e: $$\frac{dB(t)}{B(t)dt}=r(t),$$ ovvero totalmente deterministico, mentre quello di $S$ \`e dato da: $$\frac{dS(t)}{S(t)dt}=\mu(t,S(t))+\sigma(t,S(t)) \frac{dW(t)}{dt},$$ oggetto che non \`e osservabile al tempo $t$. Esso \`e infatti costituito da $\mu$ e $\sigma$ che sono entrambi osservabili al tempo $t$, pi\`u un rumore bianco $W(t)$ che \`e del tutto casuale. Quindi, al contrario del titolo \emph{risk-free}, l'azione ha un tasso di ritorno stocastico, anche su una scala infinitesima.
+%\end{osservazione}
 Passiamo ora a definire il modello di \emph{Black\&Scholes}.
 \begin{definition}
 Il modello di \emph{Black\&Scholes} consiste di due titoli con le seguenti dinamiche:
@@ -173,9 +173,11 @@ Osserviamo che la scadenza del contratto e il prezzo d'esercizio sono stabiliti 
 \begin{esempio}
 Supponiamo di possedere un'opzione \emph{call} con scadenza $T=1$ anno, \emph{strike price} $K=100$\officialeuro$ $ e un sottostante che al tempo $t=0$ vale $S_0=100$\officialeuro. Allora, se fra un anno $S_T=120$\officialeuro$ $, eserciteremo l'opzione, acquistando il sottostante per un prezzo pari a $K=100$\officialeuro$ $, e il sottoscrittore del contratto pagher\`a i rimenenti $S_T-K=20$\officialeuro$ $. Se invece $S_T=80$\officialeuro$ $ non eserciteremo l'opzione, ottenendo un guadagno pari a 0.
 \end{esempio}
-Osserviamo quindi che il valore a scadenza, cio\`e il \emph{payoff}, dell'opzione dipende soltanto dal valore del sottostante. Definiamo quindi il \todo{il payoff non è n processo se T è fisso, in questo caso una v.a}\emph{payoff} come processo stocastico in funzione di $S$.
+Osserviamo quindi che il valore a scadenza, cio\`e il \emph{payoff}, dell'opzione dipende soltanto dal valore del sottostante. Definiamo quindi il
+%\todo{il payoff non è n processo se T è fisso, in questo caso una v.a}
+\emph{payoff} come variabile aleatoria in funzione di $S$.
 \begin{definition}
-Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, allora il \emph{payoff} di un'opzione scritta su $S$ con scadenza $T$ e \emph{strike} $K$ \`e un processo stocastico $\mathcal{X}\in\mathcal{F}_t$, e: $$\mathcal{X}=\Phi(S_T).$$
+Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, allora il \emph{payoff} di un'opzione scritta su $S$ con scadenza $T$ e \emph{strike} $K$ \`e una variabile aleatoria $\mathcal{X}\in\mathcal{F}_T$, e: $$\mathcal{X}=\Phi(S_T).$$
 \end{definition}
 Per esempio, il \emph{payoff} delle opzioni call e put europee \`e:
 \begin{align*}
@@ -193,12 +195,14 @@ Vi sono molti modi per ricavare l'equazione di \emph{Black\&Scholes}: presentiam
 Nel primo caso infatti, egli ottiene sempre $1$\officialeuro$ $, nel secondo ottiene in media $1$\officialeuro$ $. Perci\`o per un soggetto neutrale al rischio queste situazioni sono indifferenti.\\Quando ci occupiamo di \emph{pricing} di derivati, ci poniamo sempre nell'ipotesi di neutralit\`a al rischio. In particolare,
 \begin{enumerate}
 \item assumiamo che il termine di deriva $\mu$ del modello $S$ sia pari al tasso di interesse \emph{risk-free} $r$, cio\`e poniamo: $$dS(t)=rS(t)dt+\sigma S(t)dW(t);$$
-\item calcoliamo il valore atteso del \emph{payoff}, cio\`e $\mathbb{E}\left[\Phi(S_T)\right]$;
+\item calcoliamo il valore atteso del \emph{payoff}, cio\`e $\mathbb{E}\left[\Phi(S_T)|\mathcal{F}_t\right]$;
 \item scontiamo il valore atteso del \emph{payoff} con il tasso di interesse $r$.
 \end{enumerate}
-Sia quindi $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S(t),t)$ il processo stocastico che descrive il valore di un'opzione. In particolare, \todo{forse ci vuole il condizionamento} se consideriamo una \emph{call} europea,
-$$C(S,t)=e^{(-r(T-t))}\mathbb{E}\left[\max(S_T-K,0)\right].$$
-Applicando a questa quantit\`a il Lemma di It$\hat{o}$, otteniamo la seguente equazione: $$dC(S,t)=\left(\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}\right)dt+\sigma S \der{C}{S}dW(t).$$
+Sia quindi $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S(t),t)$ il processo stocastico che descrive il valore di un'opzione. In particolare,
+%\todo{forse ci vuole il condizionamento}
+se consideriamo una \emph{call} europea,
+$$C(S,t)=e^{(-r(T-t))}\mathbb{E}\left[\max(S_T-K,0)|\mathcal{F}_t\right].$$
+Data la dinamica di $S$, se applichiamo a questa quantit\`a il Lemma di It$\hat{o}$, otteniamo la seguente equazione: $$dC(S,t)=\left(\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}\right)dt+\sigma S \der{C}{S}dW(t).$$
 Dall'altro lato per\`o, per la \emph{risk-neutrality}, la deriva di $C$, come quella di ogni titolo finanziario, dovr\`a essere pari a $rC$, quindi:$$\der{C}{t}+r S \der{C}{S} +\frac{1}{2}S^2\dder{C}{S}=rC.$$
 Riassumendo, posti $C=C(S,t)$ e $P=P(S,t)$ i processi che descrivono il prezzo di opzioni \emph{call} e \emph{put}, otteniamo le seguenti equazioni alle derivate parziali con le rispettive condizioni finali e condizioni al bordo:
 \begin{equation}
@@ -222,7 +226,7 @@ P(0,t)=K,\qquad\qquad\forall t\in[0,T]\\
 \end{cases}
 \label{putbs1d}
 \end{equation}
-Come possiamo osservare, si tratta di equazioni paraboliche \emph{backward} con dato finale. Il prezzo dell'opzione al tempo $t=0$ sar\`a dato dalla soluzione C o P, valutate in $S_t=S_0$, ovvero il valore dell'azione oggi e in $t=0$.
+Come possiamo osservare, si tratta di equazioni paraboliche \emph{backward} con dato finale. Il prezzo dell'opzione sar\`a dato dalla soluzione C o P, valutate in $S_t=S_0$, ovvero il valore dell'azione oggi, e in $t=0$.
 
 \section{Opzioni Basket}
 Un altro tipo di opzioni scambiate sui mercati finanziari sono le opzioni basket, il cui \emph{payoff} dipende cio\`e da due o pi\`u sottostanti. In particolare, in questo progetto ci siamo concentrati sul \emph{pricing} di opzioni basket 2D, con i seguenti valori finali: $$C(S_1, S_2, T)=\max(S_{1,T}+S_{2,T}-K,0)$$ per la \emph{call} e: $$P(S_1, S_2, T)=\max(K-S_{1,T}-S_{2,T},0)$$ per la \emph{put}, dove $S_{1,T}$ e $S_{2,T}$ sono i valori al tempo $T$ dei due sottostanti $S_1$ e $S_2$.\\L'equazione che si ottiene con procedimenti analoghi a quelli mostrati nella sezione precedente \`e la seguente:
@@ -233,7 +237,7 @@ Un altro tipo di opzioni scambiate sui mercati finanziari sono le opzioni basket
 in cui $C:\mathbb{R}^+\times\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_1(t), S_2(t),t)$, $\sigma_1$ e $\sigma_2$ sono le volatilit\`a dei due sottostanti e $\rho$ \`e il coefficiente di correlazione fra $S_1$ e $S_2$.
 
 \section{Opzioni Americane: il problema con frontiera libera}
-Le opzioni americane differiscono dalle europee poich\'e consentono di esercitare l'opzione non solo in $T$, bens\`i in qualsiasi istante di tempo dalla stipula del contratto alla sua scadenza. Quindi, proprio perch\'e danno al titolare del contratto dei diritti aggiuntivi, \`e facile capire che vale la seguente relazione: $$V^{Am}\geq V^{Eu},$$ ovvero il valore di un'opzione americana \`e sempre superiore al valore dell'europea corrispondente. In particolare, il valore dell'opzione americana \`e sempre pari o superiore al valore del \emph{payoff}. L'opzione europea infatti, pu\`o avere un valore inferiore al \emph{payoff}, ma questo non pu\`o succedere per le americane. Infatti, se cos\`i non fosse, potremmo acquistare un'azione e una \emph{put} su questa azione ed esercitare immediatamente, ottenendo un guadagno certo senza correre alcun rischio. Per questo valgono i seguenti vincoli:
+Le opzioni americane differiscono dalle europee poich\'e consentono di esercitare l'opzione non solo in $T$, bens\`i in qualsiasi istante di tempo dalla stipula del contratto alla sua scadenza. Quindi, proprio perch\'e danno al titolare del contratto dei diritti aggiuntivi, \`e facile capire che vale la seguente relazione: $$V^{Am}\geq V^{Eu},$$ ovvero il valore di un'opzione americana \`e sempre superiore al valore dell'europea corrispondente. In particolare, il valore dell'opzione americana \`e sempre pari o superiore al valore del \emph{payoff}. L'opzione europea infatti, pu\`o avere un valore inferiore al \emph{payoff}, ma questo non pu\`o succedere per le americane. Infatti, se cos\`i non fosse, potremmo acquistare un'azione e una \emph{put} su questa azione ed esercitare immediatamente\todo{Spieghiamo meglio o ce ne strafottiamo?}, ottenendo un guadagno certo senza correre alcun rischio. Per questo valgono i seguenti vincoli:
 \begin{align}
 C^{Am}(S,t)&\geq \max(S_T-K,0)\qquad\forall t\in[0,T],\\
 P^{Am}(S,t)&\geq \max(K-S_T,0)\qquad\forall t\in[0,T].
@@ -251,7 +255,7 @@ Consideriamo ora il comportamento della \emph{put} nella parte sinistra del graf
 P^{Am}(S,t)&>\max(K-S,0)\qquad S>S_f(t),\\
 P^{Am}(S,t)&=K-S\qquad\qquad\quad S<S_f(t).
 \end{align*}
-Quindi, $\forall t\in[0,T]$, dobbiamo determinare il punto $S_f(t)$, attraverso il quale passa la retta che separa l'area in cui $P^{Am}=$\emph{payoff} da qualla in cui $P^{Am}>$\emph{payoff}. Poich\'e a priori questa frontiera \`e ignota, questo problema \`e detto "a frontiera libera".\\\\Per le \emph{call} americane la situazione \`e differente, poich\'e $C^{Eu}\geq \max(S_T-K,0)$\footnote{Questa relazione si calcola immediatamente sfruttando alcune semplici relazioni che legano $C$, $S$ e $K$. In particolare, nel qual caso: $C^{Am}\geq C^{Eu} \geq S-Ke^{-r(T-t)} > S-K$}. Perci\`o il prezzo di una \emph{call} americana \`e identico a quello di un'europea quindi non si pone in questo caso il problema con frontiera libera.\\\\Formalmente, l'equazione differenziale che occorre risolvere per trovare il prezzo di una \emph{put} americana \`e la seguente:
+Quindi, $\forall t\in[0,T]$, dobbiamo determinare il punto $S_f(t)$, attraverso il quale passa la retta che separa l'area in cui $P^{Am}=$\emph{payoff} da qualla in cui $P^{Am}>$\emph{payoff}. Poich\'e a priori questa frontiera \`e ignota, questo problema \`e detto ``a frontiera libera".\\\\Per le \emph{call} americane la situazione \`e differente, poich\'e $C^{Eu}\geq \max(S_T-K,0)$\footnote{Questa relazione si calcola immediatamente sfruttando alcune semplici relazioni che legano $C$, $S$ e $K$. In particolare, nel qual caso: $C^{Am}\geq C^{Eu} \geq S-Ke^{-r(T-t)} > S-K$}. Perci\`o il prezzo di una \emph{call} americana \`e identico a quello di un'europea e in questo caso non si pone il problema con frontiera libera.\\\\Formalmente, l'equazione differenziale che occorre risolvere per trovare il prezzo di una \emph{put} americana \`e la seguente:
 \begin{equation}
 \begin{cases}
 \displaystyle
@@ -271,7 +275,7 @@ Il modello di \emph{Black\&Scholes}, nonostante sia molto utilizzato in finanza,
 \item il valore di $S$ pu\`o essere discontinuo, ovvero \`e possibile che il sottostante presenti dei "salti";
 \item le code della distribuzione dei log-rendimenti dovrebbero essere normali, ma non lo sono: i valori delle code sono infatti pi\`u probabili di quanto ipotizzato dal modello, inoltre le code non sono simmetriche poich\'e presentano un'asimmetria verso i rendimenti negativi;
 \item i log-rendimenti inoltre non hanno distribuzioni indipendenti: nelle serie storiche si osservano infatti i cosiddetti \emph{cluster}, ovvero periodi in cui la volatilit\`a \`e alta e rimane alta oppure periodi con una volatilit\`a che rimane per ridotta per lungo tempo;
-\item in figura \ref{smile} \`e rappresentato il grafico volatilit\`a vs. \emph{moneyness}\footnote{La \emph{moneyness} di un'opzione \`e il rapporto fra prezzo del sottostante in $t=0$ e \emph{Strike}, ovvero $\sfrac{S_0}{K}$.}. In esso possiamo osservare che il valore della volatilit\`a non rimane costante al variare dei prezzi di esercizio, bens\`i presenta una forma convessa. Questo fenomeno \`e noto come \emph{smile} di volatilit\`a. 
+\item in figura \ref{smile} \`e rappresentato il grafico volatilit\`a vs. \emph{moneyness}\footnote{La \emph{moneyness} di un'opzione \`e il rapporto fra prezzo del sottostante in $t=0$ e \emph{Strike}, ovvero $\sfrac{S_0}{K}$.}. In esso possiamo osservare che il valore della volatilit\`a non rimane costante al variare dei prezzi di esercizio, bens\`i presenta una forma convessa. Questo fenomeno \`e noto come \emph{smile} di volatilit\`a.\todo{Qui, 1. \`e da mettere il disegno? 2. Visto che merton e kou non risolvono questo problema, conviene parlare dello smile o lo saltiamo?}
 \end{itemize}
 \begin{figure}[htbp!]
 \begin{center}
@@ -291,14 +295,14 @@ Sia $(\Omega, \mathcal{F}, \mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in[
 \item $X_0=0$,
 \item ha incrementi indipendenti,
 \item ha incrementi stazionari,
-\item \todo{cosi da sola tanto vale non metterla}c'\`e continuit\`a stocastica.
+\item c'\`e continuit\`a stocastica, ovvero: $$\forall \varepsilon >0,\qquad\lim_{h\to0}\mathbb{P}(|X_{t+h}-X_t|\geq\varepsilon)=0.$$
 \end{enumerate}
 \end{definition}
 \begin{definition}
 Sia $X_t$ un L\'evy, allora poniamo $$\nu(A)=\mathbb{E}(\#\{t\in[0,1]: \Delta X_t\neq0, \Delta X_t\in A\}),$$ $\forall A\in \mathcal{B}$, e chiamiamo $\nu(A)$ la misura di L\'evy di $X_t$.
 \end{definition}
 \begin{definition}
-Sia $X_t$ un processo di L\'evy (\`e un LEVY?!?!?!?), allora $X_t$ \`e un \emph{Compound Poisson} di intensit\`a $\lambda$ e distribuzione di salti $f$ se $$X_t=\sum_{i=1}^{N_t}Y_i,$$ dove $N_t\sim$\emph{Poisson}$(\lambda)$ e $Y_i\sim f$, $Y_i$ i.i.d. $\forall i$.
+Sia $X_t$ un processo di L\'evy \todo{\`e un L\'evy?}, allora $X_t$ \`e un \emph{Compound Poisson} di intensit\`a $\lambda$ e distribuzione di salti $f$ se: $$X_t=\sum_{i=1}^{N_t}Y_i,$$ dove $N_t\sim$\emph{Poisson}$(\lambda)$ e $Y_i\sim f$, $Y_i$ i.i.d. $\forall i$.
 \end{definition}
 \begin{theorem}
 Decomposizione di L\'evy-It$\hat{o}$ per processi ad attività finita.\\Sia $X_t$ un processo di L\'evy con misura $\nu$ finita, allora esistono due costanti $\gamma$ e $\sigma$ tali che:$$X_t=\gamma t+\sigma W_t+X^C_t,$$ dove $W_t$ \`e un moto browniano e $X^C_t$ un \emph{Compound Poisson}.
@@ -310,7 +314,7 @@ Passiamo ora a definire i modelli di Merton e Kou. In entrambi questi modelli il
 S_t=S_0e^{rt+X_t},
 \label{explevy}
 \end{equation}
-dove $r$ \`e il tasso di interesse e $X_t$ \`e un L\'evy, ovvero $$X_t=\gamma t+\sigma W_t+\sum_{i=1}^{N_t}Y_i.$$Nel modello di Merton, $Y_i\sim\mathcal{N}(\mu, \delta^2)$, e la misura di L\'evy \`e data da:
+dove $r$ \`e il tasso di interesse e $X_t$ \`e un L\'evy ad attivit\`a finita, ovvero $$X_t=\gamma t+\sigma W_t+\sum_{i=1}^{N_t}Y_i.$$Nel modello di Merton, $Y_i\sim\mathcal{N}(\mu, \delta^2)$, e la misura di L\'evy \`e data da:
 \begin{equation}
 \nu(x)=\frac{\lambda}{\sqrt{2\pi\delta^2}}exp\left\{-\frac{(x-\mu)^2}{2\delta^2}\right\},
 \label{merton}
@@ -334,7 +338,7 @@ dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'ev
 \chapter{Metodi numerici per PDE e PIDE}
 %Di solito sempre FD, per\`o si possono usare FEM. Tuttavia per 2d non \`e mai stato fatto nulla da un punto di vista numerico. Perch\'e FEM? Possiamo raffinare, possiamo estendere in 3d (log price facile).
 \section{Introduzione}
-In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} è molto difficile da trovare. In \cite{jinghui2009multi} si può trovare un analisi dell'equazione in forma debole, ma non vi è nessuna indicazione sugli algoritmi usati e tantomeno il codice. Per questo motivo, per validare i risultati ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile. Il primo, che permette di portare le equazioni a coefficienti costanti presenta l'inconveniente di dover calcolare l'integrale fuori dalla \emph{mesh}. Il secondo invece, lascia l'equazione cos\`i com\`e, ma permette di calcolare l'integrale nei soli punti della \emph{mesh}. Lasciamo i confronti sulle prestazione dei due cambi di variabile al capitolo dedicato, tuttavia a priori \`e facile capire che l'assemblaggio delle matrici con il primo cambio di variabile sar\`a pi\`u veloce rispetto al secondo, ma il calcolo dell'integrale sar\`a inesorabilmente pi\`u lento.
+In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} è molto difficile da trovare. In \cite{jinghui2009multi} si può trovare un analisi dell'equazione in forma debole e alcuni risultati numerici, ma non vi è nessuna indicazione sugli algoritmi usati e tantomeno il codice. Per questo motivo, per validare i prezzi ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile. Il primo, che permette di portare le equazioni a coefficienti costanti presenta l'inconveniente di dover calcolare l'integrale fuori dalla \emph{mesh}. Il secondo invece, lascia l'equazione cos\`i com'\`e, ma permette di calcolare l'integrale nei soli punti della \emph{mesh}. Lasciamo i confronti sulle prestazione dei due cambi di variabile al capitolo dedicato, tuttavia a priori \`e facile capire che l'assemblaggio delle matrici con il primo cambio di variabile sar\`a pi\`u veloce rispetto al secondo, ma il calcolo dell'integrale sar\`a inesorabilmente pi\`u lento.
 
 \section{\emph{Log-Prices}}
 Ci occupiamo ora di mostrare la discretizzazione dell'equazione con il primo cambio di variabile. Trattiamo qui il solo caso della \emph{call} europea, in quanto per la \emph{put} e le americane la discretizzazione \`e la medesima, a meno di cambiare condizioni al bordo e dati finali.
@@ -382,13 +386,13 @@ c_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i'(x)dx.
 \end{align*}
 Otteniamo quindi la seguente discretizzazione per la PDE:$$\sum_{j=1}^{N-1}\alpha_j(t_{n+1})\frac{a_{ij}}{\Delta t}=\sum_{j=1}^{N-1}\alpha_j(t_{n})\left(\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij}\right).$$
 \subsection{La parte integrale}
-Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che,\todo{non è perché la misura è finita però} poich\'e la misura \`e finita:$$\nu(dy)=\nu(y)dy.$$ Possiamo quindi spezzare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
+Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che\todo{perch\'e?}:$$\nu(dy)=\nu(y)dy.$$ Possiamo quindi spezzare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
 \begin{align*}
 \hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
 \hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
 \end{align*}
 ottenendo: $$\der{u}{t}+\left(r-\frac{\sigma^2}{2}-\hat{\alpha}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-(r+\hat{\lambda})u+\int_\mathbb{R}u(t,x+y)\nu(y)dy=0.$$
-Sappiamo inoltre dalla teoria che $\hat{\lambda}=\lambda$, poich\'e integrando la densit\`a di L\'evy otteniamo l'intensit\`a dei salti. Per quanto riguarda invece il calcolo numerico dei due integrali, pooch\'e le densit\`a con cui abbiamo a che fare sono gaussiane o esponenziali, abbiamo utilizzato delle formule di quadratura rispettivamente di Gauss-Hermite e di Gauss-Laguerre. Per esempio, se consideriamo la densit\`a di L\'evy di Merton, $\nu$ \`e nella forma \ref{merton}, perci\`o, a meno di costanti,
+Sappiamo inoltre dalla teoria che $\hat{\lambda}=\lambda$, poich\'e integrando la densit\`a di L\'evy otteniamo l'intensit\`a dei salti. Per quanto riguarda invece il calcolo numerico dei due integrali, poich\'e le densit\`a con cui abbiamo a che fare sono gaussiane o esponenziali, abbiamo utilizzato delle formule di quadratura rispettivamente di Gauss-Hermite e di Gauss-Laguerre, come spiegato in \cite{qss2007}. Per esempio, se consideriamo la densit\`a di L\'evy di Merton, $\nu$ \`e nella forma \ref{merton}, perci\`o, a meno di costanti,
 \begin{align*}
 \hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)Ae^{-B(y-\mu)^2}dy\\
 &\simeq A\sum_{j=0}^{Q}(e^{q_j}-1)w_j,
@@ -398,7 +402,7 @@ dove $q_j$ sono i nodi di quadratura su $\mathbb{R}$, mentre $w_j$ sono i pesi c
 \int_\mathbb{R}u(t,x+y)\nu(y)dy,
 \label{intnonlocal}
 \end{equation}
-e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e \todo{quella M=aij è una A?} quindi la seguente:$$M_1u^n=M_2n^{n+1}+AJ,$$ in cui: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che l'integrale viene calcolato esplicitamente. D'altro canto, un calcolo implicito richiederebbe la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer. Dalla teoria sappiamo che questo metodo, detto \emph{operator splitting}, \`e stabile se: $$\Delta t\leq\sfrac{1}{\lambda},$$una condizione molto semplice da soddisfare.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
+e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e quindi la seguente:$$M_1u^n=M_2u^{n+1}+MJ,$$ in cui: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che l'integrale viene calcolato esplicitamente. D'altro canto, un calcolo implicito richiederebbe la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer. Dalla teoria sappiamo che questo metodo, detto \emph{operator splitting}, \`e stabile se: $$\Delta t\leq\sfrac{1}{\lambda},$$una condizione molto semplice da soddisfare.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
 \begin{align*}
 &\int_{\Omega_h}\phi_i(x)\left( \int_{\mathbb{R}}\sum_{j=1}^N u_j^k \phi_j(x+y)\nu(y)dy \right)dx=\\ 
 &\sum_{j=1}^N  \int_{\Omega_h}\int_{\mathbb{R}} \phi_i(x)\phi_j(x+y)\nu(y)dxdy,
@@ -449,57 +453,57 @@ e la discretizzazione in tempo con uno schema di Eulero Implicito:
 +\sum_{j=0}^{N}J^j_1\int_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\int_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega=\\
 -\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\int_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
 +\frac{1}{2}\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
-+(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
++\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
 \end{multline}
-A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+DJ_1^{n+1}+DJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $D$ \`e la matrice di massa.
+A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $M$ \`e la matrice di massa.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%PRICES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{La trasformazione \emph{Price}}
 \label{sec:Price}
-Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello shift dei nodi.
+Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello \emph{shift} dei nodi.
 \subsection{Equazione in 1d}
-Per semplicità, illustriamo il cambio di variabile e la relativa discretizzazione nel caso di un equazione su un solo sottostante, per poi estenderlo al caso bidimensionale. Riportiamo l'equazione in questione:
+Per semplicità, illustriamo il cambio di variabile e la relativa discretizzazione nel caso di un'equazione su un solo sottostante, per poi estenderlo al caso bidimensionale. Riportiamo l'equazione in questione:
 
 \begin{multline*}
 \label{eq:PIDE1d_will_price}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+rS\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(y)dy=0.
 \end{multline*}
 
-Come nel caso precedente, siccome la misura di Lévy $\nu$ è finita, è possibile separare gli ultimi due addendi dentro l'integrale, e definendo
+Come nel caso precedente, siccome la misura di Lévy $\nu$ è finita, è possibile separare gli ultimi due addendi dentro l'integrale, e definendo:
 \begin{align*}
- \hat{\alpha}&=S\der{C}{S}(t,S)\int_\mathbb{R}(e^y-1)\nu(y)dy \\
- \hat{\lambda}&=C(t,S)\int_\mathbb{R}\nu(y)dy
+ \hat{\alpha}&=\int_\mathbb{R}(e^y-1)\nu(y)dy \\
+ \hat{\lambda}&=\int_\mathbb{R}\nu(y)dy
 \end{align*}
-l'equazione diventa
+l'equazione diventa:
 \begin{equation*}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_\mathbb{R}C(t,Se^y)\nu(y)dy=0.
 \end{equation*}
-Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ va calcolato tramite una qualche formula di quadratura, esattamente come nel caso logprice. A questo punto introduciamo nell'integrale il cambio d variabile
+Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ viene calcolato tramite una qualche formula di quadratura, esattamente come nel caso \emph{log-price}. A questo punto introduciamo nell'integrale il cambio di variabile:
 \begin{equation*}
  z=Se^y
 \end{equation*}
-e l'equazione diventa
-\begin{equation}
+e l'equazione diventa:
+\begin{multline}
 \label{eq:PIDEinPrice}
-\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz=0.
-\end{equation}
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C\\+\int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz=0.
+\end{multline}
 
 \subsection{Troncamento del dominio}
 
 Notiamo che il dominio della funzione e dell'integrale coincidono, ossia sono entrambi $(0,\infty)$.
-Scegliamo il troncamento del dominio in modo analogo al caso logprice, ossia definiamo $S_{min}$ ed $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
+Scegliamo il troncamento del dominio in modo analogo al caso \emph{log-price}, ossia definiamo $S_{min}$ e $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
 
 \subsection{Discretizzazione della parte PDE monodimensionale}
 Concentriamoci prima sulla parte differenziale. Come nel caso della logprice, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. \todo{magari dire che le funzioni di base sono quelle di lagrange?} Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\
-Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $C_h$ al posto di $C$ otteniamo la discretizzazione della formulazione debole del problema \eqref{eq:pide1dlog}:
+Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $C_h$ al posto di $C$ otteniamo la formulazione debole del problema \eqref{eq:pide1dlog}:
 
 \begin{multline*}
 \sum_{j=1}^{N-1}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS+(r-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
 +\frac{\sigma^2}{2} \sum_{j=1}^{N-1} \gamma_j(t)\int_{\Omega_h} S^2 \phi_j''(S)\phi_i(S)dS -(r+\lambda) \sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
 \end{multline*}
-e integrando per parti il termine con la derivata seconda otteniamo, ricordando che i termini di bordo si annullano, 
+e integrando per parti il termine con la derivata seconda, ricordando che i termini di bordo si annullano, otteniamo:
 
 \begin{multline*}
 \sum_{j=1}^{N-1}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
@@ -509,65 +513,67 @@ e integrando per parti il termine con la derivata seconda otteniamo, ricordando 
 \end{multline*}
 
 Questa equazione deve valere per ogni $i$, ossia per ogni elemento della base.
-Inroduciamo ora una discretizzazione temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ dell'intervallo $[0,T]$. Se consideriamo uno schema temporale del tipo Eulero Implicito, con la discretizzazione nel tempo l'equazione sopra diventa
+Introduciamo ora una griglia temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ dell'intervallo $[0,T]$. Se consideriamo uno schema temporale del tipo Eulero Implicito, con la discretizzazione nel tempo, l'equazione sopra diventa:
 
 \begin{multline}
 \label{eq:discretizedPDEprice}\frac{\sigma^2}{2}\sum_{j=1}^{N-1} \gamma_j(t_n)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
 -(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
-+\left(r+\lambda+\frac{1}{dt}\right)\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=\sum_{j=1}^{N-1}\frac{\gamma_j(t_{n+1})}{dt}\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \\ \forall i \in \left\lbrace 1,\dots,N \right\rbrace \qquad \forall n \in \lbrace0,\dots,T-1\rbrace
++\left(r+\lambda+\frac{1}{dt}\right)\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=\sum_{j=1}^{N-1}\frac{\gamma_j(t_{n+1})}{dt}\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \\ \forall i \in \left\lbrace 1,\dots,N-1 \right\rbrace, \qquad \forall n \in \lbrace0,\dots,T-1\rbrace
 \end{multline}
 
-Definendo il vettore  $\bm{\gamma}^k$ come il vettore dei valori $\gamma_j(t_k)$ e le matrici seguenti
+Definendo il vettore  ${\gamma}^k$ come il vettore dei valori $\gamma_j(t_k)$ e le matrici seguenti
 \begin{multline*}
  (M_1)_{ij}=\frac{\sigma^2}{2}\int_{\Omega_h}S^2\phi_j'(S)\phi_i'(S)dS-(r-\sigma^2-\hat{\alpha})\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
- +\left(r+\lambda+\frac{1}{dt}\right)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
+ +\left(r+\lambda+\frac{1}{dt}\right)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS,
 \end{multline*}
 
 \begin{equation*}
-(M)_{ij}=\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \quad M_2=\frac{1}{dt}M
+(M)_{ij}=\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \quad\text{e}\quad M_2=\frac{1}{dt}M.
 \end{equation*}
 
-il sistema d'equazionioni si può dunque scrivere in forma matriciale come 
+Il sistema d'equazioni si può dunque scrivere in forma matriciale come:
 
 \begin{equation}
  \label{eq:PDEpriceMatrixes}
- M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+ M_1 \gamma^n=M_2\gamma^{n+1} \qquad \text{ per } n=T-1,\dots,0
 \end{equation}
 
 \subsection{La parte integrale}
-Al sistema \eqref{eq:PDEpriceMatrixes} va aggiunta la parte integrale. Anche in questo caso viene trattata esplicitamente e messa nel \emph{rhs}. Si tratta dunque di calcolare il seguente integrale
+Al sistema \eqref{eq:PDEpriceMatrixes} va aggiunta la parte integrale. Anche in questo caso viene trattata esplicitamente e aggiunta all'\emph{rhs}. Dobbiamo dunque calcolare il seguente integrale:
 
 \begin{equation*}
  J(S)=\int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz
 \end{equation*}
- che poi andrà scritto come elemento dello spazio $\mathcal{P}_h^1$. In pratica, si calcola l'integrale nei punti $S_i$ della griglia, ottenendo un vettore $\mathbf{J}$ dove $\mathbf{J}_i=J(S_i)$. La \eqref{eq:PDEpriceMatrixes} diventa dunque 
+che poi andrà scritto come elemento dello spazio $\mathbb{P}_h^1$. Occorre quindi calcolare l'integrale nei punti $S_i$ della griglia, ottenendo un vettore $J$ dove $J_i=J(S_i)$. La \eqref{eq:PDEpriceMatrixes} diventa dunque: 
  
 \begin{equation}
  \label{eq:PDEpriceMatrixeswithJ}
- M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1}+M\mathbf{J}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+ M_1\gamma^n=M_2\gamma^{n+1}+MJ^{n+1} \qquad \text{ per } n=T-1,\dots,0
 \end{equation}
 
-Il problema si riduce dunque a calcolare la seguente quantità
+Il problema si riduce dunque a calcolare la seguente quantità:
 
 \begin{equation*}
  J^n(S_i)=\int_0^\infty \frac{C(t_n,z)}{z}\nu\left(\log\left(\frac{z}{S_i}\right) \right)dz
 \end{equation*}
 per ogni nodo della griglia.\\
-Notiamo che rispetto al metodo logprice non c'è più il problema dello shift sui nodi della griglia, ma il termine è comunque non locale perché per ogni vertice si integra su tutto il dominio.\\
-Per il calcolo di tale termine, abbiamo deciso di adottare la seguente procedura: Per ogni cella della griglia, si calcola il valore della funzione $$\frac{C(t_k,z_l)}{z}$$ su opportuni nodi di quadratura. Poi, per ogni nodo $S_i$ della griglia si calcola il contributo di tale cella al valore di $\mathbf{J}^n_i$ valutandola contro la densità calcolata in $\log(\sfrac{z_l}{S_i})$
-Riassumendo il termine $i$-esimo di $\mathbf{J}^k$ viene calcolato come
+Notiamo che rispetto al metodo \emph{log-price} non c'è più il problema dello \emph{shift} sui nodi della griglia, ma il termine è comunque non locale perché per ogni vertice si integra su tutto il dominio.\\
+Per il calcolo di tale termine, abbiamo deciso di adottare la seguente procedura: per ogni cella della griglia, calcoliamo il valore della funzione: $$\frac{C(t_k,z_l)}{z}$$ su opportuni nodi di quadratura $z_l$. Poi, per ogni nodo $S_i$ della griglia calcoliamo il contributo di tale cella al valore di $J^n_i$ valutandola contro la densità calcolata in $\log(\sfrac{z_l}{S_i})$.
+Riassumendo, il termine $i$-esimo di $J^k$ viene calcolato come:
 \begin{equation*}
- \mathbf{J}^n_i=\sum\limits_{Q_k\in \Omega_h}\left( \sum\limits_{z_l\in Q_k}\frac{C(t_n,z_l)}{z_l}\nu\left(\log\left(\frac{z_l}{S_i}\right)\right)\omega_l\right)
+J^n_i=\sum\limits_{Q_k\in \Omega_h}\left( \sum\limits_{z_l\in Q_k}\frac{C(t_n,z_l)}{z_l}\nu\left(\log\left(\frac{z_l}{S_i}\right)\right)w_l\right)
 \end{equation*}
-dove $Q_k$ sono le celle della griglia, e $z_l$ e $\omega_l$ sono i punti e i pesi di quadratura in quella cella. Notiamo che siccome la densità è calcolata in $\log(\sfrac{z_l}{S_i})$, non è più utile fare ricorso a formule di quadratura speciali per i modelli di Kou e Merton.
+dove $Q_k$ sono le celle della griglia, e $w_l$ sono i pesi di quadratura in quella cella. Notiamo che siccome la densità è calcolata in $\log(\sfrac{z_l}{S_i})$ non è più utile fare ricorso a formule di quadratura speciali per i modelli di Kou e Merton, come nel caso \emph{log-price}. Per questo motivo, per calcolare questi integrali abbiamo sfruttato dei classici nodi di Gauss offerti da \textsf{deal.ii}.
 
 \subsection{Il caso bidimensionale}
-In modo analogo è possibile trattare il caso bidimensionale. Separando le parti dell'integrale che non dipendono dal valore della funzione, possiamo riscrivere la \eqref{pide2d} come
+In modo analogo è possibile trattare il caso bidimensionale. Separando le parti dell'integrale che non dipendono dal valore della funzione, possiamo riscrivere la \eqref{pide2d} come:
 
 \begin{multline*}
- \der{C}{t}+(r-\hat{\alpha}^1)S_1\der{C}{S_1}+(r-\hat{\alpha}^2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}\\-(r+\lambda^1+\lambda^2)C+\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0,
+ \der{C}{t}+(r-\hat{\alpha}^1)S_1\der{C}{S_1}+(r-\hat{\alpha}^2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}\\
+ +\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-(r+\lambda^1+\lambda^2)C\\
+ +\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0.
 \end{multline*}
-Notiamo che quest'ultima equazione si può riscrivere in forma vettoriale come
+Notiamo che quest'ultima equazione si può riscrivere in forma vettoriale come:
 
 \begin{equation}
  \der{C}{t}+\mathbf{t}\cdot\nabla C+(D\nabla)\cdot\nabla C -(r+\lambda^1+\lambda^2)C=0
@@ -578,41 +584,41 @@ dove il vettore $\mathbf{t}$ e la matrice $D$ sono così definite:
 \begin{bmatrix}
  (r-\hat{\alpha}^1)S_1\\
  (r-\hat{\alpha}^2)S_2
-\end{bmatrix}
+\end{bmatrix},
 \qquad
 D=\frac{1}{2}
 \begin{bmatrix}
  \sigma^2_1 S_1^2 & \rho\sigma_1\sigma_2S_1S_2 \\
  \rho\sigma_1\sigma_2S_1S_2 & \sigma^2_2 S_2^2
-\end{bmatrix}
+\end{bmatrix}.
 \end{equation*}
 Analogamente al caso monodimensionale, il dominio va troncato seguendo lo stesso principio.\\
-Come nel paragrafo precedente, trattiamo in modo separato parte differenziale e parte integrale. Il passaggio alla formulazione debole della parte differenziale è stata trattata per esempio in \cite{tao2009finite}, ed è analoga a quella monodimensionale. In definitiva, approssimando la funzione incognita $C$ come un elemento dello spazio
+Come nel paragrafo precedente, trattiamo in modo separato parte differenziale e parte integrale. Il passaggio alla formulazione debole della parte differenziale è stata trattata in \cite{tao2009finite}, ed è analoga a quella monodimensionale. In definitiva, approssimando la funzione incognita $C$ come un elemento dello spazio $\mathbb{P}_h^1$:
 
 \begin{equation*}
-C_h(t,S_1,S_2)=\sum_{j=0}^N\gamma_j(t)\phi_j(S_1,S_2) 
+C_h(t,S_1,S_2)=\sum_{j=0}^N\gamma_j(t)\phi_j(S_1,S_2),
 \end{equation*}
 si ottiene la seguente formulazione debole per la parte differenziale (omettiamo la dipendenza di $\phi_k$ da $(S_1,S_2)$):
 
 \begin{multline*}
- \sum_{j=0}^N\left[\der{C}{t}\gamma_j(t)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} +\gamma_j(t)\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
- \left.-\gamma_j(t)\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}-(r-\lambda_1-\lambda_2)\gamma_j(t)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=0
+ \sum_{j=0}^N\left[\der{C}{t}\gamma_j(t)\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} +\gamma_j(t)\iint_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
+ \left.-\gamma_j(t)\iint_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}-(r-\lambda_1-\lambda_2)\gamma_j(t)\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=0
 \end{multline*}
 che deve valere per ogni elemento della base $\phi_i$.\\
-Utilizzando ancora una discretizzazione temporale del tipo eulero implicito otteniamo
+Utilizzando ancora una discretizzazione temporale del tipo Eulero Implicito otteniamo:
 
 \begin{multline*}
- \sum_{j=0}^N\left[\frac{\gamma_j(t_n)}{dt}\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} -\gamma_j(t_n)\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
- \left.+\gamma_j(t_n)\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}+(r-\lambda_1-\lambda_2)\gamma_j(t_n)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=\\
- =\sum_{j=0}^N\frac{\gamma_j(t_{n+1})}{dt}\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S}
+ \sum_{j=0}^N\left[\frac{\gamma_j(t_n)}{\Delta t}\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} -\gamma_j(t_n)\iint_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
+ \left.+\gamma_j(t_n)\iint_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}+(r-\lambda_1-\lambda_2)\gamma_j(t_n)\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=\\
+ =\sum_{j=0}^N\frac{\gamma_j(t_{n+1})}{dt}\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S}
 \end{multline*}
 
 
-Introducendo ancora una volta il vettore $\bm{\gamma}^k$ delle componenti di $C_h$ al tempo $k$ e le matrici $M_1$, $M_2$ e $M$:
+Introducendo\todo{Mettere mathbf a TUTTI i vettori} ancora una volta il vettore $\bm{\gamma}^k$ delle componenti di $C_h$ al tempo $k$ e le matrici $M_1$, $M_2$ e $M$:
 
 \begin{align*}
  (M_1)_{ij}&=\left(\frac{1}{dt}+r-\lambda_1-\lambda_2\right)\int\int_{\Omega_h}\phi_i\phi_jd\mathbf{S}+\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}\\&
- -\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\\
+ -\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla\phi_j d\mathbf{S}\\
  (M)_{ij}&=\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \qquad M_2=\frac{1}{dt}M
 \end{align*}
 
