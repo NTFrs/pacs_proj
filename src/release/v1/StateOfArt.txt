@@ -12,9 +12,6 @@ TODO aggiunte:
 	->barriera
 
 Essay:
-->price e discretizzazione price con formulazioe debole
-->la parte integrale come viene calcolata
-->descrivere la classi levyIntegral
 
 Convenzioni:
 -> variabili in minuscolo
