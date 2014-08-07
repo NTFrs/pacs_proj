@@ -20,6 +20,15 @@ public:
         
         LevyIntegralLogPriceMerton(const LevyIntegralLogPriceMerton &)=delete;
         
+		//! Only constructor of this class
+		/*!
+		 * Similar to constructor of base class,  adds the space for a boundary condition.
+		 * \param lower_limit_ 		the left-bottom limit of the domain		
+		 * \param upper_limit_ 		the rigth-upper limit of the domain
+		 * \param Models_			A vector containing the needed models
+		 * \param BC_ 				Pointer to the Boundary Condition. Best to use std::move(BC),  where BC is std::unique_ptr to a dinamically allocated Function\<dim\> object from Deal.II (possibly a BoundaryConditionLogPrice)
+		 * \param apt				Used to set if the quadrature uses adaptive nodes (Default true)
+		 */
         LevyIntegralLogPriceMerton(dealii::Point<dim> lower_limit_,
                                    dealii::Point<dim> upper_limit_,
                                    std::vector<Model *> & Models_,

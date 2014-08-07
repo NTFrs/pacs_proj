@@ -28,14 +28,14 @@ public:
         
         LevyIntegralPrice& operator=(const LevyIntegralPrice &)=delete;
         
-	//TODO add exception
-	//! Computes the j part of the integrals
-	/*!
-         * This method computes the j part of the integrals and stores them inside j1 and j2 members. In a generic dimension does nothing,  it is only specialized for dimension 1 and 2.
-	 * \param sol			DealII Vector containing the values of the solutio function
-	 * \param dof_handler	DealII DoF Handler associated to this triangulation and solution
-	 * \param fe			DealII Finite elements associated to this triangulation and solution
-         */
+		//TODO add exception
+		//! Computes the j part of the integrals
+		/*!
+	         * This method computes the j part of the integrals and stores them inside j1 and j2 members. In a generic dimension does nothing,  it is only specialized for dimension 1 and 2.
+		 * \param sol			DealII Vector containing the values of the solutio function
+		 * \param dof_handler	DealII DoF Handler associated to this triangulation and solution
+		 * \param fe			DealII Finite elements associated to this triangulation and solution
+	     */
         virtual void compute_J(dealii::Vector<double> & sol,
                                dealii::DoFHandler<dim> & dof_handler,
                                dealii::FE_Q<dim> & fe) {
