@@ -3,7 +3,6 @@
 
 #include "deal_ii.hpp"
 #include "models.hpp"
-#include <boost/numeric/ublas/assignment.hpp>
 //! This namespace contains tools that are used in the library
 /*!
  * Here are gathered the functions and auxiliary classes that should not be members the classes in the library.
