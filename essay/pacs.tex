@@ -599,11 +599,60 @@ si ottiene la seguente formulazione debole per la parte differenziale (omettiamo
  \left.-\gamma_j(t)\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}-(r-\lambda_1-\lambda_2)\gamma_j(t)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=0
 \end{multline*}
 che deve valere per ogni elemento della base $\phi_i$.\\
-Utilizzando ancora una discretizzazione temporale del tipo eulero implicito
+Utilizzando ancora una discretizzazione temporale del tipo eulero implicito otteniamo
+
+\begin{multline*}
+ \sum_{j=0}^N\left[\frac{\gamma_j(t_n)}{dt}\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} -\gamma_j(t_n)\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
+ \left.+\gamma_j(t_n)\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}+(r-\lambda_1-\lambda_2)\gamma_j(t_n)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=\\
+ =\sum_{j=0}^N\frac{\gamma_j(t_{n+1})}{dt}\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S}
+\end{multline*}
 
 
-Introducendo ancora una volta il vettore $\bm{\gamma}$ e le matrici 
+Introducendo ancora una volta il vettore $\bm{\gamma}^k$ delle componenti di $C_h$ al tempo $k$ e le matrici $M_1$, $M_2$ e $M$:
 
+\begin{align*}
+ (M_1)_{ij}&=\left(\frac{1}{dt}+r-\lambda_1-\lambda_2\right)\int\int_{\Omega_h}\phi_i\phi_jd\mathbf{S}+\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}\\&
+ -\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\\
+ (M)_{ij}&=\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \qquad M_2=\frac{1}{dt}M
+\end{align*}
+
+il sistema si scrive in forma matriciale come
+
+\begin{equation}
+ \label{eq:PDEpriceMatrixes-2d}
+ M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+\end{equation}
+
+\paragraph{La parte integrale}
+Al sistema \eqref{eq:PDEpriceMatrixes-2d} vanno aggiunte nel \emph{rhs} le parti integrali $J^1$ e $J^2$. Analogamente al caso monodimensionale, si calcolano prima e poi vengono scritte nella base di elementi finiti ottenendo il sistema seguente:
+
+\begin{equation}
+ \label{eq:PDEpriceMatrixeswithJ-2d}
+ M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1}+M\mathbf{J^1}^{n+1}+M\mathbf{J^2}^{n+1}\qquad \text{ per } n=T-1,\dots,0
+\end{equation}
+
+per quanto riguarda il calcolo di J, il caso bidimensionle è più delicato. Riportiamo l'espressione di $J^1$ e $J^2$ una volta eseguita la trasformazione price
+
+\begin{align*}
+ J^1(t,S_1,S_2)&= \int_\mathbb{R} \frac{C(t,z,S_2)}{z}\nu_1\left(log\left(\frac{z}{S_1}\right)\right)dz \\
+ J^1(t,S_1,S_2)&= \int_\mathbb{R} \frac{C(t,S_1,z)}{z}\nu_1\left(log\left(\frac{z}{S_2}\right)\right)dz
+\end{align*}
+
+Per ogni punto $(S_1,S_2)_j$ della griglia, devono essere calcolati $J^1(t,S_{1,j},S_{2,j})$ e $J^2(t,S_{1,j},S_{2,j})$ lungo i segmenti contenuti nel dominio con direzione $x$ e $y$ che passano da $(S_1,S_2)_j$. Se la griglia è strutturata, questo corrisponde a integrare sulle facce delle celle. Una faccia parallela all'asse $x$ contribuisce al calcolo dell'$i$-esimo termine di $\mathbf{J}^1$ se la coordinata $y$ della faccia è la stessa della coordinata $y$ del punto $(S_1,S_2)_i$.\\
+In sostanza, se definiamo per ogni nodo $(S_1,S_2)_j$ l'insieme $\mathcal{F}^1_j$ delle facce parallele all'asse $x$ aventi come coordinata $y=S_{2,j}$ e in modo analogo l'insieme $\mathcal{F}^2_j$ per le facce parallele all'asse $y$, abbiamo le seguenti formule per il calcolo dei vettori $\mathbf{J}^k$ al tempo $k$
+
+\begin{align*}
+ (\mathbf{J}^{1,k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^1_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,z_l,S_2)}{z_l}\nu_1\left(\log\left(\frac{z_l}{S_{1,j}}\right)\right)\omega_l\\
+ (\mathbf{J}^{2,k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^2_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,S_1,z_l)}{z_l}\nu_2\left(\log\left(\frac{z_l}{S_{2,j}}\right)\right)\omega_l
+\end{align*}
+
+Queste formule vengono poi implementate nel modo descritto in \ref{subsec:LevyIntegralPrice}.
+
+\subsection{Le condizioni al contorno}
+Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=\max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
 \section{\emph{Mesh refinement}}
@@ -721,6 +770,7 @@ Questa classe implementa \textsf{compute\_J()} per la forma logprice, ed è sost
 In sostanza, sia in una che in due dimensioni (e potenzialmente in più), il calcolo di $\mathbf{J}^i$ viene svolto facendo un ciclo su tutti i nodi della griglia e in ciascuno calcolando il valore dell'integrale in quel punto e per fare ciò fa ricorso alla classe ausiliaria \textsf{Solution\_Trimmer}. Tale classe è praticamente un funtore che, inizializzato con la soluzione e la mappatura dei gradi di libertà di Deal.II (il \textsf{DoFHandler}) agisce diversamente a seconda che il punto stia dentro o fuori dal dominio. Nel primo caso chiama una funzione di Deal.II che individua in che cella si trova il nodo e restituisce il valore della funzione in tale punto, nel secondo caso impone il valore al bordo. La parte computazionalmente costosa è appunto la valutazione in un punto interno al dominio, poiché deve individuare in quale cella si trova (ricordiamo qui che la funzione incognita va valutata nel punto $y_l+x_i$, dove $y_l$ sono i nodi di quadratura e $x_i$ il nodo attuale, quindi ad ogni nodo in punti diversi).\\
 Una volta ottenuto il valore della soluzione nel punto (sia esso dentro o fuori dal dominio) è possibile effettuare la quadratura dell'integrale. A questo livello, utilizza una quadratura generica poiché non vi è un modello specifico.
 \paragraph{\textsf{LevyIntegralPrice}}
+\label{subsec:LevyIntegralPrice}
 Questa classe implementa \textsf{compute\_J()} specializzando il metodo sul parametro template, ossia la dimensione. Infatti, come già spiegato nella sezione \ref{sec:Price}, il modo in cui calcolare $\mathbf{J}^i$ è fondamentalmente diverso.\\
 In una dimensione, per ogni nodo della griglia, bisogna integrare sulla stessa griglia, e quindi si scorrono tutte le celle calcolando il contributo. In due dimensioni, il contributo a $\mathbf{J}^1$ nel nodo $S_i$ è calcolato sulla retta monodimensionale parallela all'asse delle ascisse, mentre il contributo a $\mathbf{J}^2$ è calcolato lungo la retta parallela all'asse delle ordinate. Quindi si scorrono le facce delle celle della griglia, e su ciascuna faccia si calcola il contributo a ogni nodo appartenente alla retta su cui giace la faccia in questione. Sebbene è una procedura complicata \todo{richiede una griglia strutturata?} e richiede che tutti i nodi vengano visitati ma solo alcuni usati per la faccia corrente, è più rapida rispetto al calcolo con il metodo logprice. Infatti, in questo caso la funzione va valutata nei nodi di quadratura che cadono sulla faccia attuale, quindi dalla posizione nota.
 
