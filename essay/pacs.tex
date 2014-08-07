@@ -326,7 +326,7 @@ Sia $S_t$ nella forma \ref{explevy} con l'ipotesi: $$\int_{|x|>1} e^{2x}\nu(dx)<
 \end{theorem}
 Per quanto riguarda opzioni su due \emph{asset}, nell'ipotesi che le parti di salto dei due sottostanti siano indipendenti fra di loro, l'equazione \ref{pde2d} diventa:
 \begin{multline}
-\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2\dmix{C}{S_1}{S_2}-rC\\+\int_\mathbb{R}\left(C(t,S_1e^y,S_2)-C(t,S_1,S_2)-S_1(e^y-1)\der{C}{S_1}(t,S_1,S_2)\right)\nu_1(dy)\\+\int_\mathbb{R}\left(C(t,S_1,S_2e^y)-C(t,S_1,S_2)-S_2(e^y-1)\der{C}{S_2}(t,S_1,S_2)\right)\nu_2(dy)=0,
+\der{C}{t}+rS_1\der{C}{S_1}+rS_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-rC\\+\int_\mathbb{R}\left(C(t,S_1e^y,S_2)-C(t,S_1,S_2)-S_1(e^y-1)\der{C}{S_1}(t,S_1,S_2)\right)\nu_1(dy)\\+\int_\mathbb{R}\left(C(t,S_1,S_2e^y)-C(t,S_1,S_2)-S_2(e^y-1)\der{C}{S_2}(t,S_1,S_2)\right)\nu_2(dy)=0,
 \label{pide2d}
 \end{multline}
 dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'evy, rispettivamente con misure $\nu_1$ e $\nu_2$.\\Nel prossimo capitolo, presentiamo dei metodi numerici che trovino una soluzione approssimata per le equazioni presentate in questi due capitoli.
@@ -562,7 +562,47 @@ Riassumendo il termine $i$-esimo di $\mathbf{J}^k$ viene calcolato come
 dove $Q_k$ sono le celle della griglia, e $z_l$ e $\omega_l$ sono i punti e i pesi di quadratura in quella cella. Notiamo che siccome la densità è calcolata in $\log(\sfrac{z_l}{S_i})$, non è più utile fare ricorso a formule di quadratura speciali per i modelli di Kou e Merton.
 
 \subsection{Il caso bidimensionale}
-\todo{BIG TODO HERE: 2d price}
+In modo analogo è possibile trattare il caso bidimensionale. Separando le parti dell'integrale che non dipendono dal valore della funzione, possiamo riscrivere la \eqref{pide2d} come
+
+\begin{multline*}
+ \der{C}{t}+(r-\hat{\alpha}^1)S_1\der{C}{S_1}+(r-\hat{\alpha}^2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}+\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}\\-(r+\lambda^1+\lambda^2)C+\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0,
+\end{multline*}
+Notiamo che quest'ultima equazione si può riscrivere in forma vettoriale come
+
+\begin{equation}
+ \der{C}{t}+\mathbf{t}\cdot\nabla C+(D\nabla)\cdot\nabla C -(r+\lambda^1+\lambda^2)C=0
+\end{equation}
+dove il vettore $\mathbf{t}$ e la matrice $D$ sono così definite:
+\begin{equation*}
+\mathbf{t}=
+\begin{bmatrix}
+ (r-\hat{\alpha}^1)S_1\\
+ (r-\hat{\alpha}^2)S_2
+\end{bmatrix}
+\qquad
+D=\frac{1}{2}
+\begin{bmatrix}
+ \sigma^2_1 S_1^2 & \rho\sigma_1\sigma_2S_1S_2 \\
+ \rho\sigma_1\sigma_2S_1S_2 & \sigma^2_2 S_2^2
+\end{bmatrix}
+\end{equation*}
+Analogamente al caso monodimensionale, il dominio va troncato seguendo lo stesso principio.\\
+Come nel paragrafo precedente, trattiamo in modo separato parte differenziale e parte integrale. Il passaggio alla formulazione debole della parte differenziale è stata trattata per esempio in \cite{tao2009finite}, ed è analoga a quella monodimensionale. In definitiva, approssimando la funzione incognita $C$ come un elemento dello spazio
+
+\begin{equation*}
+C_h(t,S_1,S_2)=\sum_{j=0}^N\gamma_j(t)\phi_j(S_1,S_2) 
+\end{equation*}
+si ottiene la seguente formulazione debole per la parte differenziale (omettiamo la dipendenza di $\phi_k$ da $(S_1,S_2)$):
+
+\begin{multline*}
+ \sum_{j=0}^N\left[\der{C}{t}\gamma_j(t)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} +\gamma_j(t)\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
+ \left.-\gamma_j(t)\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}-(r-\lambda_1-\lambda_2)\gamma_j(t)\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=0
+\end{multline*}
+che deve valere per ogni elemento della base $\phi_i$.\\
+Utilizzando ancora una discretizzazione temporale del tipo eulero implicito
+
+
+Introducendo ancora una volta il vettore $\bm{\gamma}$ e le matrici 
 
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \ref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, una variazione del metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=\max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \ref{putbound}.
