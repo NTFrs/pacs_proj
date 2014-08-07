@@ -47,6 +47,10 @@ makefile
 *.toc
 *converted-to*
 *.tdo
+*.backup
+*.bbl
+*.blg
+
 #doxy
 @ONLY
 
