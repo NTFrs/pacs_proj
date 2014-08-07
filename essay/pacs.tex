@@ -366,17 +366,17 @@ S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\ri
 \end{align}
 dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$x_{min}=log(\sfrac{S_{min}}{S_0}), \qquad x_{max}=log(\sfrac{S_{max}}{S_0}).$$
 \subsection{Discretizzazione della PDE}
-Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`e la sola PDE del modello di \emph{Black\&Scholes}. Siano quindi $\Omega_h$ una triangolazione con $N+1$ nodi di $\Omega=[x_{min},x_{max}]$ e $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ una griglia temporale. Cerchiamo una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}a_j(t_n)\phi_j(x),$$ dove $a_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\Passiamo ora alla formulazione debole del problema \ref{callbs1d}:
+Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`e la sola PDE del modello di \emph{Black\&Scholes}. Siano quindi $\Omega_h$ una triangolazione con $N+1$ nodi di $\Omega=[x_{min},x_{max}]$ e $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ una griglia temporale. Cerchiamo una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}\alpha_j(t_n)\phi_j(x),$$ dove $\alpha_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\Passiamo ora alla formulazione debole del problema \ref{callbs1d}:
 \begin{multline}
-\sum_{j=1}^{N-1}\int_{\Omega_h}\left(\frac{\partial}{\partial t}(a_j(t)\phi_j(x))\phi_i(x)\right)dx+\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}a_j(t)\phi_j'(x)\phi_i(x)dx\\
-+\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}a_j(t)\phi_j''(x)\phi_i(x)dx=\sum_{j=1}^{N-1}r\int_{\Omega_h}a_j(t)\phi_j(x)\phi_i(x)dx,
+\sum_{j=1}^{N-1}\int_{\Omega_h}\left(\frac{\partial}{\partial t}(\alpha_j(t)\phi_j(x))\phi_i(x)\right)dx+\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}\alpha_j(t)\phi_j'(x)\phi_i(x)dx\\
++\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}\alpha_j(t)\phi_j''(x)\phi_i(x)dx=\sum_{j=1}^{N-1}r\int_{\Omega_h}\alpha_j(t)\phi_j(x)\phi_i(x)dx,
 \end{multline}
-$\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Applicando inoltre le condizioni al bordo, otteniamo: $$a_0=0, \qquad a_N=S_{max}-K.$$
+$\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Applicando inoltre le condizioni al bordo, otteniamo: $$\alpha_0=0, \qquad \alpha_N=S_{max}-K.$$
 Applicando ora uno schema di Eulero Implicito per la derivata prima in tempo, giungiamo a:
 \begin{multline}
-\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{a_j(t_{n+1})\phi_j(x)}{\Delta t}\phi_i(x)dx-\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{a_j(t_n)\phi_j(x)}{\Delta t}\phi_i(x)dx\\
-+\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}a_j(t_n)\phi_j'(x)\phi_i(x)dx+\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}a_j(t_n)\phi_j''(x)\phi_i(x)dx\\
-=\sum_{j=1}^{N-1}r\int_{\Omega_h}a_j(t_n)\phi_j(x)\phi_i(x)dx,
+\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{\alpha_j(t_{n+1})\phi_j(x)}{\Delta t}\phi_i(x)dx-\sum_{j=1}^{N-1}\int_{\Omega_h}\frac{\alpha_j(t_n)\phi_j(x)}{\Delta t}\phi_i(x)dx\\
++\sum_{j=1}^{N-1}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}\alpha_j(t_n)\phi_j'(x)\phi_i(x)dx+\sum_{j=1}^{N-1}\frac{\sigma^2}{2}\int_{\Omega_h}\alpha_j(t_n)\phi_j''(x)\phi_i(x)dx\\
+=\sum_{j=1}^{N-1}r\int_{\Omega_h}\alpha_j(t_n)\phi_j(x)\phi_i(x)dx,
 \end{multline}
 $\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Poniamo infine:
 \begin{align*}
@@ -386,7 +386,7 @@ c_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i'(x)dx.
 \end{align*}
 Otteniamo quindi la seguente discretizzazione per la PDE:$$\sum_{j=1}^{N-1}\alpha_j(t_{n+1})\frac{a_{ij}}{\Delta t}=\sum_{j=1}^{N-1}\alpha_j(t_{n})\left(\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij}\right).$$
 \subsection{La parte integrale}
-Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che, se la misura di probabilità è assolutamente continua rispetto alla misura di Lesbegue (vero per i modelli di Kou e Merton) si ha che$$\nu(dy)=\nu(y)dy.$$ Inoltre, siccome l'integrale della misura sullo spazio è finito nel caso dei \emph{Compound Poisson}, possiamo separare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
+Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che, se la misura di probabilità è assolutamente continua rispetto alla misura di Lesbegue (e ci\`o \`e verificato per i modelli di Kou e Merton), si ha che:$$\nu(dy)=\nu(y)dy.$$ Inoltre, siccome l'integrale della misura sullo spazio è finito nel caso dei \emph{Compound Poisson}, possiamo separare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
 \begin{align*}
 \hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
 \hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
@@ -402,7 +402,7 @@ dove $q_j$ sono i nodi di quadratura su $\mathbb{R}$, mentre $w_j$ sono i pesi c
 \int_\mathbb{R}u(t,x+y)\nu(y)dy,
 \label{intnonlocal}
 \end{equation}
-e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e quindi la seguente:$$M_1u^n=M_2u^{n+1}+MJ,$$ in cui: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che l'integrale viene calcolato esplicitamente. D'altro canto, un calcolo implicito richiederebbe la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer. Dalla teoria sappiamo che questo metodo, detto \emph{operator splitting}, \`e stabile se: $$\Delta t\leq\sfrac{1}{\lambda},$$una condizione molto semplice da soddisfare.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
+e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`e un termine non locale. Esso infatti \`e difficilmente trattabile poich\'e il termine $x+y$ introduce un possibile \emph{shift} al di fuori dei nodi della griglia, sul quale occorre calcolare la soluzione. Per il calcolo numerico di questo termine, abbiamo deciso di utilizzare l'approccio pi\`u diffuso in finanza, ovvero un approccio simile a quello usato con i metodi alle differenze finite. In particolare, posti $x_i\in\Omega_h$ i nodi della griglia, poniamo $$J_i=J(x_i)=\int_\mathbb{R}u(t,x_i+y)\nu(y)dy,$$ $\forall i\in\{0,...,N\}.$ Qualora $u(t,x_i+y)$ cada fuori dalla \emph{mesh}, proiettiamo le condizioni al bordo del problema. Possiamo cos\`i scrivere la formulazione debole del termine \ref{intnonlocal} in questo modo: $$\sum_{j=0}^{N}J_j\int_{\Omega_h}\phi_j(x)\phi_i(x)dx,$$ $\forall i\in\{0,...,N\}.$ Da un punto di vista matriciale, occorre quindi moltiplicare il vettore $J$ per la matrice di massa i cui coefficienti sono i termini $a_{ij}$ definiti sopra.\\\\La discretizzazione completa in forma matriciale della PIDE monodimensionale \`e quindi la seguente:$$M_1u^n=M_2u^{n+1}+MJ,$$ dove $u^{n+1}$ e $u^n$ sono la soluzione al passo precedente e successivo (ricordiamo infatti che l'equazione \`e \emph{backward}) e le matrici sono date da: $$M_{1,ij}=\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij},$$ $$M_{2,ij}=\frac{a_{ij}}{\Delta t},\qquad\qquad M_{ij}=a_{ij}.$$Osserviamo quindi che l'integrale viene calcolato esplicitamente. D'altro canto, un calcolo implicito richiederebbe la costruzione di una matrice di sistema piena, molto pesante da invertire e praticamente impossibile da memorizzare su un solo computer. Dalla teoria sappiamo che questo metodo, detto \emph{operator splitting}, \`e stabile se: $$\Delta t\leq\sfrac{1}{\lambda},$$una condizione molto semplice da soddisfare.\\\\L'altro approccio possibile \`e il seguente: prima si discretizza la funzione $u$, scrivendola come $u_h\in\mathbb{P}^h_1$, poi si integra. Abbiamo quindi:
 \begin{align*}
 &\int_{\Omega_h}\phi_i(x)\left( \int_{\mathbb{R}}\sum_{j=1}^N u_j^k \phi_j(x+y)\nu(y)dy \right)dx=\\ 
 &\sum_{j=1}^N  \int_{\Omega_h}\int_{\mathbb{R}} \phi_i(x)\phi_j(x+y)\nu(y)dxdy,
@@ -441,22 +441,21 @@ J_2^i&=J_2(x^i)=\int_\mathbb{R}u(t,x_1^i,x_2^i+y)\nu_2(y)dy,
 \end{align*}
 nei diversi nodi $x^i$ della griglia bidimensionale. Siamo quindi pronti a scrivere la formulazione debole del problema \eqref{pide2dcostcoeff2}:
 \begin{multline}
-\sum_{j=0}^{N}\int_{\Omega_h}\frac{\partial}{\partial t}\left(a_j(t)\phi_j(x,y)\phi_i(x,y)\right)d\Omega\\
-+\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\int_{\Omega_h}a_j(t)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
--\frac{1}{2}\sum_{j=0}^{N}\int_{\Omega_h}a_j(t)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
--(r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\int_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega\\
-+\sum_{j=0}^{N}J^j_1\int_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\int_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega=0,
+\sum_{j=0}^{N}\iint_{\Omega_h}\frac{\partial}{\partial t}\left(a_j(t)\phi_j(x,y)\phi_i(x,y)\right)d\Omega\\
++\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\iint_{\Omega_h}a_j(t)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
+-\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}a_j(t)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
+-(r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\iint_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega\\
++\sum_{j=0}^{N}J^j_1\iint_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\iint_{\Omega_h}a_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega=0,
 \end{multline}
 e la discretizzazione in tempo con uno schema di Eulero Implicito:
 \begin{multline}
-\sum_{j=0}^{N}\int_{\Omega_h}\frac{a_j(t_{n+1})}{\Delta t}\phi_j(x,y)\phi_i(x,y)d\Omega\\
-+\sum_{j=0}^{N}J^j_1\int_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\int_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega=\\
--\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\int_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
-+\frac{1}{2}\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
-+\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\sum_{j=0}^{N}\int_{\Omega_h}a_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
+\sum_{j=0}^{N}\iint_{\Omega_h}\frac{a_j(t_{n+1})}{\Delta t}\phi_j(x,y)\phi_i(x,y)d\Omega\\
++\sum_{j=0}^{N}J^j_1\iint_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\iint_{\Omega_h}a_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega=\\
+-\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\iint_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
++\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}a_j(t_n)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
++\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\sum_{j=0}^{N}\iint_{\Omega_h}a_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
 \end{multline}
-A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema e $M$ \`e la matrice di massa.
-
+A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$ dove $M_1$ e $M_2$ sono le matrici di sistema date dalla formulazione debole e $M$ \`e la matrice di massa.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%PRICES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -495,7 +494,7 @@ e l'equazione diventa:
 Notiamo che il dominio della funzione e dell'integrale coincidono, ossia sono entrambi $(0,\infty)$.
 Scegliamo il troncamento del dominio in modo analogo al caso \emph{log-price}, ossia definiamo $S_{min}$ e $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
 
-\subsection{Discretizzazione della parte PDE monodimensionale}
+\subsection{Discretizzazione della parte PDE}
 Concentriamoci prima sulla parte differenziale. Come nel caso della logprice, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. \todo{magari dire che le funzioni di base sono quelle di lagrange?} Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\
 Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $C_h$ al posto di $C$ otteniamo la formulazione debole del problema \eqref{eq:pide1dlog}:
 
@@ -557,30 +556,30 @@ Il problema si riduce dunque a calcolare la seguente quantità:
  J^n(S_i)=\int_0^\infty \frac{C(t_n,z)}{z}\nu\left(\log\left(\frac{z}{S_i}\right) \right)dz
 \end{equation*}
 per ogni nodo della griglia.\\
-Notiamo che rispetto al metodo \emph{log-price} non c'è più il problema dello \emph{shift} sui nodi della griglia, ma il termine è comunque non locale perché per ogni vertice si integra su tutto il dominio.\\
+Notiamo che rispetto al metodo \emph{log-price} non c'è più il problema dello \emph{shift} sui nodi, ma il termine è comunque non locale perché per ogni vertice si integra su tutto il dominio.\\
 Per il calcolo di tale termine, abbiamo deciso di adottare la seguente procedura: per ogni cella della griglia, calcoliamo il valore della funzione: $$\frac{C(t_k,z_l)}{z}$$ su opportuni nodi di quadratura $z_l$. Poi, per ogni nodo $S_i$ della griglia calcoliamo il contributo di tale cella al valore di $J^n_i$ valutandola contro la densità calcolata in $\log(\sfrac{z_l}{S_i})$.
 Riassumendo, il termine $i$-esimo di $J^k$ viene calcolato come:
 \begin{equation*}
 J^n_i=\sum\limits_{Q_k\in \Omega_h}\left( \sum\limits_{z_l\in Q_k}\frac{C(t_n,z_l)}{z_l}\nu\left(\log\left(\frac{z_l}{S_i}\right)\right)w_l\right)
 \end{equation*}
-dove $Q_k$ sono le celle della griglia, e $w_l$ sono i pesi di quadratura in quella cella. Notiamo che siccome la densità è calcolata in $\log(\sfrac{z_l}{S_i})$ non è più utile fare ricorso a formule di quadratura speciali per i modelli di Kou e Merton, come nel caso \emph{log-price}. Per questo motivo, per calcolare questi integrali abbiamo sfruttato dei classici nodi di Gauss offerti da \textsf{deal.ii}.
+dove $Q_k$ sono le celle della griglia, e $w_l$ sono i pesi di quadratura in quella cella. Notiamo che siccome la densità è calcolata in $\log(\sfrac{z_l}{S_i})$ non occorre pi\`u fare ricorso a formule di quadratura speciali per i modelli di Kou e Merton, come nel caso \emph{log-price}. Per questo motivo, per calcolare questi integrali abbiamo sfruttato dei classici nodi di Gauss offerti da \textsf{deal.ii}.
 
-\subsection{Il caso bidimensionale}
+\subsection{Discretizzazione della PIDE bidimensionale}
 In modo analogo è possibile trattare il caso bidimensionale. Separando le parti dell'integrale che non dipendono dal valore della funzione, possiamo riscrivere la \eqref{pide2d} come:
 
 \begin{multline*}
- \der{C}{t}+(r-\hat{\alpha}^1)S_1\der{C}{S_1}+(r-\hat{\alpha}^2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}\\
- +\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-(r+\lambda^1+\lambda^2)C\\
+ \der{C}{t}+(r-\hat{\alpha}_1)S_1\der{C}{S_1}+(r-\hat{\alpha}_2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}\\
+ +\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-(r+\lambda_1+\lambda_2)C\\
  +\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0.
 \end{multline*}
-Notiamo che quest'ultima equazione si può riscrivere in forma vettoriale come:
+Come nel paragrafo precedente, trattiamo in modo separato parte differenziale e parte integrale. Concentriamoci quindi sulla sola PDE e notiamo che essa pu\`o essere scritta in forma vettoriale, cio\`e:
 
 \begin{equation}
- \der{C}{t}+\mathbf{t}\cdot\nabla C+(D\nabla)\cdot\nabla C -(r+\lambda^1+\lambda^2)C=0
+ \der{C}{t}+t\cdot\nabla C+(D\nabla)\cdot\nabla C -(r+\lambda_1+\lambda_2)C=0
 \end{equation}
-dove il vettore $\mathbf{t}$ e la matrice $D$ sono così definite:
+dove il vettore $t$ e la matrice $D$ sono così definite:
 \begin{equation*}
-\mathbf{t}=
+t=
 \begin{bmatrix}
  (r-\hat{\alpha}^1)S_1\\
  (r-\hat{\alpha}^2)S_2
@@ -592,8 +591,8 @@ D=\frac{1}{2}
  \rho\sigma_1\sigma_2S_1S_2 & \sigma^2_2 S_2^2
 \end{bmatrix}.
 \end{equation*}
-Analogamente al caso monodimensionale, il dominio va troncato seguendo lo stesso principio.\\
-Come nel paragrafo precedente, trattiamo in modo separato parte differenziale e parte integrale. Il passaggio alla formulazione debole della parte differenziale è stata trattata in \cite{tao2009finite}, ed è analoga a quella monodimensionale. In definitiva, approssimando la funzione incognita $C$ come un elemento dello spazio $\mathbb{P}_h^1$:
+Analogamente al caso \emph{log-price}, il dominio va troncato seguendo lo stesso principio.\\
+Il passaggio alla formulazione debole della parte differenziale è stata trattata in \cite{tao2009finite}, ed è analoga a quella monodimensionale. In definitiva, approssimando la funzione incognita $C$ come un elemento dello spazio $\mathbb{P}_h^1$:
 
 \begin{equation*}
 C_h(t,S_1,S_2)=\sum_{j=0}^N\gamma_j(t)\phi_j(S_1,S_2),
@@ -601,60 +600,59 @@ C_h(t,S_1,S_2)=\sum_{j=0}^N\gamma_j(t)\phi_j(S_1,S_2),
 si ottiene la seguente formulazione debole per la parte differenziale (omettiamo la dipendenza di $\phi_k$ da $(S_1,S_2)$):
 
 \begin{multline*}
- \sum_{j=0}^N\left[\der{C}{t}\gamma_j(t)\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} +\gamma_j(t)\iint_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
- \left.-\gamma_j(t)\iint_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}-(r-\lambda_1-\lambda_2)\gamma_j(t)\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=0
+ \sum_{j=0}^N\left[\der{C}{t}\gamma_j(t)\iint_{\Omega_h}\phi_i\phi_j d\Omega +\gamma_j(t)\iint_{\Omega_h}\phi_i(t-Div D) \nabla\phi_j d\Omega\right.\\
+ \left.-\gamma_j(t)\iint_{\Omega_h}(\nabla\phi_i)^t D (\nabla\phi_j) d\Omega-(r-\lambda_1-\lambda_2)\gamma_j(t)\iint_{\Omega_h}\phi_i\phi_j d\Omega \right]=0
 \end{multline*}
 che deve valere per ogni elemento della base $\phi_i$.\\
 Utilizzando ancora una discretizzazione temporale del tipo Eulero Implicito otteniamo:
 
 \begin{multline*}
- \sum_{j=0}^N\left[\frac{\gamma_j(t_n)}{\Delta t}\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} -\gamma_j(t_n)\iint_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla \cdot \nabla\phi_j d\mathbf{S}\right.\\
- \left.+\gamma_j(t_n)\iint_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}+(r-\lambda_1-\lambda_2)\gamma_j(t_n)\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S} \right]=\\
- =\sum_{j=0}^N\frac{\gamma_j(t_{n+1})}{dt}\iint_{\Omega_h}\phi_i\phi_j d\mathbf{S}
+ \sum_{j=0}^N\left[\frac{\gamma_j(t_n)}{\Delta t}\iint_{\Omega_h}\phi_i\phi_j d\Omega -\gamma_j(t_n)\iint_{\Omega_h}\phi_i(t-Div D)\nabla\phi_j d\Omega\right.\\
+ \left.+\gamma_j(t_n)\iint_{\Omega_h}(\nabla\phi_i)^t D (\nabla\phi_j) d\Omega+(r-\lambda_1-\lambda_2)\gamma_j(t_n)\iint_{\Omega_h}\phi_i\phi_j d\Omega \right]=\\
+ =\sum_{j=0}^N\frac{\gamma_j(t_{n+1})}{\Delta t}\iint_{\Omega_h}\phi_i\phi_j d\Omega
 \end{multline*}
 
 
-Introducendo\todo{Mettere mathbf a TUTTI i vettori} ancora una volta il vettore $\bm{\gamma}^k$ delle componenti di $C_h$ al tempo $k$ e le matrici $M_1$, $M_2$ e $M$:
+Introducendo ancora una volta il vettore $\gamma^k$ delle componenti di $C_h$ al tempo $k$ e le matrici $M_1$, $M_2$ e $M$:
 
 \begin{align*}
- (M_1)_{ij}&=\left(\frac{1}{dt}+r-\lambda_1-\lambda_2\right)\int\int_{\Omega_h}\phi_i\phi_jd\mathbf{S}+\int\int_{\Omega_h}\nabla\phi_i D \nabla\phi_j d\mathbf{S}\\&
- -\int\int_{\Omega_h}\phi_i(\mathbf{t}-\nabla D)\nabla\phi_j d\mathbf{S}\\
- (M)_{ij}&=\int\int_{\Omega_h}\phi_i\phi_j d\mathbf{S} \qquad M_2=\frac{1}{dt}M
+ (M_1)_{ij}&=\left(\frac{1}{\Delta t}+r-\lambda_1-\lambda_2\right)\int_{\Omega_h}\phi_i\phi_jd\Omega+\int\int_{\Omega_h}(\nabla\phi_i)^t D (\nabla\phi_j) d\Omega\\&
+ -\iint_{\Omega_h}\phi_i(t-Div D)\nabla\phi_j d\Omega,\\
+ (M)_{ij}&=\iint_{\Omega_h}\phi_i\phi_j d\Omega, \qquad M_2=\frac{1}{\Delta t}M,
 \end{align*}
 
-il sistema si scrive in forma matriciale come
+possiamo scrivere il sistema in forma matriciale:
 
 \begin{equation}
  \label{eq:PDEpriceMatrixes-2d}
  M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
 \end{equation}
 
-\paragraph{La parte integrale}
-Al sistema \eqref{eq:PDEpriceMatrixes-2d} vanno aggiunte nel \emph{rhs} le parti integrali $J^1$ e $J^2$. Analogamente al caso monodimensionale, si calcolano prima e poi vengono scritte nella base di elementi finiti ottenendo il sistema seguente:
-
+Concentriamoci ora sulla parte integrale. Al sistema \eqref{eq:PDEpriceMatrixes-2d} vanno infatti aggiunte nell'\emph{rhs} le parti integrali $J_1$ e $J_2$. Analogamente al caso monodimensionale, otteniamo:
 \begin{equation}
  \label{eq:PDEpriceMatrixeswithJ-2d}
- M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1}+M\mathbf{J^1}^{n+1}+M\mathbf{J^2}^{n+1}\qquad \text{ per } n=T-1,\dots,0
+ M_1 \gamma^n=M_2\gamma^{n+1}+MJ_1^{n+1}+MJ_2^{n+1}\qquad \text{ per } n=T-1,\dots,0.
 \end{equation}
 
-per quanto riguarda il calcolo di J, il caso bidimensionle è più delicato. Riportiamo l'espressione di $J^1$ e $J^2$ una volta eseguita la trasformazione price
+Per quanto riguarda il calcolo di $J_1$ e $J_2$, il caso bidimensionle è più delicato. Riportiamo le espressioni di $J^1$ e $J^2$ una volta eseguita la trasformazione \emph{price}:
 
 \begin{align*}
- J^1(t,S_1,S_2)&= \int_\mathbb{R} \frac{C(t,z,S_2)}{z}\nu_1\left(log\left(\frac{z}{S_1}\right)\right)dz \\
- J^1(t,S_1,S_2)&= \int_\mathbb{R} \frac{C(t,S_1,z)}{z}\nu_1\left(log\left(\frac{z}{S_2}\right)\right)dz
+ J^1(t,S_1,S_2)&= \int_\mathbb{R} \frac{C(t,z,S_2)}{z}\nu_1\left(log\left(\frac{z}{S_1}\right)\right)dz,\\
+ J^1(t,S_1,S_2)&= \int_\mathbb{R} \frac{C(t,S_1,z)}{z}\nu_1\left(log\left(\frac{z}{S_2}\right)\right)dz.
 \end{align*}
 
-Per ogni punto $(S_1,S_2)_j$ della griglia, devono essere calcolati $J^1(t,S_{1,j},S_{2,j})$ e $J^2(t,S_{1,j},S_{2,j})$ lungo i segmenti contenuti nel dominio con direzione $x$ e $y$ che passano da $(S_1,S_2)_j$. Se la griglia è strutturata, questo corrisponde a integrare sulle facce delle celle. Una faccia parallela all'asse $x$ contribuisce al calcolo dell'$i$-esimo termine di $\mathbf{J}^1$ se la coordinata $y$ della faccia è la stessa della coordinata $y$ del punto $(S_1,S_2)_i$.\\
-In sostanza, se definiamo per ogni nodo $(S_1,S_2)_j$ l'insieme $\mathcal{F}^1_j$ delle facce parallele all'asse $x$ aventi come coordinata $y=S_{2,j}$ e in modo analogo l'insieme $\mathcal{F}^2_j$ per le facce parallele all'asse $y$, abbiamo le seguenti formule per il calcolo dei vettori $\mathbf{J}^k$ al tempo $k$
+Per ogni punto $(S_1,S_2)_j$ della griglia, devono essere calcolati $J_1(t,S_{1,j},S_{2,j})$ e $J_2(t,S_{1,j},S_{2,j})$ lungo i segmenti contenuti nel dominio con direzione $x$ e $y$ che passano da $(S_1,S_2)_j$. Se la griglia è strutturata, questo corrisponde a integrare sulle facce delle celle. Una faccia parallela all'asse $x$ contribuisce al calcolo dell'$i$-esimo termine di $J_1$ se la coordinata $y$ della faccia è la stessa della coordinata $y$ del punto $(S_1,S_2)_i$.\\
+In sostanza, se definiamo per ogni nodo $(S_1,S_2)_j$ l'insieme $\mathcal{F}^1_j$ delle facce parallele all'asse $x$ aventi come coordinata $y=S_{2,j}$ e in modo analogo l'insieme $\mathcal{F}^2_j$ per le facce parallele all'asse $y$, abbiamo le seguenti formule per il calcolo dei vettori $J_1$, $J_2$ al tempo $k$:
 
 \begin{align*}
- (\mathbf{J}^{1,k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^1_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,z_l,S_2)}{z_l}\nu_1\left(\log\left(\frac{z_l}{S_{1,j}}\right)\right)\omega_l\\
- (\mathbf{J}^{2,k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^2_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,S_1,z_l)}{z_l}\nu_2\left(\log\left(\frac{z_l}{S_{2,j}}\right)\right)\omega_l
+ (J_1^{k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^1_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,z_l,S_2)}{z_l}\nu_1\left(\log\left(\frac{z_l}{S_{1,j}}\right)\right)w_l,\\
+ (J_2^{k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^2_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,S_1,z_l)}{z_l}\nu_2\left(\log\left(\frac{z_l}{S_{2,j}}\right)\right)w_l,
 \end{align*}
-
+dove $z_l$, $w_l$ sono nodi e pesi di quadratura.
 Queste formule vengono poi implementate nel modo descritto in \ref{subsec:LevyIntegralPrice}.
 
-\subsection{Le condizioni al contorno}
+\section{Condizioni al contorno}
+\todo{CB per logprice}
 Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per price e logprice per via della trasformazione.
 
 
