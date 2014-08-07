@@ -302,7 +302,7 @@ Sia $(\Omega, \mathcal{F}, \mu)$ uno spazio misurabile e sia $\mathcal{F}_{t\in[
 Sia $X_t$ un L\'evy, allora poniamo $$\nu(A)=\mathbb{E}(\#\{t\in[0,1]: \Delta X_t\neq0, \Delta X_t\in A\}),$$ $\forall A\in \mathcal{B}$, e chiamiamo $\nu(A)$ la misura di L\'evy di $X_t$.
 \end{definition}
 \begin{definition}
-Sia $X_t$ un processo di L\'evy \todo{\`e un L\'evy?}, allora $X_t$ \`e un \emph{Compound Poisson} di intensit\`a $\lambda$ e distribuzione di salti $f$ se: $$X_t=\sum_{i=1}^{N_t}Y_i,$$ dove $N_t\sim$\emph{Poisson}$(\lambda)$ e $Y_i\sim f$, $Y_i$ i.i.d. $\forall i$.
+Sia $X_t$ un processo di L\'evy, allora $X_t$ \`e un \emph{Compound Poisson} di intensit\`a $\lambda$ e distribuzione di salti $f$ se: $$X_t=\sum_{i=1}^{N_t}Y_i,$$ dove $N_t\sim$\emph{Poisson}$(\lambda)$ e $Y_i\sim f$, $Y_i$ i.i.d. $\forall i$.
 \end{definition}
 \begin{theorem}
 Decomposizione di L\'evy-It$\hat{o}$ per processi ad attività finita.\\Sia $X_t$ un processo di L\'evy con misura $\nu$ finita, allora esistono due costanti $\gamma$ e $\sigma$ tali che:$$X_t=\gamma t+\sigma W_t+X^C_t,$$ dove $W_t$ \`e un moto browniano e $X^C_t$ un \emph{Compound Poisson}.
@@ -386,7 +386,7 @@ c_{ij}&=\int_{\Omega_h}\phi_j'(x)\phi_i'(x)dx.
 \end{align*}
 Otteniamo quindi la seguente discretizzazione per la PDE:$$\sum_{j=1}^{N-1}\alpha_j(t_{n+1})\frac{a_{ij}}{\Delta t}=\sum_{j=1}^{N-1}\alpha_j(t_{n})\left(\left(\frac{1}{\Delta t}+r\right)a_{ij}-\left(r-\frac{\sigma^2}{2}\right)b_{ij}+\frac{\sigma^2}{2}c_{ij}\right).$$
 \subsection{La parte integrale}
-Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che\todo{perch\'e?}:$$\nu(dy)=\nu(y)dy.$$ Possiamo quindi spezzare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
+Concentriamoci ora sulla parte integrale della \ref{eq:pide1dlog}:$$\int_\mathbb{R}\left(u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)$$e osserviamo che, se la misura di probabilità è assolutamente continua rispetto alla misura di Lesbegue (vero per i modelli di Kou e Merton) si ha che$$\nu(dy)=\nu(y)dy.$$ Inoltre, siccome l'integrale della misura sullo spazio è finito nel caso dei \emph{Compound Poisson}, possiamo separare l'integrale in tre parti distinte, e in particolare possiamo porre gli ultimi due addendi dell'integrale pari a:
 \begin{align*}
 \hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
 \hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
