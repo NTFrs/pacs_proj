@@ -334,7 +334,7 @@ dove $S_1$ e $S_2$ sono i due sottostanti descritti da modelli Exponential L\'ev
 \chapter{Metodi numerici per PDE e PIDE}
 %Di solito sempre FD, per\`o si possono usare FEM. Tuttavia per 2d non \`e mai stato fatto nulla da un punto di vista numerico. Perch\'e FEM? Possiamo raffinare, possiamo estendere in 3d (log price facile).
 \section{Introduzione}
-In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} non era mai stato tentato da nessuno (di cui noi siamo a conoscenza), tanto \`e vero che per validare i risultati ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile. Il primo, che permette di portare le equazioni a coefficienti costanti presenta l'inconveniente di dover calcolare l'integrale fuori dalla \emph{mesh}. Il secondo invece, lascia l'equazione cos\`i com\`e, ma permette di calcolare l'integrale nei soli punti della \emph{mesh}. Lasciamo i confronti sulle prestazione dei due cambi di variabile al capitolo dedicato, tuttavia a priori \`e facile capire che l'assemblaggio delle matrici con il primo cambio di variabile sar\`a pi\`u veloce rispetto al secondo, ma il calcolo dell'integrale sar\`a inesorabilmente pi\`u lento.
+In questo capitolo descriviamo i metodi numerici utilizzati nel codice che abbiamo prodotto per approssimare le soluzioni dei problemi differenziali descritti sopra. Prima di procedere per\`o vorremmo parlare di come sono trattate queste equazioni in finanza. Generalmente, in questo campo, si utilizzano sempre metodi basati sulle differenze finite. Noi, invece, abbiamo deciso di proporre un approccio a elementi finiti poich\'e riteniamo che, pur utilizzando domini per nulla complessi, i vantaggi degli elementi finiti siano evidenti anche per questo tipo di problemi, primo fra tutti la possibilit\`a di raffinare e anche "de-raffinare" la \emph{mesh} dove la soluzione lo richiede. Con questo tipo di approccio poi, non dovrebbe essere difficile estendere il problema al 3d, avendo cura di trattare correttamente gli integrali. Inoltre, una approccio FEM al problema \ref{pide2d} è molto difficile da trovare. In \cite{jinghui2009multi} si può trovare un analisi dell'equazione in forma debole, ma non vi è nessuna indicazione sugli algoritmi usati e tantomeno il codice. Per questo motivo, per validare i risultati ottenuti, abbiamo scritto un metodo MonteCarlo per prezzare le opzioni Basket con modelli di L\'evy.\\\\Tornando ora all'argomento del capitolo, per discretizzare le equazioni abbiamo utilizzato due cambi di variabile. Il primo, che permette di portare le equazioni a coefficienti costanti presenta l'inconveniente di dover calcolare l'integrale fuori dalla \emph{mesh}. Il secondo invece, lascia l'equazione cos\`i com\`e, ma permette di calcolare l'integrale nei soli punti della \emph{mesh}. Lasciamo i confronti sulle prestazione dei due cambi di variabile al capitolo dedicato, tuttavia a priori \`e facile capire che l'assemblaggio delle matrici con il primo cambio di variabile sar\`a pi\`u veloce rispetto al secondo, ma il calcolo dell'integrale sar\`a inesorabilmente pi\`u lento.
 
 \section{\emph{Log-Prices}}
 Ci occupiamo ora di mostrare la discretizzazione dell'equazione con il primo cambio di variabile. Trattiamo qui il solo caso della \emph{call} europea, in quanto per la \emph{put} e le americane la discretizzazione \`e la medesima, a meno di cambiare condizioni al bordo e dati finali.
@@ -421,7 +421,7 @@ Ponendo come sopra:$$\hat{\lambda_i}=\int_\mathbb{R}\nu_i(y)dy \qquad \hat{\alph
 \left(r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}\right)\der{u}{x_2}-(r+\hat{\lambda_1}+\hat{\lambda_2})u\\+
 \int_\mathbb{R}u(t,x_1+y,x_2)\nu_1(y)dy+
 \int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0.
-\label{pide2dcostcoeff2-2}
+\label{pide2dcostcoeff2}
 \end{multline}
 Di nuovo, applichiamo un troncamento al dominio calcolando $\{x_{min}^1, x_{max}^1\}$ e $\{x_{min}^2, x_{max}^2\}$ come in \ref{cut} e definiamo una triangolazione $\Omega_h$ sull'insieme sul rettangolo di vertici $(x_{min}^1, x_{min}^2)$, $(x_{max}^1, x_{max}^2)$, la griglia temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ e uno spazio $\mathbb{P}_h^1$ in cui cerchiamo la soluzione $u_h$.
 Prima di passare alla formulazione debole, osserviamo che l'equazione pu\`o essere scritta nel seguente modo:
@@ -435,7 +435,7 @@ Osserviamo inoltre che, pur essendo un'equazione bidimensionale, la parte integr
 J_1^i&=J_1(x^i)=\int_\mathbb{R}u(t,x_1^i+y,x_2^i)\nu_1(y)dy,\\
 J_2^i&=J_2(x^i)=\int_\mathbb{R}u(t,x_1^i,x_2^i+y)\nu_2(y)dy,
 \end{align*}
-nei diversi nodi $x^i$ della griglia bidimensionale. Siamo quindi pronti a scrivere la formulazione debole del problema \ref{pide2dcostcoeff2}:
+nei diversi nodi $x^i$ della griglia bidimensionale. Siamo quindi pronti a scrivere la formulazione debole del problema \eqref{pide2dcostcoeff2}:
 \begin{multline}
 \sum_{j=0}^{N}\int_{\Omega_h}\frac{\partial}{\partial t}\left(a_j(t)\phi_j(x,y)\phi_i(x,y)\right)d\Omega\\
 +\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\int_{\Omega_h}a_j(t)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
@@ -703,6 +703,12 @@ Heston?
 %Aggiungere altri modelli (NIG, VG), provare altre opzioni, farlo in 3d, Heston?, memoria distribuita.
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliografia}
+%stile della bibliografia
+\bibliographystyle{plain}
+%questo specifica il file da usare
+\bibliography{Fonti}
+
+\iffalse
 \begin{thebibliography}{9}
 \bibitem{} R Cont, P Tankov. \emph{Financial Modelling with Jump Processes}. Chapman \& Hall, 2004.
 \bibitem{} R Seydel. \emph{Tools for Computational Finance}. Springer, 2009.
@@ -715,5 +721,5 @@ Heston?
 \bibitem{} E Gamma, R Helm, R Johnson, V Vlissides. \emph{Design Patterns}. 1997.
 
 \end{thebibliography}
-
+\fi
 \end{document}
