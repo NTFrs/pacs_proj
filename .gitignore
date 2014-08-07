@@ -50,6 +50,8 @@ makefile
 *.backup
 *.bbl
 *.blg
+*.dvi
+
 
 #doxy
 @ONLY
