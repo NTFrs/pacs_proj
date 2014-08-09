@@ -6,7 +6,7 @@
 
 //! Class of Boundary Condititions
 /*!
- * This class is used to set the boundary conditions of our problems. It works in 1d and 2d and needs to know if the option is a Put or a Call.
+ * This class is used to set the boundary conditions of our problems. It works in 1d and 2d and needs to know if the option is a Put or a Call. Works with the equation in LogPrice form. The function has an internal time,  that an be set through the method set_time(double), inherited from base class dealii::Function<dim>.
  */
 template<unsigned dim>
 class BoundaryConditionLogPrice: public dealii::Function<dim>
@@ -30,7 +30,7 @@ public:
         type(type_)
         {};
         
-        //! Functions needed by dealii
+	//! Returns the value of the function at the point p
 	virtual double value (const dealii::Point<dim> &p, const unsigned int component =0) const;
         
 private:
