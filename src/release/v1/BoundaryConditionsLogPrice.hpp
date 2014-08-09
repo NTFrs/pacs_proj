@@ -16,7 +16,7 @@ public:
         /*!
          * \param S0_   Spot Price
          * \param K_    Strike Price
-         * \param T_    Time to Maturity
+         * \param T_    Excercise time
          * \param r_    Interest Rate
          * \param type_ Option type (Put or Call)
          */
