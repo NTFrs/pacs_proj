@@ -10,7 +10,6 @@
 namespace tools {
         
         
-        //TODO delete default constructor
         //! A small class that implements the extension of a function when out of domain
         /*!
          * This class (functor) has a two goals. On one side, uses the boundary conditions to give a value to the function outside its domain. Secondly,  it uses DealII tools to obtain the value of the solution if the point where it is needed is not one of the degrees of freedom.
@@ -63,11 +62,17 @@ namespace tools {
                 using namespace dealii;
                 Assert (component == 0, ExcInternalError());
                 //if on the left applies BC
-                if (p[_ax]<_l_lim[_ax])
-                        return _BC.value(p);
+                if (p[_ax]<_l_lim[_ax]) {
+						Point<dim> projected_p(p);
+						projected_p(_ax)=_l_lim(_ax);
+                        return _BC.value(projected_p);
+				}
                 //same if on the right
-                if (p[_ax]>_r_lim[_ax])
-                        return _BC.value(p);
+                if (p[_ax]>_r_lim[_ax]) {
+						Point<dim> projected_p(p);
+						projected_p(_ax)=_r_lim(_ax);
+                        return _BC.value(projected_p);
+				}
                 //and if internal,  uses DealII function map to find the correct value
                 return _fe_func.value(p);  
                 
@@ -86,10 +91,14 @@ namespace tools {
                 for (unsigned int i=0;i<n_points;++i)
                 {
                         if (points[i][_ax]<_l_lim[_ax]) {
-                                values[i]=_BC.value(points[i]);
+								Point<dim> projected_p(points[i]);
+								projected_p(_ax)=_l_lim(_ax);
+                                values[i]=_BC.value(projected_p);
                         }
                         else if (points[i][_ax]>_r_lim[_ax]) {
-                                values[i]=_BC.value(points[i]);
+								Point<dim> projected_p(points[i]);
+								projected_p(_ax)=_r_lim(_ax);
+                                values[i]=_BC.value(projected_p);
                         }
                         else
                                 values[i]=_fe_func.value(points[i]);
