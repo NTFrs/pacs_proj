@@ -77,7 +77,7 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
                 
                 const unsigned int   n_q_points    = quadrature_formula2.size();
                 //thus,  for each node on the mesh
-                //#pragma omp parallel for
+                #pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
                 {
 						//we declare an iterator on the integral grid

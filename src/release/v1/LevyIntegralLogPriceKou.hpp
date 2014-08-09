@@ -13,8 +13,10 @@ protected:
 	std::vector<Quadrature_Laguerre> rightQuads;
 	bool adapting;
 	
+	//! Creates quadrature nodes and weitghts of order n
 	virtual void setup_quadratures(unsigned n);
-        virtual void compute_alpha();
+	//! Reimplementation of LevyIntegralBase::compute_alpha() using Laguerre nodes
+    virtual void compute_alpha();
         
 	
 public:
@@ -50,6 +52,7 @@ public:
         
         LevyIntegralLogPriceKou& operator=(const LevyIntegralLogPriceKou &)=delete;
 	
+	//!Reimplementation of LevyIntegralLogPrice::compute_J using Laguerre nodes
 	virtual void compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe);
 };
 
@@ -71,13 +74,15 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
 	this->alpha=std::vector<double>(dim, 0.);
         
 	if (!adapting) {
+				//for each dimension it computes alpha
                 for (unsigned d=0;d<dim;++d) {
+						//since the exponential part is included in the weights,  we use the remaining part of the density exlicitly,  here for the positive part of the axis
                         for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
                                 ((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
                                 ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
                         }
-                        
+						//and here for the negative part of the density's support
                         for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp(-(leftQuads[d].get_nodes())[i])-1)*
                                 (1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
@@ -92,6 +97,7 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                 
                 std::vector<double> alpha_old;
                 double err;
+				//same but adaptive
                 do  {
                         alpha_old=this->alpha;
                         this->alpha=std::vector<double>(dim, 0.);
@@ -127,30 +133,39 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
 template<unsigned dim>
 void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe)
 {
-        using namespace dealii;
+    using namespace dealii;
 	unsigned N(sol.size());
-	//TODO and if we do not initialise J nd do a pushback? 
-	Vector<double> J;
-        J.reinit(2*N);
-	std::map<types::global_dof_index, Point<dim> > vertices;
-	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
-        
+
+	//prepare the vector that will hold J1 and 2 by putting it to 0
+	Vector<double> J; J.reinit(2*N);
+    
+    //prepare a map between dofs and point of the grid
+	std::map<types::global_dof_index, Point<dim> > vertices;	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
+    
+	//then for each dimension we repeat the following
 	for (unsigned d=0;d<dim;++d) {
+				//the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
                 tools::Solution_Trimmer<dim> func(d,*(this->boundary), dof_handler, sol, this->lower_limit, this->upper_limit);
-                
-#pragma omp parallel for
+				
+				//we already have the prepared quadrature nodes and weights
+
+				//thus,  for each node on the mesh
+				# pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
                 {
+					
+						//we prepare a vector that will contain d-dimensional quadrature points and one for the sol values
                         std::vector< Point<dim> > quad_points(leftQuads[d].get_order()+rightQuads[d].get_order());
                         std::vector<double> f_u(leftQuads[d].get_order()+rightQuads[d].get_order());
                         
+						//and we fill it with quadrature nodes + the actual vertex
                         for (unsigned i=0; i<leftQuads[d].get_order(); ++i) {
                                 quad_points[i][d]=-this->leftQuads[d].get_nodes()[i] + vertices[it][d];
                                 if (dim==2) {
                                         quad_points[i][1-d]=vertices[it][1-d];
                                 }
                         }
-                        
+                        //but we must do it separately since the parameters on both sides are different
                         for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                 quad_points[i+leftQuads[d].get_order()][d]=
                                 this->rightQuads[d].get_nodes()[i] + vertices[it][d];
@@ -159,15 +174,15 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                                 }
                         }
                         
-                        // valuto f_u in quad_points
+						// we evaluate the solutions in those points
                         func.value_list(quad_points, f_u);
                         
-                        // Integro dividendo fra parte sinistra e parte destra dell'integrale
+						// And now we have everiting to integrate first on the negative side
                         for (unsigned i=0;i<leftQuads[d].get_order();++i) {
                                 J[d*N+it]+=f_u[i]*(1-((this->mods[d])->get_p()))*((this->mods[d])->get_lambda())*
                                 ((this->mods[d])->get_lambda_m())*(leftQuads[d].get_weights())[i];
                         }
-                        
+                        // and then on the positive side
                         for (unsigned i=0;i<rightQuads[d].get_order();++i) {
                                 J[d*N+it]+=f_u[i+leftQuads[d].get_order()]*((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
                                 ((this->mods[d])->get_lambda_p())*(rightQuads[d].get_weights())[i];
@@ -176,6 +191,8 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                 }
                 
         }
+        
+	//we then transfer the computed values on j1 and j2
 	this->j1.reinit(N);
 	for (unsigned i=0;i<this->j1.size();++i)
                 this->j1[i]=J[i];
@@ -184,9 +201,7 @@ void LevyIntegralLogPriceKou<dim>::compute_J(dealii::Vector< double >& sol, deal
                 for (unsigned i=0;i<this->j2.size();++i)
                         this->j2[i]=J[i+N];
         }
-        
-        //std::cout<<"***J***\n"<<this->J1<<"\n";
-        
+                
         this->j_ran=true;
 }
 

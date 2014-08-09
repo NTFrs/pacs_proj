@@ -19,8 +19,9 @@ protected:
 	std::vector<Quadrature_Laguerre> rightQuads;
 	bool adapting;
 	
+	//! Creates quadrature nodes and weitghts of order n
 	virtual void setup_quadratures(unsigned n);
-	//! Reimplementation of compute_alpha using Laguerre nodes
+	//! Reimplementation of LevyIntegralBase::compute_alpha() using Laguerre nodes
 	virtual void compute_alpha();
 	
 public:

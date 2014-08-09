@@ -17,9 +17,10 @@ protected:
         
 	std::vector<Quadrature_Hermite> quadratures;
 	bool adapting;
-        
+    
+	//! Creates quadrature nodes and weitghts of order n
 	virtual void setup_quadratures(unsigned n);
-	//! Reimplementation of compute_alpha using Hermite nodes
+	//! Reimplementation of LevyIntegralBase::compute_alpha() using Hermite nodes
 	virtual void compute_alpha();
         
 public:
