@@ -37,7 +37,7 @@ protected:
 	
 	//! Computes the alpha part of both integrals
 	/*!
-         * Computes the alpha part of the integrals without using the generic Gauss quadrature nodes, thus working with any model.
+         * Computes the alpha part of the integrals using the generic Gauss quadrature nodes, thus working with any model.
          */
 	virtual void compute_alpha();
 	//! Computes the bounds needed to compute the integral with Gauss nodes.
