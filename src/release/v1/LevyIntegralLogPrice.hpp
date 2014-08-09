@@ -42,7 +42,7 @@ public:
 	 * \param dof_handler	DealII DoF Handler associated to this triangulation and solution
 	 * \param fe			DealII Finite elements associated to this triangulation and solution
 	 */
-	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe);
+	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe) {};
 	
 	//! Used to set the time for the boundary condition (if it depends on time)
 	virtual inline void set_time(double tm) {boundary->set_time(tm);};
@@ -115,39 +115,57 @@ return j;
 }
 
 
-template<unsigned dim>
-void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe)
+template<>
+void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<1>& dof_handler, dealii::FE_Q<1>& fe)
 {
 	using namespace dealii;
 	unsigned N(sol.size());
 
-	Vector<double> J;J.reinit(2*N);
+	j1.reinit(N);
 	//we initialize a mapping between the degrees of fredom index and the corresponding point
-	std::map<types::global_dof_index, Point<dim> > vertices;
-	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
-		//then for each dimension we repeat the following
-        for (unsigned d=0;d<dim;++d) {
+	std::map<types::global_dof_index, Point<1> > vertices;
+	DoFTools::map_dofs_to_support_points(MappingQ1<1>(), dof_handler, vertices);
+		
 				//the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
-                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
+                tools::Solution_Trimmer<1> func(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
                 //thus,  for each node on the mesh
                 #pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
-                J(d*N+it)=this->get_one_J(vertices[it], func, d);
+                this->j1(it)=this->get_one_J(vertices[it], func, 0);
                 
                 
-        }
         
-        //we then transfer the computed values on j1 and j2
-        this->j1.reinit(N);
-        for (unsigned i=0;i<this->j1.size();++i)
-                this->j1[i]=J[i];
-        if (dim==2) {
-                this->j2.reinit(N);
-                for (unsigned i=0;i<this->j2.size();++i)
-                        this->j2[i]=J[i+N];
-        }
+        
+
         this->j_ran=true;
 }
 
+template<>
+void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<2>& dof_handler, dealii::FE_Q<2>& fe)
+{
+	using namespace dealii;
+	unsigned N(sol.size());
+
+	j1.reinit(N);
+	j2.reinit(N);
+	//we initialize a mapping between the degrees of fredom index and the corresponding point
+	std::map<types::global_dof_index, Point<2> > vertices;
+	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
+
+	//the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
+	tools::Solution_Trimmer<2> func1(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
+	tools::Solution_Trimmer<2> func2(1,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
+//thus,  for each node on the mesh
+	# pragma omp parallel for
+	for (unsigned int it=0;it<N;++it) {
+		this->j1(it)=this->get_one_J(vertices[it], func1, 0);
+		this->j2(it)=this->get_one_J(vertices[it], func2, 1);
+	}
+
+
+
+
+	this->j_ran=true;
+}
 
 # endif
