@@ -44,6 +44,11 @@ public:
         inline std::vector<double> const & get_weights () {return weights;}
 };
 
+
+//! Hermite Nodes for Kou model
+/*!
+ * This class is used to compute the Gauss-Hermite Nodes needed in Merton model's integration step.
+ */
 class Quadrature_Hermite{
 private:
         
@@ -55,7 +60,10 @@ public:
         
 	Quadrature_Hermite()=default;
         
-	// il costruttore costruisce nodi e pesi
+	//! Constructor
+	/*!
+	 * The constructor needs the order of the methods (i.e. the number of integration nodes) and the parameter of the gaussian.
+	 */
 	Quadrature_Hermite(unsigned n, double mu, double delta){
                 
                 order=n;
@@ -68,9 +76,12 @@ public:
                 //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
                 quadrature::cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
         }
-        
+    
+    //! Returns the order of the method
 	inline unsigned get_order () {return order;}
+	//! Returns the integration nodes
 	inline std::vector<double> const & get_nodes () {return nodes;}
+	//! Returns the integration weights
 	inline std::vector<double> const & get_weights () {return weights;}
 };
 
