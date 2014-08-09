@@ -6,7 +6,7 @@
 
 //! Class of Final Condititions
 /*!
- * This class is used to set the final conditions of our problems. It works in 1d and 2d and needs to know if the option is a Put or a Call.
+ * This class is used to set the final conditions of our problems. It works in 1d and 2d and needs to know if the option is a Put or a Call. Works with the equation in Price form.
  */
 template<unsigned dim>
 class FinalConditionPrice : public dealii::Function<dim>
@@ -24,7 +24,7 @@ public:
         type(type_)
         {};
         
-        //! Function needed by dealii
+	//! Returns the value of the function at the point p
 	virtual double value (const dealii::Point<dim>   &p,
                               // scalar function, return the first component, label 0
                               const unsigned int  component = 0) const;
