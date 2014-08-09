@@ -7,6 +7,10 @@ TODO:
 -> funziona stampa matlab
 -> usare reference_wrapper
 
+Doc
+-> Hermite e Laguerre mettere cosa integrano (in latex)
+-> Fare notare il possibile errore di troncamento in Price
+
 TODO aggiunte:
 	->estimate_doubling
 	->barriera
