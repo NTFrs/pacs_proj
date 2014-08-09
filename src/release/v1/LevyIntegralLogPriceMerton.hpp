@@ -17,6 +17,8 @@ protected:
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Hermite nodes
 	virtual void compute_alpha();
 	
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
+	
 public:
 	LevyIntegralLogPriceMerton()=delete;
         
@@ -49,9 +51,6 @@ public:
         }
         
         LevyIntegralLogPriceMerton& operator=(const LevyIntegralLogPriceMerton &)=delete;
-        
-	//!Reimplementation of LevyIntegralLogPrice::compute_J using Hermite nodes
-	virtual void compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe);
         
 };
 
@@ -117,69 +116,34 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
         
 }
 
+
 template<unsigned dim>
-void LevyIntegralLogPriceMerton<dim>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler< dim >& dof_handler, dealii::FE_Q< dim >& fe)
+double LevyIntegralLogPriceMerton<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d)
 {
 	using namespace dealii;
-	unsigned N(sol.size());
-	
-	//prepare the vector that will hold J1 and 2 by putting it to 0
-	Vector<double> J;J.reinit(2*N);
+	double j(0);
+	//we prepare a vector that will contain d-dimensional quadrature points and one for the sol values
+	std::vector< Point<dim> > quad_points(quadratures[d].get_order());
+	std::vector<double> f_u(quadratures[d].get_order());
 
-	//prepare a map between dofs and point of the grid	
-	std::map<types::global_dof_index, Point<dim> > vertices;	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
-        
-	//then for each dimension we repeat the following
-	for (unsigned d=0;d<dim;++d) {
-				//the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
-                tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
-                
-                //we already have the prepared quadrature nodes and weights
-                
-				//thus,  for each node on the mesh
-                # pragma omp parallel for
-                for (unsigned int it=0;it<N;++it)
-                {
-					
-						//we prepare a vector that will contain d-dimensional quadrature points and one for the sol values
-                        std::vector< Point<dim> > quad_points(quadratures[d].get_order());
-                        std::vector<double> f_u(quadratures[d].get_order());
-                        
-                        //and we fill it with quadrature nodes + the actual vertex
-                        for (unsigned i=0; i<quad_points.size(); ++i) {
-                                quad_points[i][d]=this->quadratures[d].get_nodes()[i] + vertices[it][d];
-                                if (dim==2) {
-                                        quad_points[i][1-d]=vertices[it][1-d];
-                                }
-                        }
-                        
-                        
-                        // we evaluate the solutions in those points
-                        func.value_list(quad_points, f_u);
-                        
-                        // And now we have everiting to integrate
-                        for (unsigned i=0;i<quadratures[d].get_order();++i) {
-                                J[d*N+it]+=f_u[i]*((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
-                                *(quadratures[d].get_weights())[i];
-                        }
-                        
-                        
-                }
-                
-        }
-    
-	//we then transfer the computed values on j1 and j2
-	this->j1.reinit(N);
-	for (unsigned i=0;i<this->j1.size();++i)
-                this->j1[i]=J[i];
-	if (dim==2) {
-                this->j2.reinit(N);
-                for (unsigned i=0;i<this->j2.size();++i)
-                        this->j2[i]=J[i+N];
-        }
-        
-        this->j_ran=true;
-        
+	//and we fill it with quadrature nodes + the actual vertex
+	for (unsigned i=0; i<quad_points.size(); ++i) {
+	 quad_points[i][d]=this->quadratures[d].get_nodes()[i] + vert[d];
+	 if (dim==2) {
+	  quad_points[i][1-d]=vert[1-d];
+	}
+   }
+
+
+	// we evaluate the solutions in those points
+	trim.value_list(quad_points, f_u);
+
+	// And now we have everiting to integrate
+	for (unsigned i=0;i<quadratures[d].get_order();++i) {
+	 j+=f_u[i]*((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
+	 *(quadratures[d].get_weights())[i];
+   }
+   return j;
 }
 
 
