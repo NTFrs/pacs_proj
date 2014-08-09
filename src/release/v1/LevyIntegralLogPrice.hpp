@@ -12,6 +12,8 @@ class LevyIntegralLogPrice: public LevyIntegralBase<dim> {
 protected:
 	//TODO if done like this can cause problems if Levy is called with LevyIntegralLogPrice(-.-.-.BC<>())
 	std::unique_ptr<dealii::Function<dim> > boundary;
+	
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
 public:
         LevyIntegralLogPrice()=delete;
         
@@ -31,9 +33,7 @@ public:
                              std::vector<Model *> & models_,
                              std::unique_ptr<dealii::Function<dim> > BC_)
         :
-        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_),
-        boundary(std::move(BC_))
-        {};
+        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_), boundary(std::move(BC_)) {};
         
 	//! Computes the J part of the integral for a logprice transformation
 	/*!
@@ -50,6 +50,72 @@ public:
 };
 
 template<unsigned dim>
+double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned d)
+{
+	using namespace dealii;
+	double j(0);
+	
+	//we declare a one dimensional grid that will be used to calculate the integral
+	Triangulation<1> integral_triangulation;
+	GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, 5), this->bMin(d), this->bMax(d));
+
+	//and the dealii tools that handle the automatic scaling of quadrature to the present cell
+	FE_Q<1> fe_integral(1);
+	DoFHandler<1> dof_integral(integral_triangulation);
+	dof_integral.distribute_dofs(fe_integral);
+	QGauss<1> quadrature_formula2(10);
+	FEValues<1> fe_values2 (fe_integral, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
+
+	const unsigned int   n_q_points    = quadrature_formula2.size();
+
+	//we declare an iterator on the integral grid
+	typename DoFHandler<1>::active_cell_iterator
+	cell=dof_integral.begin_active(),
+	endc=dof_integral.end();
+
+	for (; cell !=endc;++cell) {
+
+	 //reinit this 1D fevalues
+	 fe_values2.reinit(cell);
+	 //ATTENTION
+	 //quadrature points are in 1D,  our functions take Point<dim>
+	 //Need to create a vector of dim-dimensional points
+
+	 //thus we extract the 1D points in the current cell
+	 std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
+
+	 //and we create a vector to hold dim-dimensional points
+	 std::vector< Point<dim> >
+	 quad_points(n_q_points);
+
+	 // This way,  the 1 dimensional point of quadrature is put in the d coordinate of the point
+	 for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
+	  quad_points[q_point][d]=quad_points_1D[q_point](0);
+	}
+	 std::vector<double> kern(n_q_points),  f_u(n_q_points);
+
+	 //and we compute the value of the density on that point (note the coordinates different from d are useless here) 
+	 for (unsigned q_point=0;q_point<n_q_points;++q_point)
+	 kern[q_point]=(*this->mods[d]).density(quad_points[q_point](d));
+
+	 //here we add the actual point whe are computing, in order to obtain for example u(t, x_it+q_i, y_it)
+	 //we have thus a vector of (q_i+x_it, y_it)
+	 for (unsigned int q_point=0;q_point<n_q_points;++q_point)
+	 quad_points[q_point]+=vert;
+
+	 //and we thus calculate the values of traslated u
+	 trim.value_list(quad_points, f_u);
+
+	 //and we can finally calculate the contribution to J_d(it)
+	 for (unsigned q_point=0;q_point<n_q_points;++q_point)
+		 j+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
+
+}
+return j;
+}
+
+
+template<unsigned dim>
 void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<dim>& dof_handler, dealii::FE_Q<dim>& fe)
 {
 	using namespace dealii;
@@ -63,68 +129,11 @@ void LevyIntegralLogPrice<dim>::compute_J(dealii::Vector< double >& sol, dealii:
         for (unsigned d=0;d<dim;++d) {
 				//the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
                 tools::Solution_Trimmer<dim> func(d,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
-		
-				//we declare a one dimensional grid that will be used to calculate the integral
-                Triangulation<1> integral_triangulation;
-                GridGenerator::subdivided_hyper_cube(integral_triangulation, pow(2, 5), this->bMin(d), this->bMax(d));
-                
-		        //and the dealii tools that handle the automatic scaling of quadrature to the present cell
-                FE_Q<1> fe_integral(1);
-                DoFHandler<1> dof_integral(integral_triangulation);
-                dof_integral.distribute_dofs(fe_integral);
-                QGauss<1> quadrature_formula2(10);
-                FEValues<1> fe_values2 (fe_integral, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
-                
-                const unsigned int   n_q_points    = quadrature_formula2.size();
                 //thus,  for each node on the mesh
                 #pragma omp parallel for
                 for (unsigned int it=0;it<N;++it)
-                {
-						//we declare an iterator on the integral grid
-                        typename DoFHandler<1>::active_cell_iterator
-                        cell=dof_integral.begin_active(),
-                        endc=dof_integral.end();
-                        
-                        for (; cell !=endc;++cell) {
-                                
-                                //reinit this 1D fevalues
-                                fe_values2.reinit(cell);
-                                //ATTENTION
-                                //quadrature points are in 1D,  our functions take Point<dim>
-                                //Need to create a vector of dim-dimensional points
-                                
-                                //thus we extract the 1D points in the current cell
-                                std::vector< Point<1> > quad_points_1D(fe_values2.get_quadrature_points());
-                                
-                                //and we create a vector to hold dim-dimensional points
-                                std::vector< Point<dim> >
-                                quad_points(n_q_points);
-                                
-                                // This way,  the 1 dimensional point of quadrature is put in the d coordinate of the point
-                                for (unsigned int q_point=0;q_point<n_q_points;++q_point) {
-                                        quad_points[q_point][d]=quad_points_1D[q_point](0);
-                                }
-                                std::vector<double> kern(n_q_points),  f_u(n_q_points);
-                                
-                                //and we compute the value of the density on that point (note the coordinates different from d are useless here) 
-                                for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                        kern[q_point]=(*this->mods[d]).density(quad_points[q_point](d));
-                                
-                                //here we add the actual point whe are computing, in order to obtain for example u(t, x_it+q_i, y_it)
-                                //we have thus a vector of (q_i+x_it, y_it)
-                                for (unsigned int q_point=0;q_point<n_q_points;++q_point)
-                                        quad_points[q_point]+=vertices[it];
-                                
-                                //and we thus calculate the values of traslated u
-                                func.value_list(quad_points, f_u);
-                                
-                                //and we can finally calculate the contribution to J_d(it)
-                                for (unsigned q_point=0;q_point<n_q_points;++q_point)
-                                        J(d*N+it)+=fe_values2.JxW(q_point)*kern[q_point]*f_u[q_point];
-                        }
-                        
-                        
-                }
+                J(d*N+it)=this->get_one_J(vertices[it], func, d);
+                
                 
         }
         
