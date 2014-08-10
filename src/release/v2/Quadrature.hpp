@@ -2,8 +2,7 @@
 #define __quadrature_hpp
 
 #include "QuadratureRule.hpp"
-#include "constants.hpp"
-# include <vector>
+#include "Constants.hpp"
 
 //! Laguerre Nodes for Kou model
 /*!

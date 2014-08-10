@@ -1,9 +1,9 @@
 #ifndef __models_hpp
 #define __models_hpp
 
-#include <iostream>
-#include <cmath> 
-#include "constants.hpp"
+#include <cmath>
+
+#include "Constants.hpp"
 
 //! Abstract class Model
 /*!
@@ -12,6 +12,7 @@
 class Model
 {
 private:
+        unsigned type;
         double S0;
         double sigma;
         
@@ -23,13 +24,17 @@ public:
          * \param S0_           Spot Price
          * \param sigma_        Volatility
          */
-        Model(double S0_,
+        Model(unsigned type_,
+              double S0_,
               double sigma_):
+        type(type_),
         S0(S0_),
         sigma(sigma_)
         {};
         
         virtual ~Model()=default;
+        
+        virtual inline unsigned get_type()      const   {return type; };
         
         //! Returns the Spot Price
         virtual inline double get_spot()        const   {return S0;};
@@ -76,7 +81,7 @@ public:
          */
         BlackScholesModel(double S0_,
                           double sigma_):
-        Model(S0_, sigma_)
+        Model(0, S0_, sigma_)
         {};
         virtual double density(double pt) const {return 0;};
 };
@@ -117,7 +122,7 @@ public:
                  double lambda_plus_,
                  double lambda_minus_)
         :
-        Model(S0_, sigma_),
+        Model(1, S0_, sigma_),
         p(p_),
         lambda(lambda_),
         lambda_plus(lambda_plus_),
@@ -167,7 +172,7 @@ public:
                     double delta_,
                     double lambda_)
         :
-        Model(S0_, sigma_),
+        Model(2, S0_, sigma_),
         nu(nu_),
         delta(delta_),
         lambda(lambda_)

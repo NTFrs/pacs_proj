@@ -1,9 +1,7 @@
-#ifndef __levy_integral_price_merton__
-# define __levy_integral_price_merton__
+#ifndef __levy_integral_price_merton_hpp
+#define __levy_integral_price_merton_hpp
 
-# include "LevyIntegralPrice.hpp"
-# include "Quadrature.hpp"
-# include <cmath>
+#include "LevyIntegralPrice.hpp"
 
 //! A class to treat the integral part when in Price form optimized for Merton model
 /*!
@@ -17,7 +15,7 @@ protected:
         
 	std::vector<Quadrature_Hermite> quadratures;
 	bool adapting;
-    
+        
 	//! Creates quadrature nodes and weitghts of order n
 	virtual void setup_quadratures(unsigned n);
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Hermite nodes
@@ -26,7 +24,7 @@ protected:
 public:
 	LevyIntegralPriceMerton()=delete;
         
-    LevyIntegralPriceMerton(const LevyIntegralPriceMerton &)=delete;
+        LevyIntegralPriceMerton(const LevyIntegralPriceMerton &)=delete;
         
 	//! Only constructor of the class
 	/*!
@@ -70,11 +68,11 @@ template<unsigned dim>
 void LevyIntegralPriceMerton<dim>::compute_alpha(){
         
 	this->alpha=std::vector<double>(dim, 0.);
-                
+        
 	if (!adapting) {
-				//for each dimension it computes alpha
+                //for each dimension it computes alpha
                 for (unsigned d=0;d<dim;++d) {
-						//since the gaussian part is included in the weights,  we use the remaining part of the density exlicitly
+                        //since the gaussian part is included in the weights,  we use the remaining part of the density exlicitly
                         for (unsigned i=0; i<quadratures[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((quadratures[d].get_nodes())[i])-1)*
                                 ((this->mods[d])->get_lambda())/(((this->mods[d])->get_delta())*sqrt(2*constants::pi))
@@ -84,7 +82,7 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
         }
         
 	else {
-				// same as above but adaptive
+                // same as above but adaptive
                 unsigned order_max=64;
                 
                 std::vector<double> alpha_old;

@@ -1,9 +1,7 @@
-#ifndef __levy_integral_logprice_merton__
-# define __levy_integral_logprice_merton__
+#ifndef __levy_integral_log_price_merton_hpp
+#define __levy_integral_log_price_merton_hpp
 
-# include "LevyIntegralLogPrice.hpp"
-# include "Quadrature.hpp"
-# include <cmath>
+#include "LevyIntegralLogPrice.hpp"
 
 template<unsigned dim>
 class LevyIntegralLogPriceMerton: public LevyIntegralLogPrice<dim> {

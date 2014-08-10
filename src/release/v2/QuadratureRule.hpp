@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <ctime>
 #include <string>
+#include <vector>
 
 //! This functions are used to calculate Laguerre and Hermite integration nodes and weights.
 /*!

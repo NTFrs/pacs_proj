@@ -2,7 +2,6 @@
 //#include "Levy.hpp"
 #include "Factory.hpp"
 
-#include <ctime>
 /*
 using namespace std;
 using namespace dealii;
@@ -27,31 +26,33 @@ int main(){
         KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         KouModel model4(80, 0.1256, 0.20761, 0.330966, 9.65997, 3.13868);
         
-//         Model * x=new KouModel(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
-        
         KouModel model5(120, 0.2, 0.20761, 0.330966, 9.65997, 3.13868);
         
         MertonModel model6(80., 0.2, -0.390078, 0.338796, 0.174814);
         MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
         
-        OptionType tipo(OptionType::Put);
+        OptionType tipo(OptionType::Call);
         
         EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
         EuropeanOptionLogPrice<1> b(tipo, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
         
         EuropeanOptionPrice<2> c
-        (tipo, model4.get_pointer(), /*x*/model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+        (tipo, model4.get_pointer(), model5.get_pointer(),
+         -0.2, 0.1, 1., 200., 5, 100);
         
         EuropeanOptionLogPrice<2> d
         (tipo, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 5, 100);
         
         a.set_scale_factor(0.8);
         b.set_scale_factor(0.8);
         c.set_scale_factor(0.8);
         d.set_scale_factor(0.8);
-//         delete x;
+        
+        a.set_timing(true);
+        b.set_timing(true);
+        c.set_timing(true);
+        d.set_timing(true);
         
 //         a.set_refine_status(true);
 //         b.set_refine_status(true);
@@ -61,12 +62,24 @@ int main(){
         a.run();
         b.run();
         c.run();
-//         d.run();
-        // 		d.print_grid("Griglia");
-        // 		d.print_solution_gnuplot("Soluzione");
+        d.run();
+        c.print_grid("Griglia");
+        c.print_solution_gnuplot("Soluzione");
+        
         cout<<a.get_price()<<"\n";
         cout<<b.get_price()<<"\n";
         cout<<c.get_price()<<"\n";
+        cout<<d.get_price()<<"\n";
+        
+        auto x=a.get_times();
+        cout<<x.first/1.e6<<" "<<x.second/1.e6<<"\n";
+        auto y=b.get_times();
+        cout<<y.first/1.e6<<" "<<y.second/1.e6<<"\n";
+        auto z=c.get_times();
+        cout<<z.first/1.e6<<" "<<z.second/1.e6<<"\n";
+        auto w=d.get_times();
+        cout<<w.first/1.e6<<" "<<w.second/1.e6<<"\n";
+        
 //         cout<<d.get_price()<<"\n";
         
 	/*

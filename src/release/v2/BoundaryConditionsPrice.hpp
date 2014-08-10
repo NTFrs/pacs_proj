@@ -1,7 +1,7 @@
 #ifndef __boundary_conditions_price_hpp
 #define __boundary_conditions_price_hpp
 
-#include "deal_ii.hpp"
+#include "dealii.hpp"
 #include "OptionTypes.hpp"
 
 //! Class of Boundary Condititions

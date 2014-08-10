@@ -1,8 +1,6 @@
 #ifndef __option_base_hpp
 #define __option_base_hpp
 
-#include "deal_ii.hpp"
-#include "matrix_with_psor.hpp"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -17,17 +15,19 @@
 #include <string>
 #include <memory>
 #include <exception>
+#include <ctime>
 
+#include "dealii.hpp"
+#include "SparseMatrix_PSOR.hpp"
 #include "BoundaryConditionsPrice.hpp"
 #include "BoundaryConditionsLogPrice.hpp"
 #include "FinalConditionsPrice.hpp"
 #include "FinalConditionsLogPrice.hpp"
 #include "OptionTypes.hpp"
-#include "models.hpp"
-#include "constants.hpp"
-#include "OptionParameters.hpp"
+#include "Models.hpp"
+#include "Constants.hpp"
 
-using namespace dealii;
+//using namespace dealii;
 
 template<unsigned dim>
 class OptionBase
@@ -65,8 +65,8 @@ protected:
 	dealii::SparseMatrix<double>    fd_matrix;
 	dealii::SparseMatrix<double>    ff_matrix;
         
-        // points of grid
-        std::vector< Point<dim> >       grid_points;
+        // Points of the grid
+        std::vector< dealii::Point<dim> >       grid_points;
         std::map<dealii::types::global_dof_index, dealii::Point<dim> > vertices;
 	
         // Solution and rhs vectors
@@ -88,10 +88,16 @@ protected:
         float                   coarse_index;
         float                   refine_index;
         
-        static unsigned         id;
+        unsigned                id;
+        unsigned                verbose;
         
         // Integral Part
-        std::unique_ptr< LevyIntegralBase<dim> > levy;       
+        std::unique_ptr< LevyIntegralBase<dim> > levy;
+        
+        // Time parameters
+        double                  clock_time;
+        double                  real_time;
+        bool                    timing;
         
         // Protected methods
         virtual void setup_system();
@@ -119,7 +125,7 @@ public:
                    unsigned refs_,
                    unsigned time_step_);
         
-        //! Cosntructor 2d
+        //! Constructor 2d
         /*!
          * Constructor 2d called by inherited classes.
          */
@@ -142,14 +148,7 @@ public:
         /*!
          * This function creates the system and solves it.
          */
-        virtual void run()
-        {
-                make_grid();
-                setup_system();
-                setup_integral();
-                assemble_system();
-                solve();
-        };
+        virtual void run();
         
         //!
         /*!
@@ -164,15 +163,65 @@ public:
                         f=f_;
         };
         
+        //!
+        /*! This simple function allows to set the refinement of the grid and reset the object.
+         */
+        virtual void set_refs(unsigned refs_) {
+                refs=refs_;
+                ran=false;
+        }
+        
+        //!
+        /*! This simple function allows to set the number of time step and reset the object.
+         */
+        virtual void set_timestep(unsigned time_step_) {
+                time_step=time_step_;
+                ran=false;
+        }
+        
         virtual void set_refine_status(bool status, float refine_=0.2, float coarse_=0.03) {
                 refine=status;
                 refine_index=refine_;
                 coarse_index=coarse_;
+                ran=false;
         };
         
         virtual bool get_refine_status() {
                 return refine;
         };
+        
+        virtual void set_timing(bool timing_) {
+                timing=timing_;
+                ran=false;
+        }
+        
+        //!
+        /*! Set the verbosity of the Option: 0 for nothing, 1 for time_step and basic info, 2 for advanced info.
+         */
+        virtual void set_verbose(unsigned v) {
+                verbose=v;
+        }
+        
+        //!
+        /*! If timing is true, this function returns a pair of times in microseconds,
+         *  the clock time and the real time taken by the class to solve the system
+         */
+        virtual std::pair<double, double> get_times() {
+                if (timing) {
+                        auto times=std::make_pair(clock_time, real_time);
+                        return times;
+                }
+                else
+                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                
+        }
+        
+        //!
+        /*! This function allows to reset the class, in order to run again the solve method.
+         */
+        virtual void reset() {
+                ran=false;
+        }
         
         //!
         /*!
@@ -180,19 +229,19 @@ public:
          */
         virtual inline double get_price()=0;
         
-        virtual void estimate_doubling(double time, Vector<float> & errors);
+        virtual void estimate_doubling(double time, dealii::Vector<float> & errors);
         
         //TODO add output functions
         
         virtual void print_grid(std::string name) {
                 name.append(".eps");
                 std::ofstream out (name);
-                GridOut grid_out;
+                dealii::GridOut grid_out;
                 grid_out.write_eps (triangulation, out);
         };
         
         virtual void print_solution_gnuplot(std::string name) {
-                DataOut<dim> data_out;
+                dealii::DataOut<dim> data_out;
                 data_out.attach_dof_handler(dof_handler);
                 data_out.add_data_vector(solution, name);
                 
@@ -203,9 +252,6 @@ public:
         };
         
 };
-
-template<unsigned dim>
-unsigned OptionBase<dim>::id=1;
 
 // Constructor 1d
 template <unsigned dim>
@@ -242,34 +288,37 @@ dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
 ran(false), 
-refine(false)
-//levy(NULL)
+refine(false),
+verbose(1),
+timing(false)
 {
-        ++id;
+        tools::Counter::counter()++;
+        id=tools::Counter::counter();
         
-        if (system( NULL ))
-                system("mkdir -p plot");
-        else
-                std::exit(-1);
+        // if this is the first option instantiated, create the folders "gnuplot", "matlab" and "plot"
+        if (id==1) {
+                if (system( NULL ))
+                        system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
+                else
+                        std::exit(-1);
+        }
         
         models.push_back(model);
         
-        BlackScholesModel       *     bs(dynamic_cast<BlackScholesModel *> (model));
-        KouModel                *     kou(dynamic_cast<KouModel *> (model));
-        MertonModel             *     mer(dynamic_cast<MertonModel *> (model));
-        
-        if (bs) 
+        // setting the kind of model...
+        if (model->get_type()==0) 
                 model_type=ModelType::BlackScholes;
         
-        else if (kou) {
+        else if (model->get_type()==1) {
                 model_type=ModelType::Kou;
         }
         
-        else if (mer)
+        else if (model->get_type()==2) {
                 model_type=ModelType::Merton;
-        
-        else    
+        }
+        else {
                 throw(std::logic_error("Error! Unknown models.\n"));
+        }
         
 }
 
@@ -313,39 +362,38 @@ dt(T/static_cast<double>(time_step_)),
 price(0.),
 f(0.5),
 ran(false), 
-refine(false)
-//levy(NULL)
+refine(false),
+verbose(1),
+timing(false)
 {
-        ++id;
+        tools::Counter::counter()++;
+        id=tools::Counter::counter();
         
-        if (system( NULL ))
-                system("mkdir -p plot");
-        else
-                std::exit(-1);
+        // if this is the first option instantiated, create the folders "gnuplot", "matlab" and "plot"
+        if (id==1) {
+                if (system( NULL ))
+                        system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
+                else
+                        std::exit(-1);
+        }
         
         models.push_back(model1);
         models.push_back(model2);
         
-        BlackScholesModel       *     bs(dynamic_cast<BlackScholesModel *> (model1));
-        KouModel                *     kou(dynamic_cast<KouModel *> (model1));
-        MertonModel             *     mer(dynamic_cast<MertonModel *> (model1));
-        
-        if (bs) {
+        // setting the kind of model...
+        if (model1->get_type()==0) {
                 model_type=ModelType::BlackScholes;
-                BlackScholesModel * bs2(dynamic_cast<BlackScholesModel *> (model2));
-                if (!bs2)
+                if (model2->get_type()!=0)
                         throw(std::logic_error("Error! Different types of model.\n"));
         }
-        else if (kou) { 
+        else if (model1->get_type()==1) { 
                 model_type=ModelType::Kou;
-                KouModel * kou2(dynamic_cast<KouModel *> (model2));
-                if (!kou2)
+                if (model2->get_type()!=1)
                         throw(std::logic_error("Error! Different types of model.\n"));
         }
-        else if (mer) {
+        else if (model1->get_type()==2) {
                 model_type=ModelType::Merton;
-                MertonModel * mer2(dynamic_cast<MertonModel *> (model2));
-                if (!mer2)
+                if (model2->get_type()!=2)
                         throw(std::logic_error("Error! Different types of model.\n"));
         }
         else    
@@ -380,7 +428,7 @@ void OptionBase<dim>::setup_system()
 	system_rhs.reinit(dof_handler.n_dofs());
         
         vertices.clear();
-	DoFTools::map_dofs_to_support_points(MappingQ1<dim>(), dof_handler, vertices);
+        dealii::DoFTools::map_dofs_to_support_points(dealii::MappingQ1<dim>(), dof_handler, vertices);
         
         return;
         
@@ -389,7 +437,9 @@ void OptionBase<dim>::setup_system()
 template<unsigned dim>
 void OptionBase<dim>::refine_grid()
 {
-	Vector<float> estimated_error_per_cell (this->triangulation.n_active_cells());
+        using namespace dealii;
+        
+        Vector<float> estimated_error_per_cell (this->triangulation.n_active_cells());
 	KellyErrorEstimator<dim>::estimate (this->dof_handler, QGauss<dim-1>(3),
                                             typename FunctionMap<dim>::type(),
                                             this->solution,
@@ -414,10 +464,9 @@ void OptionBase<dim>::refine_grid()
 
 
 template<unsigned dim>
-void OptionBase<dim>::estimate_doubling(double time, Vector< float >& errors)
+void OptionBase<dim>::estimate_doubling(double time, dealii::Vector< float >& errors)
 {
 	using namespace dealii;
-	
 	using namespace std;
 	
 	Triangulation<dim> old_tria;
@@ -471,6 +520,41 @@ void OptionBase<dim>::estimate_doubling(double time, Vector< float >& errors)
 	solution=old_solution;
 }
 
+template<unsigned dim>
+void OptionBase<dim>::run()
+{
+        if (timing) {
+                
+                struct rusage usage;
+                
+                clock_t clock_s, clock_e;
+                struct timeval real_s, real_e;
+                
+                gettimeofday(&real_s, NULL);
+                clock_s=clock();
+                
+                make_grid();
+                setup_system();
+                setup_integral();
+                assemble_system();
+                solve();
+                
+                gettimeofday(&real_e, NULL);
+                clock_e=clock();
+                
+                clock_time=static_cast<double> (((clock_e-clock_s)*1.e6)/CLOCKS_PER_SEC);
+                real_time=((real_e.tv_sec-real_s.tv_sec)*1.e6+real_e.tv_usec - real_s.tv_usec);
+                
+        }
+        else {
+                make_grid();
+                setup_system();
+                setup_integral();
+                assemble_system();
+                solve();
+        }
+        
+}
 
 
 #endif

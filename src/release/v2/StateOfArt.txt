@@ -4,11 +4,11 @@ TODO:
 	-> "studiare alternative per Price"
 -> commentare codice (sia Doxygen che altro)
 -> organizzare i CmakeList per inludere la cartella sopra e compilare quadrature una sola volta
--> funziona stampa matlab
--> usare reference_wrapper
+-> funzione stampa matlab e gnuplot con id dell'opzione
+-> pulire il codice, togliere eventuali cout, sistemare la verbosity
 
 Doc
--> Hermite e Laguerre mettere cosa integrano (in latex)
+-> Hermite e Laguerre mettere cosa integrano (in latex) -> cosa vuol dire??
 -> Fare notare il possibile errore di troncamento in Price
 
 TODO aggiunte:

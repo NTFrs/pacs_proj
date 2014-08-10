@@ -1,9 +1,7 @@
-#ifndef __levy_integral_price_kou__
-# define __levy_integral_price_kou__
+#ifndef __levy_integral_price_kou_hpp
+#define __levy_integral_price_kou_hpp
 
 #include "LevyIntegralPrice.hpp"
-#include "Quadrature.hpp"
-#include <cmath>
 
 //! A class to treat the integral part when in Price form optimized for Kou model
 /*!
@@ -27,16 +25,16 @@ protected:
 public:
 	LevyIntegralPriceKou()=delete;
         
-    LevyIntegralPriceKou(const LevyIntegralPriceKou &)=delete;
+        LevyIntegralPriceKou(const LevyIntegralPriceKou &)=delete;
 	
 	//! Only constructor of the class
 	/*!
-     * Similar to constructor of base class,  adds the option to make the quadrature of alpha adaptive.
+         * Similar to constructor of base class,  adds the option to make the quadrature of alpha adaptive.
 	 * \param lower_limit_ 		the left-bottom limit of the domain		
 	 * \param upper_limit_ 		the rigth-upper limit of the domain
 	 * \param Models_			A vector containing the needed models
 	 * \param apt 				boolean indicating if the quadrature must be adaptive. Default true.
-     */
+         */
 	LevyIntegralPriceKou(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
                              std::vector<Model *> & Models_,
@@ -76,9 +74,9 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
 	
 	
 	if (!adapting) {
-				//for each dimension it computes alpha
+                //for each dimension it computes alpha
                 for (unsigned d=0;d<dim;++d) {
-						//since the exponential part is included in the weights,  we use the remaining part of the density exlicitly,  here for the positive part of the axis
+                        //since the exponential part is included in the weights,  we use the remaining part of the density exlicitly,  here for the positive part of the axis
                         for (unsigned i=0; i<rightQuads[d].get_order(); ++i) {
                                 this->alpha[d]+=(exp((rightQuads[d].get_nodes())[i])-1)*
                                 ((this->mods[d])->get_p())*((this->mods[d])->get_lambda())*
@@ -95,7 +93,7 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
         }
         
 	else {
-				//same but adaptive
+                //same but adaptive
                 unsigned order_max=64;
                 
                 std::vector<double> alpha_old;
@@ -130,10 +128,10 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
                        rightQuads[0].get_order()<=order_max);
         }
         //TODO verbosity
-//         for (unsigned i=0; i<dim; ++i) {
-//                 std::cout<<this->alpha[i]<<"\t";
-//         }
-//         std::cout<<"\n";
+        //         for (unsigned i=0; i<dim; ++i) {
+        //                 std::cout<<this->alpha[i]<<"\t";
+        //         }
+        //         std::cout<<"\n";
         
 }
 

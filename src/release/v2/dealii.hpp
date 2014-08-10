@@ -40,12 +40,20 @@
 #include <deal.II/lac/precondition.h>
 #include <boost/graph/graph_concepts.hpp>
 
-# include <deal.II/grid/grid_refinement.h>
-# include <deal.II/numerics/error_estimator.h>
-# include <deal.II/fe/mapping_q1.h>
-# include <deal.II/numerics/derivative_approximation.h>
-# include <deal.II/numerics/solution_transfer.h>
+#include <deal.II/grid/grid_refinement.h>
+#include <deal.II/numerics/error_estimator.h>
+#include <deal.II/fe/mapping_q1.h>
+#include <deal.II/numerics/derivative_approximation.h>
+#include <deal.II/numerics/solution_transfer.h>
 
-#include <iostream>
+#include <deal.II/base/config.h>
+#include <deal.II/base/subscriptor.h>
+#include <deal.II/base/smartpointer.h>
+#include <deal.II/lac/sparsity_pattern.h>
+#include <deal.II/lac/identity_matrix.h>
+#include <deal.II/lac/exceptions.h>
+#include <deal.II/lac/vector.h>
+
+#include <deal.II/lac/sparse_matrix.h>
 
 #endif

@@ -1,15 +1,7 @@
 #ifndef __deal2__sparse_matrix_withProjectedSOR_h
 #define __deal2__sparse_matrix_withProjectedSOR_h
 
-#include <deal.II/base/config.h>
-#include <deal.II/base/subscriptor.h>
-#include <deal.II/base/smartpointer.h>
-#include <deal.II/lac/sparsity_pattern.h>
-#include <deal.II/lac/identity_matrix.h>
-#include <deal.II/lac/exceptions.h>
-#include <deal.II/lac/vector.h>
-
-#include <deal.II/lac/sparse_matrix.h>
+#include "dealii.hpp"
 
 DEAL_II_NAMESPACE_OPEN
 

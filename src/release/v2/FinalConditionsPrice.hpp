@@ -1,7 +1,7 @@
 #ifndef __final_conditions_price_hpp
 #define __final_conditions_price_hpp
 
-#include "deal_ii.hpp"
+#include "dealii.hpp"
 #include "OptionTypes.hpp"
 
 //! Class of Final Condititions
