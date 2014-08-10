@@ -9,15 +9,14 @@ SET(TARGET "test")
 SET(TARGET_SRC
   ${TARGET}.cpp
   # You can specify additional files here!
-  QuadratureRule.cpp
+  # QuadratureRule.cpp
   )
-
+  
 # Usually, you will not need to modify anything beyond this point...
 
 ADD_DEFINITIONS(
     -std=c++11 # Or -std=c++0x
     # Other flags
-    -fopenmp
     -pg
 )
 
@@ -45,12 +44,16 @@ ADD_CUSTOM_TARGET(doc
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
 
+ADD_LIBRARY(quadrules SHARED QuadratureRule.cpp)
+DEAL_II_SETUP_TARGET(quadrules)
+
 find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
+set (CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -L. -lquadrules -pg")
+set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -L. -lquadrules")
 
 DEAL_II_INVOKE_AUTOPILOT()

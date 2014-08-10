@@ -46,7 +46,7 @@ int main(){
         
         a.set_scale_factor(0.8);
         b.set_scale_factor(0.8);
-        c.set_scale_factor(0.8);
+        c.set_scale_factor(0.5);
         d.set_scale_factor(0.8);
         
         a.set_timing(true);
@@ -62,14 +62,14 @@ int main(){
         a.run();
         b.run();
         c.run();
-        d.run();
+        //d.run();
         c.print_grid("Griglia");
         c.print_solution_gnuplot("Soluzione");
         
         cout<<a.get_price()<<"\n";
         cout<<b.get_price()<<"\n";
         cout<<c.get_price()<<"\n";
-        cout<<d.get_price()<<"\n";
+        //cout<<d.get_price()<<"\n";
         
         auto x=a.get_times();
         cout<<x.first/1.e6<<" "<<x.second/1.e6<<"\n";
@@ -77,8 +77,8 @@ int main(){
         cout<<y.first/1.e6<<" "<<y.second/1.e6<<"\n";
         auto z=c.get_times();
         cout<<z.first/1.e6<<" "<<z.second/1.e6<<"\n";
-        auto w=d.get_times();
-        cout<<w.first/1.e6<<" "<<w.second/1.e6<<"\n";
+        //auto w=d.get_times();
+        //cout<<w.first/1.e6<<" "<<w.second/1.e6<<"\n";
         
 //         cout<<d.get_price()<<"\n";
         
@@ -216,52 +216,4 @@ int main(){
         
         return 0;
         
-}
-
-
-void timestamp ( )
-
-//****************************************************************************80
-//
-//  Purpose:
-//
-//    TIMESTAMP prints the current YMDHMS date as a time stamp.
-//
-//  Example:
-//
-//    31 May 2001 09:45:54 AM
-//
-//  Licensing:
-//
-//    This code is distributed under the GNU LGPL license. 
-//
-//  Modified:
-//
-//    08 July 2009
-//
-//  Author:
-//
-//    John Burkardt
-//
-//  Parameters:
-//
-//    None
-//
-{
-# define TIME_SIZE 40
-        
-	static char time_buffer[TIME_SIZE];
-	const struct std::tm *tm_ptr;
-	size_t len;
-	std::time_t now;
-        
-	now = std::time ( NULL );
-	tm_ptr = std::localtime ( &now );
-        
-	len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
-        
-	std::cout << time_buffer << "\n";
-        
-	return;
-# undef TIME_SIZE
 }

@@ -525,8 +525,6 @@ void OptionBase<dim>::run()
 {
         if (timing) {
                 
-                struct rusage usage;
-                
                 clock_t clock_s, clock_e;
                 struct timeval real_s, real_e;
                 
