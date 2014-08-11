@@ -50,7 +50,7 @@ public:
         
         OptionBasePrice& operator=(const OptionBasePrice &)=delete;
         
-        virtual inline double get_price();
+        virtual double get_price();
 };
 
 

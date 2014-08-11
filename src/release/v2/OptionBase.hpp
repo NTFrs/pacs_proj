@@ -282,7 +282,7 @@ public:
         /*!
          * This function returns the price of the option
          */
-        virtual inline double get_price()=0;
+        virtual double get_price()=0;
         
         virtual void estimate_doubling(double time, dealii::Vector<float> & errors);
         
@@ -326,9 +326,9 @@ price(0.),
 f(0.5),
 ran(false), 
 refine(false),
-timing(false),
 clock_time(log(-1)),
 real_time(log(-1)),
+timing(false),
 verbose(1),
 print(false),
 print_grids(false)
@@ -404,9 +404,9 @@ price(0.),
 f(0.5),
 ran(false), 
 refine(false),
-timing(false),
 clock_time(log(-1)),
 real_time(log(-1)),
+timing(false),
 verbose(1),
 print(false),
 print_grids(false)
@@ -568,7 +568,8 @@ void OptionBase<dim>::estimate_doubling(double time, dealii::Vector< float >& er
 template<unsigned dim>
 void OptionBase<dim>::run()
 {
-        clock_t clock_s, clock_e;
+        clock_t clock_s=0;
+        clock_t clock_e=0;
         struct timeval real_s, real_e;
         
         if (timing) {

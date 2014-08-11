@@ -48,7 +48,7 @@ public:
         
         OptionBaseLogPrice& operator=(const OptionBaseLogPrice &)=delete;
         
-        virtual inline double get_price();
+        virtual double get_price();
 };
 
 template<unsigned dim>
