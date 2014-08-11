@@ -257,12 +257,17 @@ public:
          *  the clock time and the real time taken by the class to solve the system
          */
         virtual std::pair<double, double> get_times() {
-                if (timing) {
+                if (clock_time==log(-1)) {
+                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                }
+                else if (!timing) {
+                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                }
+                else {
                         auto times=std::make_pair(clock_time, real_time);
                         return times;
                 }
-                else
-                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                        
                 
         }
         
@@ -322,6 +327,8 @@ f(0.5),
 ran(false), 
 refine(false),
 timing(false),
+clock_time(log(-1)),
+real_time(log(-1)),
 verbose(1),
 print(false),
 print_grids(false)
@@ -398,6 +405,8 @@ f(0.5),
 ran(false), 
 refine(false),
 timing(false),
+clock_time(log(-1)),
+real_time(log(-1)),
 verbose(1),
 print(false),
 print_grids(false)
@@ -559,34 +568,29 @@ void OptionBase<dim>::estimate_doubling(double time, dealii::Vector< float >& er
 template<unsigned dim>
 void OptionBase<dim>::run()
 {
+        clock_t clock_s, clock_e;
+        struct timeval real_s, real_e;
+        
         if (timing) {
-                
-                clock_t clock_s, clock_e;
-                struct timeval real_s, real_e;
-                
                 gettimeofday(&real_s, NULL);
                 clock_s=clock();
-                
-                make_grid();
-                setup_system();
-                setup_integral();
-                assemble_system();
-                solve();
-                
+        }
+        
+        make_grid();
+        setup_system();
+        setup_integral();
+        assemble_system();
+        solve();
+        
+        if (timing) {
                 gettimeofday(&real_e, NULL);
                 clock_e=clock();
                 
                 clock_time=static_cast<double> (((clock_e-clock_s)*1.e6)/CLOCKS_PER_SEC);
                 real_time=((real_e.tv_sec-real_s.tv_sec)*1.e6+real_e.tv_usec - real_s.tv_usec);
-                
         }
-        else {
-                make_grid();
-                setup_system();
-                setup_integral();
-                assemble_system();
-                solve();
-        }
+        
+        ran=true;
         
 }
 

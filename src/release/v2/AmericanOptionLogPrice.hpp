@@ -227,8 +227,6 @@ void AmericanOptionLogPrice<dim>::solve ()
                 this->print_solution_matlab("end");
         }
         
-	this->ran=true;
-        
 }
 
 #endif

@@ -189,8 +189,6 @@ void EuropeanOptionPrice<dim>::solve ()
                 this->print_solution_matlab("end");
         }
         
-	this->ran=true;
-        
 }
 
 #endif

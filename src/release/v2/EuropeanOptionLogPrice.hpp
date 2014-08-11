@@ -213,9 +213,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 this->print_solution_gnuplot("end");
                 this->print_solution_matlab("end");
         }
-        
-	this->ran=true;
-        
+                
 }
 
 /*
