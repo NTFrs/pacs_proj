@@ -10,6 +10,8 @@ protected:
         virtual void assemble_system();
         virtual void setup_integral();
         virtual void solve()=0;
+        
+        virtual void print_solution_matlab(std::string name_);
 public:
         OptionBasePrice()=delete;
         
@@ -207,6 +209,49 @@ void OptionBasePrice<dim>::assemble_system()
         
         return;
         
+}
+
+template<unsigned dim>
+void OptionBasePrice<dim>::print_solution_matlab(std::string name_) {
+        
+        std::string name("matlab/");
+        name.append(name_);
+        name.append(std::to_string(this->id));
+        name.append(".m");
+        
+        std::ofstream stream;
+        stream.open(name);
+        
+        if (stream.is_open()) {
+                if (dim==1) {
+                        stream<<"grid=[ ";
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                                stream<<this->vertices[i][0]<<"; ";
+                        }
+                        stream<<this->vertices[this->solution.size()-1][0]<<" ];\n";
+                }
+                else {
+                        stream<<"grid_x=[ ";
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                                stream<<this->vertices[i][0]<<"; ";
+                        }
+                        stream<<this->vertices[this->solution.size()-1][0]<<" ];\n";
+                        stream<<"grid_y=[ ";
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                                stream<<this->vertices[i][1]<<"; ";
+                        }
+                        stream<<this->vertices[this->solution.size()-1][1]<<" ];\n";
+                }
+                
+                stream<<"sol=[ ";
+                for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                        stream<<this->solution(i)<<"; ";
+                }
+                stream<<this->solution(this->solution.size()-1)<<" ];\n";
+        }
+        
+        stream.close();
+
 }
 
 template<unsigned dim>

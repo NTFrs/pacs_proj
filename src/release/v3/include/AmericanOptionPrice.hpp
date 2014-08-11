@@ -80,20 +80,16 @@ void AmericanOptionPrice<dim>::solve ()
                                   FinalConditionPrice<dim>(this->K, OptionType::Put),
                                   this->solution);
         
+	unsigned Step=this->time_step;
         
-        {
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (this->dof_handler);
-                data_out.add_data_vector (this->solution, "begin");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("begin.gpl");
-                data_out.write_gnuplot (output);
+        if (dim==2 && this->print_grids) {
+                this->print_grid(Step);
         }
         
-	unsigned Step=this->time_step;
+        if (this->print) {
+                this->print_solution_gnuplot("begin");
+                this->print_solution_matlab("begin");
+        }
         
         BoundaryConditionPrice<dim> bc(this->K, this->T,  this->r, OptionType::Put);
         
@@ -103,9 +99,12 @@ void AmericanOptionPrice<dim>::solve ()
                 
                 cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
                 
-                if (this->refine && Step%20==0)
+                if (this->refine && Step%20==0) {
                         this->refine_grid();
-                
+                        if (dim==2 && this->print_grids) {
+                                this->print_grid(Step);
+                        }
+                }
                 if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
                         
                         Vector<double> *J_x;
@@ -192,19 +191,10 @@ void AmericanOptionPrice<dim>::solve ()
                 
         }
         
-        {
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (this->dof_handler);
-                data_out.add_data_vector (this->solution, "end");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("end.gpl");
-                data_out.write_gnuplot (output);
+        if (this->print) {
+                this->print_solution_gnuplot("end");
+                this->print_solution_matlab("end");
         }
-        
-	this->ran=true;
         
 }
 

@@ -89,7 +89,6 @@ protected:
         float                   refine_index;
         
         unsigned                id;
-        unsigned                verbose;
         
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;
@@ -99,6 +98,11 @@ protected:
         double                  real_time;
         bool                    timing;
         
+        // Output parameters
+        unsigned                verbose;
+        bool                    print;
+        bool                    print_grids;
+        
         // Protected methods
         virtual void setup_system();
         virtual void refine_grid();
@@ -107,6 +111,39 @@ protected:
         virtual void assemble_system() = 0;
         virtual void solve() = 0;
         virtual void setup_integral() = 0;
+        virtual void print_solution_matlab(std::string name_) = 0;
+        
+        // Output methods
+        virtual void print_grid(unsigned step) {
+                
+                std::string name("plot/Mesh-");
+                name.append(std::to_string(this->id));
+                name.append("-");
+                name.append(std::to_string(step));
+                name.append(".eps");
+                
+                std::ofstream out (name);
+                dealii::GridOut grid_out;
+                grid_out.write_eps (triangulation, out);
+                
+        };
+        
+        virtual void print_solution_gnuplot(std::string name_) {
+                
+                dealii::DataOut<dim> data_out;
+                data_out.attach_dof_handler(dof_handler);
+                data_out.add_data_vector(solution, name_);
+                
+                std::string name("gnuplot/");
+                name.append(name_);
+                name.append("-");
+                name.append(std::to_string(this->id));
+                name.append(".gpl");
+                data_out.build_patches();
+                std::ofstream out(name);
+                data_out.write_gnuplot(out);
+                
+        };
         
 public:
         OptionBase()=delete;
@@ -202,17 +239,35 @@ public:
                 verbose=v;
         }
         
+        virtual void set_print(bool print_) {
+                print=print_;
+        }
+        
+        virtual void set_print_grid(bool print_) {
+                if (dim==1) {
+                        throw(std::logic_error("Error! This program cannot print 1d grids.\n"));
+                }
+                else {
+                        print_grids=print_;
+                }
+        }
+        
         //!
         /*! If timing is true, this function returns a pair of times in microseconds,
          *  the clock time and the real time taken by the class to solve the system
          */
         virtual std::pair<double, double> get_times() {
-                if (timing) {
+                if (clock_time==log(-1)) {
+                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                }
+                else if (!timing) {
+                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                }
+                else {
                         auto times=std::make_pair(clock_time, real_time);
                         return times;
                 }
-                else
-                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                        
                 
         }
         
@@ -232,24 +287,6 @@ public:
         virtual void estimate_doubling(double time, dealii::Vector<float> & errors);
         
         //TODO add output functions
-        
-        virtual void print_grid(std::string name) {
-                name.append(".eps");
-                std::ofstream out (name);
-                dealii::GridOut grid_out;
-                grid_out.write_eps (triangulation, out);
-        };
-        
-        virtual void print_solution_gnuplot(std::string name) {
-                dealii::DataOut<dim> data_out;
-                data_out.attach_dof_handler(dof_handler);
-                data_out.add_data_vector(solution, name);
-                
-                name.append(".gpl");
-                data_out.build_patches();
-                std::ofstream out(name);
-                data_out.write_gnuplot(out);
-        };
         
 };
 
@@ -289,8 +326,12 @@ price(0.),
 f(0.5),
 ran(false), 
 refine(false),
+timing(false),
+clock_time(log(-1)),
+real_time(log(-1)),
 verbose(1),
-timing(false)
+print(false),
+print_grids(false)
 {
         tools::Counter::counter()++;
         id=tools::Counter::counter();
@@ -363,8 +404,12 @@ price(0.),
 f(0.5),
 ran(false), 
 refine(false),
+timing(false),
+clock_time(log(-1)),
+real_time(log(-1)),
 verbose(1),
-timing(false)
+print(false),
+print_grids(false)
 {
         tools::Counter::counter()++;
         id=tools::Counter::counter();
@@ -523,34 +568,29 @@ void OptionBase<dim>::estimate_doubling(double time, dealii::Vector< float >& er
 template<unsigned dim>
 void OptionBase<dim>::run()
 {
+        clock_t clock_s, clock_e;
+        struct timeval real_s, real_e;
+        
         if (timing) {
-                
-                clock_t clock_s, clock_e;
-                struct timeval real_s, real_e;
-                
                 gettimeofday(&real_s, NULL);
                 clock_s=clock();
-                
-                make_grid();
-                setup_system();
-                setup_integral();
-                assemble_system();
-                solve();
-                
+        }
+        
+        make_grid();
+        setup_system();
+        setup_integral();
+        assemble_system();
+        solve();
+        
+        if (timing) {
                 gettimeofday(&real_e, NULL);
                 clock_e=clock();
                 
                 clock_time=static_cast<double> (((clock_e-clock_s)*1.e6)/CLOCKS_PER_SEC);
                 real_time=((real_e.tv_sec-real_s.tv_sec)*1.e6+real_e.tv_usec - real_s.tv_usec);
-                
         }
-        else {
-                make_grid();
-                setup_system();
-                setup_integral();
-                assemble_system();
-                solve();
-        }
+        
+        ran=true;
         
 }
 

@@ -9,6 +9,7 @@ protected:
         virtual void make_grid();
         virtual void assemble_system();
         virtual void solve()=0;
+        virtual void print_solution_matlab(std::string name_);
 public:
         OptionBaseLogPrice()=delete;
         
@@ -295,6 +296,51 @@ void OptionBaseLogPrice<dim>::assemble_system()
          }
          */
         return;
+        
+}
+
+template<unsigned dim>
+void OptionBaseLogPrice<dim>::print_solution_matlab(std::string name_) {
+        
+        std::string name("matlab/");
+        name.append(name_);
+        name.append(std::to_string(this->id));
+        name.append(".m");
+        
+        std::ofstream stream;
+        stream.open(name);
+        
+        if (stream.is_open()) {
+                if (dim==1) {
+                        stream<<"grid=[ ";
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                                stream<<this->models[0]->get_spot()*exp(this->vertices[i][0])<<"; ";
+                        }
+                        stream<<this->models[0]->get_spot()*
+                        exp(this->vertices[this->solution.size()-1][0])<<" ];\n";
+                }
+                else {
+                        stream<<"grid_x=[ ";
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                                stream<<this->models[0]->get_spot()*exp(this->vertices[i][0])<<"; ";
+                        }
+                        stream<<this->models[0]->get_spot()*
+                        exp(this->vertices[this->solution.size()-1][0])<<" ];\n";
+                        stream<<"grid_y=[ ";
+                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                                stream<<this->models[1]->get_spot()*exp(this->vertices[i][1])<<"; ";
+                        }
+                        stream<<this->models[1]->get_spot()*exp(this->vertices[this->solution.size()-1][1])<<" ];\n";
+                }
+                
+                stream<<"sol=[ ";
+                for (unsigned i=0; i<this->solution.size()-1; ++i) {
+                        stream<<this->solution(i)<<"; ";
+                }
+                stream<<this->solution(this->solution.size()-1)<<" ];\n";
+        }
+        
+        stream.close();
         
 }
 

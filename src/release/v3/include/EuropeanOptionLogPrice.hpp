@@ -111,25 +111,9 @@ void EuropeanOptionLogPrice<dim>::solve ()
                                   FinalConditionLogPrice<dim>(S0, this->K, this->type2),
                                   this->solution);
         
-        ofstream print;
-        print.open("solution.m");
-        
-        print<<"Payoff=[ ";
-        for (unsigned i=0; i<this->solution.size()-1; ++i) {
-                print<<this->solution(i)<<"; ";
-        }
-        print<<this->solution(this->solution.size()-1)<<" ];\n";
-        
-        {
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (this->dof_handler);
-                data_out.add_data_vector (this->solution, "begin");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("begin.gpl");
-                data_out.write_gnuplot (output);
+        if (this->print) {
+                this->print_solution_gnuplot("begin");
+                this->print_solution_matlab("begin");
         }
         
 	unsigned Step=this->time_step;
@@ -138,12 +122,8 @@ void EuropeanOptionLogPrice<dim>::solve ()
         
 	cout<< "time step is"<< this->time_step << endl;
         
-        if (dim==2 && this->refine) {
-                std::string name("plot/Mesh-");
-                name.append(to_string(this->id));
-                name.append("-");
-                name.append(to_string(Step));
-                this->print_grid(name);
+        if (dim==2 && this->print_grids) {
+                this->print_grid(Step);
         }
 	
 	for (double time=this->T-this->dt;time >=0;time-=this->dt, --Step) {
@@ -152,12 +132,8 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 
                 if (this->refine && Step%20==0 && Step!=this->time_step) {
                         this->refine_grid();
-                        if (dim==2) {
-                                std::string name("plot/Mesh-");
-                                name.append(to_string(this->id));
-                                name.append("-");
-                                name.append(to_string(Step));
-                                this->print_grid(name);
+                        if (dim==2 && this->print_grids) {
+                                this->print_grid(Step);
                         }
                 }
                 //
@@ -233,35 +209,11 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 
         }
         
-        {
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (this->dof_handler);
-                data_out.add_data_vector (this->solution, "end");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("end.gpl");
-                data_out.write_gnuplot (output);
+        if (this->print) {
+                this->print_solution_gnuplot("end");
+                this->print_solution_matlab("end");
         }
-        
-        
-        print<<"x=[ ";
-        for (unsigned i=0; i<this->grid_points.size()-1; ++i) {
-                print<<this->models[0]->get_spot()*exp(this->grid_points[i][0])<<"; ";
-        }
-        print<<this->models[0]->get_spot()*
-        exp(this->grid_points[this->grid_points.size()-1][0])<<" ];\n";
-        print<<"sol=[ ";
-        for (unsigned i=0; i<this->solution.size()-1; ++i) {
-                print<<this->solution(i)<<"; ";
-        }
-        print<<this->solution(this->solution.size()-1)<<" ];\n";
-        
-        print.close();
-        
-	this->ran=true;
-        
+                
 }
 
 /*
