@@ -86,28 +86,17 @@ void EuropeanOptionPrice<dim>::solve ()
                                   FinalConditionPrice<dim>(this->K, this->type2),
                                   this->solution);
         
-        {
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (this->dof_handler);
-                data_out.add_data_vector (this->solution, "begin");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("begin.gpl");
-                data_out.write_gnuplot (output);
+        if (this->print) {
+                this->print_solution_gnuplot("begin");
+                this->print_solution_matlab("begin");
         }
         
 	unsigned Step=this->time_step;
         
         BoundaryConditionPrice<dim> bc(this->K, this->T,  this->r, this->type2);
         
-        if (dim==2 && this->refine) {
-                std::string name("plot/Mesh-");
-                name.append(to_string(this->id));
-                name.append("-");
-                name.append(to_string(Step));
-                this->print_grid(name);
+        if (dim==2 && this->print_grids) {
+                this->print_grid(Step);
         }
         
 	cout<< "time step is"<< this->time_step << endl;
@@ -118,12 +107,8 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 if (this->refine && Step%20==0 && Step!=this->time_step){
                         this->refine_grid();
-                        if (dim==2) {
-                                std::string name("plot/Mesh-");
-                                name.append(to_string(this->id));
-                                name.append("-");
-                                name.append(to_string(Step));
-                                this->print_grid(name);
+                        if (dim==2 && this->print_grids) {
+                                this->print_grid(Step);
                         }
                 }
                 //
@@ -199,31 +184,9 @@ void EuropeanOptionPrice<dim>::solve ()
                 
         }
         
-        {
-                DataOut<dim> data_out;
-                
-                data_out.attach_dof_handler (this->dof_handler);
-                data_out.add_data_vector (this->solution, "end");
-                
-                data_out.build_patches ();
-                
-                std::ofstream output ("end.gpl");
-                data_out.write_gnuplot (output);
-        }
-        
-        {
-                ofstream print;
-                print.open("solution.m");
-                
-                if (print.is_open()) {
-                        print<<"sol=[ ";
-                        for (unsigned i=0; i<this->solution.size()-1; ++i) {
-                                print<<this->solution(i)<<"; ";
-                        }
-                        print<<this->solution(this->solution.size()-1)<<" ];\n";
-                }
-                
-                print.close();
+        if (this->print) {
+                this->print_solution_gnuplot("end");
+                this->print_solution_matlab("end");
         }
         
 	this->ran=true;

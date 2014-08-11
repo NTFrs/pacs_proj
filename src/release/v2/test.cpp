@@ -54,6 +54,14 @@ int main(){
         c.set_timing(true);
         d.set_timing(true);
         
+        a.set_print(true);
+        b.set_print(true);
+        c.set_print(true);
+        
+        //a.set_print_grid(true);
+        //b.set_print_grid(true);
+        c.set_print_grid(true);
+        
 //         a.set_refine_status(true);
 //         b.set_refine_status(true);
         //c.set_refine_status(true, 0.1);		
@@ -63,8 +71,8 @@ int main(){
         b.run();
         c.run();
         //d.run();
-        c.print_grid("Griglia");
-        c.print_solution_gnuplot("Soluzione");
+        //c.print_grid("Griglia");
+        //c.print_solution_gnuplot("Soluzione");
         
         cout<<a.get_price()<<"\n";
         cout<<b.get_price()<<"\n";
