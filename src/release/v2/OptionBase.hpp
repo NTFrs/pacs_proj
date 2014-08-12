@@ -16,6 +16,7 @@
 #include <memory>
 #include <exception>
 #include <ctime>
+#include <iomanip>
 
 #include "dealii.hpp"
 #include "SparseMatrix_PSOR.hpp"
@@ -98,7 +99,7 @@ protected:
         bool                    timing;
         
         // Output parameters
-        unsigned                verbose;
+        bool                    verbose;
         bool                    print;
         bool                    print_grids;
         
@@ -232,10 +233,10 @@ public:
         }
         
         //!
-        /*! Set the verbosity of the Option: 0 for nothing, 1 for time_step and basic info, 2 for advanced info.
+        /*! Set the verbosity of the Option: false for nothing, true for everything.
          */
-        virtual void set_verbose(unsigned v) {
-                verbose=v;
+        virtual void set_verbose(bool verbose_) {
+                verbose=verbose_;
         }
         
         virtual void set_print(bool print_) {
@@ -328,7 +329,7 @@ refine(false),
 clock_time(log(-1)),
 real_time(log(-1)),
 timing(false),
-verbose(1),
+verbose(true),
 print(false),
 print_grids(false)
 {
@@ -406,7 +407,7 @@ refine(false),
 clock_time(log(-1)),
 real_time(log(-1)),
 timing(false),
-verbose(1),
+verbose(true),
 print(false),
 print_grids(false)
 {
@@ -453,9 +454,10 @@ void OptionBase<dim>::setup_system()
         
 	dof_handler.distribute_dofs(fe);
         
-	std::cout << "   Number of degrees of freedom: "
-	<< dof_handler.n_dofs()
-	<< std::endl;
+        if (verbose) {
+                std::cout << "Building system...\nNumber of degrees of freedom: "<<
+                dof_handler.n_dofs()<<"\n";
+        }
         
 	dealii::CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
 	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);

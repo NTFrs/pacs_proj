@@ -99,11 +99,11 @@ void EuropeanOptionPrice<dim>::solve ()
                 this->print_grid(Step);
         }
         
-	cout<< "time step is"<< this->time_step << endl;
-	
-	for (double time=this->T-this->dt;time >=0;time-=this->dt, --Step) {
+	for (double time=this->T-this->dt; Step>0 ;time-=this->dt, --Step) {
                 
-                cout<< "Step "<< Step<<"\t at time \t"<< time<< endl;
+                if (this->verbose) {
+                        cout<< "Step "<<Step<<"\t at time "<<time<<"\n";
+                }
                 
                 if (this->refine && Step%20==0 && Step!=this->time_step){
                         this->refine_grid();

@@ -86,7 +86,6 @@ template <unsigned dim>
 void OptionBasePrice<dim>::setup_integral(){
         
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
-                std::cout<<"creo Kou\n";
                 this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models));
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
@@ -117,9 +116,11 @@ void OptionBasePrice<dim>::assemble_system()
 	const unsigned int   dofs_per_cell = (this->fe).dofs_per_cell;
 	const unsigned int   n_q_points    = quadrature_formula.size();
         
-	cout<< "Assembling System\n";
-	cout<< "Degrees of freedom per cell: "<< dofs_per_cell<< endl;
-	cout<< "Quadrature points per cell: "<< n_q_points<< endl;
+	if (this->verbose) {
+                cout<< "Assembling System\n";
+                cout<< "Degrees of freedom per cell: "<< dofs_per_cell<< endl;
+                cout<< "Quadrature points per cell: "<< n_q_points<< endl;
+        }
         
 	std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
         
@@ -145,37 +146,7 @@ void OptionBasePrice<dim>::assemble_system()
                         
                         tools::make_trasp<dim>(trasp, this->models, this->r, this->rho, alpha, quad_points[q_point]);
                         tools::make_diff<dim>(sig_mat, this->models, this->rho, quad_points[q_point]);
-                        /*
-                         if (dim==1) {
-                         
-                         trasp[0]=(this->r-(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()-alpha[0])*quad_points[q_point][0];
-                         
-                         sig_mat[0][0]=0.5*(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
-                         *quad_points[q_point][0]*quad_points[q_point][0];
-                         }
-                         
-                         else if (dim==2) {
-                         
-                         trasp[0]=-((*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
-                         *quad_points[q_point][0]
-                         +0.5*(this->rho)*(*(this->models[0])).get_vol()*(*(this->models[1])).get_vol()
-                         *quad_points[q_point][0]+(alpha[0]-this->r)*quad_points[q_point][0]);
-                         
-                         trasp[1]=-((*(this->models[1])).get_vol()*(*(this->models[1])).get_vol()*
-                         quad_points[q_point][1]+0.5*(this->rho)*(*(this->models[0])).get_vol()*
-                         (*(this->models[1])).get_vol()*quad_points[q_point][1]
-                         +(alpha[1]-this->r)*quad_points[q_point][1]);
-                         
-                         
-                         sig_mat[0][0]=0.5*(*(this->models[0])).get_vol()*(*(this->models[0])).get_vol()
-                         *quad_points[q_point][0]*quad_points[q_point][0];
-                         sig_mat[1][1]=0.5*(*(this->models[1])).get_vol()*(*(this->models[1])).get_vol()
-                         *quad_points[q_point][1]*quad_points[q_point][1];
-                         sig_mat[0][1]=0.5*(this->rho)*(*(this->models[0])).get_vol()*(*(this->models[1])).get_vol()*
-                         quad_points[q_point][0]*quad_points[q_point][1];
-                         sig_mat[1][0]=sig_mat[0][1];
-                         }
-                         */
+                        
                         for (unsigned i=0;i<dofs_per_cell;++i)
                                 for (unsigned j=0; j<dofs_per_cell;++j) {
                                         
@@ -204,6 +175,10 @@ void OptionBasePrice<dim>::assemble_system()
         }
         
 	(this->system_M2).add(1./(this->dt), this->ff_matrix);
+        
+        if (this->verbose) {
+                cout<<"Done!\n";
+        }
         
         return;
         
@@ -249,7 +224,7 @@ void OptionBasePrice<dim>::print_solution_matlab(std::string name_) {
         }
         
         stream.close();
-
+        
 }
 
 template<unsigned dim>
