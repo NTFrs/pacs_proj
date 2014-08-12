@@ -54,7 +54,7 @@ public:
          * \param r             Interest rate
          * \param T             Time to Maturity
          * \param K             Strike Price
-         * \param N             Refinement of the grid (e.g. insert 10 for 2^10=1024 cells)
+         * \param N             Refinement of the grid (e.g. insert 6 for 2^(2*6)=4096 cells)
          * \param M             Number of TimeStep
          */
         std::unique_ptr< OptionBase<2> > create(ExerciseType type1,

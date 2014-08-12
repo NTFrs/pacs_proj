@@ -12,7 +12,7 @@ int main(){
         
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
-        array<unsigned, 2>         refinement={8, 9/*, 10, 11*/};
+        array<unsigned, 2>         refinement={8, 9, 10, 11};
         array<double, 4>           times_s={0., 0., 0., 0.};
         array<double, 4>           times_p={0., 0., 0., 0.};
         array<double, 4>           price_s={0., 0., 0., 0.};
