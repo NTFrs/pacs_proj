@@ -66,8 +66,7 @@ protected:
 	dealii::SparseMatrix<double>    ff_matrix;
         
         // Points of the grid
-        std::vector< dealii::Point<dim> >       grid_points;
-        std::map<dealii::types::global_dof_index, dealii::Point<dim> > vertices;
+        std::vector< dealii::Point<dim> >       vertices;
 	
         // Solution and rhs vectors
 	dealii::Vector<double>          solution;
@@ -472,7 +471,7 @@ void OptionBase<dim>::setup_system()
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
-        vertices.clear();
+        vertices.resize(dof_handler.n_dofs());
         dealii::DoFTools::map_dofs_to_support_points(dealii::MappingQ1<dim>(), dof_handler, vertices);
         
         return;

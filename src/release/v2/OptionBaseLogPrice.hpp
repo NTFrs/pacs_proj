@@ -77,9 +77,6 @@ void OptionBaseLogPrice<dim>::make_grid(){
                                                    this->Smin, this->Smax);
         this->triangulation.refine_global();
         
-        //TODO ma servono questi? 
-        this->grid_points=this->triangulation.get_vertices();
-        
         return;
 }
 

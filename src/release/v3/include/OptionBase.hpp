@@ -66,8 +66,7 @@ protected:
 	dealii::SparseMatrix<double>    ff_matrix;
         
         // Points of the grid
-        std::vector< dealii::Point<dim> >       grid_points;
-        std::map<dealii::types::global_dof_index, dealii::Point<dim> > vertices;
+        std::vector< dealii::Point<dim> >       vertices;
 	
         // Solution and rhs vectors
 	dealii::Vector<double>          solution;

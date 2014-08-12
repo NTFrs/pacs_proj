@@ -29,7 +29,7 @@ public:
         void ProjectedSOR_step (Vector<number> &v,                          // Solution
                                 const Vector<number> &v_old,                // Solution step before
                                 const Vector<number> &b,                    // right hand side
-                                std::map<dealii::types::global_dof_index,dealii::Point<dim> > &vertices,                                                            // mesh points
+                                const std::vector< dealii::Point<dim> > &vertices,// mesh points
                                 const number        K,                          // Strike
                                 const number        om = 1.);                   // SOR parameter
         
@@ -37,7 +37,7 @@ public:
         void ProjectedSOR_step (Vector<number> &v,                          // Solution
                                 const Vector<number> &v_old,                // Solution step before
                                 const Vector<number> &b,                    // right hand side
-                                std::map<dealii::types::global_dof_index,dealii::Point<dim> > &vertices,                                                            // mesh points
+                                const std::vector< dealii::Point<dim> > &vertices,                                                            // mesh points
                                 const number        K,                          // Strike
                                 const std::vector<number> &S0,                  // Spot
                                 const number        om = 1.);                   // SOR parameter
@@ -49,7 +49,7 @@ void
 dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                                                            const Vector<number> &v_old,
                                                            const Vector<number> &b,
-                                                           std::map<dealii::types::global_dof_index,dealii::Point<dim> > &vertices,                                                            
+                                                           const std::vector< dealii::Point<dim> > &vertices,                                                            
                                                            const number        K,
                                                            const number        om)
 
@@ -101,7 +101,7 @@ void
 dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                                                            const Vector<number> &v_old,
                                                            const Vector<number> &b,
-                                                           std::map<dealii::types::global_dof_index,dealii::Point<dim> > &vertices,                                                            
+                                                           const std::vector< dealii::Point<dim> > &vertices,                                                            
                                                            const number        K,
                                                            const std::vector<number> &S0,
                                                            const number        om)
