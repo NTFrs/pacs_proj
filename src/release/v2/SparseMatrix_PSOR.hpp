@@ -5,42 +5,84 @@
 
 DEAL_II_NAMESPACE_OPEN
 
+//! Sparse Matrix, with PSOR.
+/*! This class is a simple decorator for \code {.cpp} dealii::SparseMatrix \endcode
+ * It inheritances \code {.cpp}
+ * dealii::reinit
+ * dealii::add
+ * \endcode
+ * methods used in the program and adds two overloaded methods, called \code {.cpp} ProjectedSOR_step \endcode used for solving the obstacle problem. For all the information about the base class, we suggest you to take a look in the documentation of dealii <a href="http://www.dealii.org/developer/doxygen/deal.II/classSparseMatrix.html">classSparseMatrix</a>.
+ */
+
 template <typename number, unsigned dim>
 class SparseMatrix_PSOR : public virtual SparseMatrix<number> {
 public:
         // Inheriting needed typedef
         using typename SparseMatrix<number>::size_type;
         
-        // Constructors
+        //!
+        /*! Constructor; initializes the matrix to be empty, without any structure, i.e. the matrix is not usable at all. This constructor is therefore only useful for matrices which are members of a class. All other matrices should be created at a point in the data flow where all necessary information is available.
+         */
         SparseMatrix_PSOR():SparseMatrix<number>(){};
         
+        //!
+        /*! Copy constructor. This constructor is only allowed to be called if the matrix to be copied is empty.
+         */
         SparseMatrix_PSOR(const SparseMatrix<number> &A):SparseMatrix<number>(A){};
         
+        //!
+        /*! Constructor. Takes the given matrix sparsity structure to represent the sparsity pattern of this matrix.
+         */
         explicit SparseMatrix_PSOR(const SparsityPattern &sparsity):SparseMatrix<number>(sparsity){};
         
+        //!
+        /*! Copy constructor: initialize the matrix with the identity matrix. This constructor will throw an exception if the sizes of the sparsity pattern and the identity matrix do not coincide, or if the sparsity pattern does not provide for nonzero entries on the entire diagonal.
+         */
         SparseMatrix_PSOR(const SparsityPattern &sparsity, const IdentityMatrix  &id):
         SparseMatrix<number>(sparsity, id){};
         
-        // SparseMatrix methods
+        //!
+        /*! Non-virtual method inherited by SparseMatrix
+         */
         using SparseMatrix<number>::reinit;
+        //!
+        /*! Non-virtual method inherited by SparseMatrix
+         */
         using SparseMatrix<number>::add;
         
-        // Adding a new SOR_Step for Price
-        void ProjectedSOR_step (Vector<number> &v,                          // Solution
-                                const Vector<number> &v_old,                // Solution step before
-                                const Vector<number> &b,                    // right hand side
-                                const std::vector< dealii::Point<dim> > &vertices,// mesh points
-                                const number        K,                          // Strike
-                                const number        om = 1.);                   // SOR parameter
+        //! ProjectedSOR_step for Price
+        /*! This method performs a PSOR step, just like any other iterative method of SparseMatrix. This one tough solves the obstacle problem of the American Option.
+         *  \param v            solution
+         *  \param v_old        solution at the previous step
+         *  \param b            right hand side
+         *  \param vertices     vector of the mesh points
+         *  \param K            strike price
+         *  \param om           SOR parameter
+         */
+        void ProjectedSOR_step (Vector<number> &v,
+                                const Vector<number> &v_old,
+                                const Vector<number> &b,
+                                const std::vector< dealii::Point<dim> > &vertices,
+                                const number        K,
+                                const number        om = 1.);
         
-        // Adding a new SOR_Step for LogPrice
-        void ProjectedSOR_step (Vector<number> &v,                          // Solution
-                                const Vector<number> &v_old,                // Solution step before
-                                const Vector<number> &b,                    // right hand side
-                                const std::vector< dealii::Point<dim> > &vertices,                                                            // mesh points
-                                const number        K,                          // Strike
-                                const std::vector<number> &S0,                  // Spot
-                                const number        om = 1.);                   // SOR parameter
+        //! ProjectedSOR_step for LogPrice
+        /*! This method performs a PSOR step, just like any other iterative method of SparseMatrix. This one tough solves the obstacle problem of the American Option.
+         *  \param v            solution
+         *  \param v_old        solution at the previous step
+         *  \param b            right hand side
+         *  \param vertices     vector of the mesh points
+         *  \param K            strike price
+         *  \param S0           vector of spot prices
+         *  \param om           SOR parameter
+         */
+        void ProjectedSOR_step (Vector<number> &v,
+                                const Vector<number> &v_old,
+                                const Vector<number> &b,
+                                const std::vector< dealii::Point<dim> > &vertices,
+                                const number        K,
+                                const std::vector<number> &S0,
+                                const number        om = 1.);
         
 };
 

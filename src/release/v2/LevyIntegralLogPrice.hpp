@@ -2,6 +2,7 @@
 #define __levy_integral_logprice_hpp
 
 #include "LevyIntegralBase.hpp"
+
 //! Class that handles the integral part with the LogPrice transformation for a generic model
 /*!
  * This class computes the integral parts of the equation when written with the \f$x=log\left(\frac{S}{S_0}\right)\f$ transformation. It should be noted that, since this transformation requires a boundary condition,  it stores a unique_ptr to a Function object that is intended to be the boundary condition. The best way is thus to pass te boundary condition with the use of the move semantic.

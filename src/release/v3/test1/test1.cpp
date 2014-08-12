@@ -12,11 +12,11 @@ int main(){
         {
                 // We create an object of type Option, a European Put with the Price transformation
                 // with the model created above.
-                auto foo=OptionFactory::instance()->create(ExerciseType::EU,
-                                                           OptionType::Put,
-                                                           Transformation::Price,
-                                                           model.get_pointer(),
-                                                           0.0367, 1., 90., 12, 250);
+                auto foo=Factory::instance()->create(ExerciseType::EU,
+                                                     OptionType::Put,
+                                                     Transformation::Price,
+                                                     model.get_pointer(),
+                                                     0.0367, 1., 90., 12, 250);
                 
                 foo->set_print(true);
                 foo->set_timing(true);
@@ -27,14 +27,17 @@ int main(){
                 cout<<"The price of the option is "<<foo->get_price()<<", evaluated in "<<times.second/1.e6<<".\n";
         }
         
+        cout<<"Press return to continue...\n";
+        cin.get();
+        
         {
                 // We create an object of type Option, a European Put with the LogPrice transformation
                 // with the model created above.
-                auto goofy=OptionFactory::instance()->create(ExerciseType::EU,
-                                                             OptionType::Put,
-                                                             Transformation::LogPrice,
-                                                             model.get_pointer(),
-                                                             0.0367, 1., 90., 12, 250);
+                auto goofy=Factory::instance()->create(ExerciseType::EU,
+                                                       OptionType::Put,
+                                                       Transformation::LogPrice,
+                                                       model.get_pointer(),
+                                                       0.0367, 1., 90., 12, 250);
                 
                 goofy->set_print(true);
                 goofy->set_timing(true);
@@ -45,17 +48,20 @@ int main(){
                 cout<<"The price of the option is "<<goofy->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
         }
         
+        cout<<"Press return to continue...\n";
+        cin.get();
+        
         // We create here two BlackScholesModel objects with spot price and volatility
         BlackScholesModel model1(80., 0.1256);
         BlackScholesModel model2(120., 0.2);
         
         {
-                auto duffy=OptionFactory::instance()->create(ExerciseType::EU,
-                                                             OptionType::Call,
-                                                             Transformation::Price,
-                                                             model1.get_pointer(),
-                                                             model2.get_pointer(),
-                                                             -0.2, 0.1, 1., 200., 7, 100);
+                auto duffy=Factory::instance()->create(ExerciseType::EU,
+                                                       OptionType::Call,
+                                                       Transformation::Price,
+                                                       model1.get_pointer(),
+                                                       model2.get_pointer(),
+                                                       -0.2, 0.1, 1., 200., 7, 100);
                 
                 duffy->set_print_grid(true);
                 duffy->set_print(true);
@@ -67,13 +73,16 @@ int main(){
                 cout<<"The price of the option is "<<duffy->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
         }
         
+        cout<<"Press return to continue...\n";
+        cin.get();
+        
         {
-                auto minnie=OptionFactory::instance()->create(ExerciseType::EU,
-                                                             OptionType::Call,
-                                                             Transformation::LogPrice,
-                                                             model1.get_pointer(),
-                                                             model2.get_pointer(),
-                                                             -0.2, 0.1, 1., 200., 7, 100);
+                auto minnie=Factory::instance()->create(ExerciseType::EU,
+                                                        OptionType::Call,
+                                                        Transformation::LogPrice,
+                                                        model1.get_pointer(),
+                                                        model2.get_pointer(),
+                                                        -0.2, 0.1, 1., 200., 7, 100);
                 
                 minnie->set_print_grid(true);
                 minnie->set_print(true);
@@ -84,6 +93,9 @@ int main(){
                 
                 cout<<"The price of the option is "<<minnie->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
         }
+        
+        cout<<"Press return to continue...\n";
+        cin.get();
         
         return 0;
         

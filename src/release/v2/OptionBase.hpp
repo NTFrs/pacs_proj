@@ -28,8 +28,10 @@
 #include "Models.hpp"
 #include "Constants.hpp"
 
-//using namespace dealii;
-
+//! Abstract base class for the option-type classes.
+/*!
+ * This class stores all the protected members of the option-type class and defines the layout of these classes.
+ */
 template<unsigned dim>
 class OptionBase
 {
@@ -205,7 +207,7 @@ public:
          */
         virtual void set_refs(unsigned refs_) {
                 refs=refs_;
-                ran=false;
+                reset();
         }
         
         //!
@@ -213,36 +215,47 @@ public:
          */
         virtual void set_timestep(unsigned time_step_) {
                 time_step=time_step_;
-                ran=false;
+                reset();
         }
         
+        //!
+        /*! This function allows to set the adaptivity of the grid. Default is false.
+         * \param status        to set adaptivity, set status=true
+         * \param refine_       refinement index, e.g. if refine_=0.2, during every refinement step, the program will refine the 20% of the cells.
+         * \param coarse_       coarsening index, e.g. if coarse_=0.03, during every refinement step, the program will coarse the 3% of the cells.
+         */
         virtual void set_refine_status(bool status, float refine_=0.2, float coarse_=0.03) {
                 refine=status;
                 refine_index=refine_;
                 coarse_index=coarse_;
-                ran=false;
+                reset();
         };
         
-        virtual bool get_refine_status() {
-                return refine;
-        };
-        
+        //!
+        /*! This function allows to clock the execution of the method run(). Default is false.
+         */
         virtual void set_timing(bool timing_) {
                 timing=timing_;
-                ran=false;
+                reset();
         }
         
         //!
-        /*! Set the verbosity of the Option: false for nothing, true for everything.
+        /*! Set the verbosity of the Option: false for nothing, true for everything. Default is true.
          */
         virtual void set_verbose(bool verbose_) {
                 verbose=verbose_;
         }
         
+        //!
+        /*! This function tells the program to print the final condition and the solution of the problem in matlab and gnuplot format.
+         */
         virtual void set_print(bool print_) {
                 print=print_;
         }
         
+        //!
+        /*! This function tells the program to print an image of the 2d-mesh in the folder "plot".
+         */
         virtual void set_print_grid(bool print_) {
                 if (dim==1) {
                         throw(std::logic_error("Error! This program cannot print 1d grids.\n"));
@@ -276,6 +289,7 @@ public:
          */
         virtual void reset() {
                 ran=false;
+                triangulation.clear();
         }
         
         //!
@@ -285,8 +299,6 @@ public:
         virtual double get_price()=0;
         
         virtual void estimate_doubling(double time, dealii::Vector<float> & errors);
-        
-        //TODO add output functions
         
 };
 
@@ -569,30 +581,32 @@ void OptionBase<dim>::estimate_doubling(double time, dealii::Vector< float >& er
 template<unsigned dim>
 void OptionBase<dim>::run()
 {
-        clock_t clock_s=0;
-        clock_t clock_e=0;
-        struct timeval real_s, real_e;
-        
-        if (timing) {
-                gettimeofday(&real_s, NULL);
-                clock_s=clock();
-        }
-        
-        make_grid();
-        setup_system();
-        setup_integral();
-        assemble_system();
-        solve();
-        
-        if (timing) {
-                gettimeofday(&real_e, NULL);
-                clock_e=clock();
+        if (ran==false) {
+                clock_t clock_s=0;
+                clock_t clock_e=0;
+                struct timeval real_s, real_e;
                 
-                clock_time=static_cast<double> (((clock_e-clock_s)*1.e6)/CLOCKS_PER_SEC);
-                real_time=((real_e.tv_sec-real_s.tv_sec)*1.e6+real_e.tv_usec - real_s.tv_usec);
+                if (timing) {
+                        gettimeofday(&real_s, NULL);
+                        clock_s=clock();
+                }
+                
+                make_grid();
+                setup_system();
+                setup_integral();
+                assemble_system();
+                solve();
+                
+                if (timing) {
+                        gettimeofday(&real_e, NULL);
+                        clock_e=clock();
+                        
+                        clock_time=static_cast<double> (((clock_e-clock_s)*1.e6)/CLOCKS_PER_SEC);
+                        real_time=((real_e.tv_sec-real_s.tv_sec)*1.e6+real_e.tv_usec - real_s.tv_usec);
+                }
+                
+                ran=true;
         }
-        
-        ran=true;
         
 }
 

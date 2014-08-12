@@ -12,7 +12,7 @@
 
 //! Abstract class for the Levy Classes which handle the integral part
 /*!
- * This class gives the base for the classes calculating the integral part of the equation. It also implements some basic methods that all children class will have.
+ * This class gives the base for the classes calculating the integral part of the equation. It also implements some basic methods that all children classes will have.
  */
 
 template<unsigned dim>

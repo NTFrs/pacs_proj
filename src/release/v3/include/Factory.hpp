@@ -7,17 +7,17 @@
 /*! This class uses a function, create, to instantiate objects of every Option-type: european and american, put and call, Price and LogPrice, 1d and 2d.
  */
 
-class OptionFactory {
+class Factory {
 private:
         
-        OptionFactory(){};
-        OptionFactory(const OptionFactory &)=delete;
-        OptionFactory &operator=(const OptionFactory &) { return *this; }
+        Factory(){};
+        Factory(const Factory &)=delete;
+        Factory &operator=(const Factory &) { return *this; }
         
 public:
-        static OptionFactory * instance()
+        static Factory * instance()
         {
-                static OptionFactory instance;
+                static Factory instance;
                 return &instance;
         }
         
@@ -71,15 +71,15 @@ public:
         
 };
 
-std::unique_ptr< OptionBase<1> > OptionFactory::create(ExerciseType type1,
-                                                          OptionType type2,
-                                                          Transformation t,
-                                                          Model * const m,
-                                                          double r,
-                                                          double T,
-                                                          double K,
-                                                          unsigned N,
-                                                          unsigned M) {
+std::unique_ptr< OptionBase<1> > Factory::create(ExerciseType type1,
+                                                 OptionType type2,
+                                                 Transformation t,
+                                                 Model * const m,
+                                                 double r,
+                                                 double T,
+                                                 double K,
+                                                 unsigned N,
+                                                 unsigned M) {
         if (type1==ExerciseType::EU) {
                 if (t==Transformation::Price) {
                         return std::unique_ptr<OptionBase<1> >
@@ -105,17 +105,17 @@ std::unique_ptr< OptionBase<1> > OptionFactory::create(ExerciseType type1,
         }
 }
 
-std::unique_ptr< OptionBase<2> > OptionFactory::create(ExerciseType type1,
-                                                          OptionType type2,
-                                                          Transformation t,
-                                                          Model * const m1,
-                                                          Model * const m2,
-                                                          double rho,
-                                                          double r,
-                                                          double T,
-                                                          double K,
-                                                          unsigned N,
-                                                          unsigned M) {
+std::unique_ptr< OptionBase<2> > Factory::create(ExerciseType type1,
+                                                 OptionType type2,
+                                                 Transformation t,
+                                                 Model * const m1,
+                                                 Model * const m2,
+                                                 double rho,
+                                                 double r,
+                                                 double T,
+                                                 double K,
+                                                 unsigned N,
+                                                 unsigned M) {
         if (type1==ExerciseType::EU) {
                 if (t==Transformation::Price) {
                         return std::unique_ptr<OptionBase<2> >

@@ -3,6 +3,9 @@
 
 #include "OptionBase.hpp"
 
+//! Class to handle option-type objects, with Price transformation
+/*! This class implements some methods inherited by Price's option-type objects: make_grid, assemble_system, setup_integral and some output functions.
+ */
 template <unsigned dim>
 class OptionBasePrice: public OptionBase<dim> {
 protected:
@@ -117,7 +120,7 @@ void OptionBasePrice<dim>::assemble_system()
 	const unsigned int   n_q_points    = quadrature_formula.size();
         
 	if (this->verbose) {
-                cout<< "Assembling System\n";
+                cout<< "Assembling System...\n";
                 cout<< "Degrees of freedom per cell: "<< dofs_per_cell<< endl;
                 cout<< "Quadrature points per cell: "<< n_q_points<< endl;
         }
