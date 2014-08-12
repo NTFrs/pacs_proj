@@ -107,8 +107,8 @@ int main(){
         
         // We test here a 2d call with Merton model
         
-        MertonModel model1(80., 0.2, -0.390078, 0.338796, 0.174814);
-        MertonModel model2(120., 0.2, -0.390078, 0.338796, 0.174814);
+        MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
+        MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
         
         {
                 auto minnie=Factory::instance()->create(ExerciseType::EU,
