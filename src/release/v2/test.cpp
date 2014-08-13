@@ -33,21 +33,21 @@ int main(){
         
         OptionType tipo(OptionType::Call);
         
-        EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
-        EuropeanOptionLogPrice<1> b(tipo, model3.get_pointer(), 0.0367, 1., 90., 9, 100);
+        EuropeanOptionPrice<1> a(tipo, model.get_pointer(), 0.0367, 1., 90., 9, 100);
+        EuropeanOptionLogPrice<1> b(tipo, model.get_pointer(), 0.0367, 1., 90., 9, 100);
         
         EuropeanOptionPrice<2> c
-        (tipo, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 5, 100);
+        (tipo, model1.get_pointer(), model2.get_pointer(),
+         -0.2, 0.1, 1., 200., 6, 100);
         
         EuropeanOptionLogPrice<2> d
-        (tipo, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 5, 100);
+        (tipo, model1.get_pointer(), model2.get_pointer(),
+         -0.2, 0.1, 1., 200., 6, 100);
         
-        a.set_scale_factor(0.8);
-        b.set_scale_factor(0.8);
+        a.set_scale_factor(0.5);
+        b.set_scale_factor(0.5);
         c.set_scale_factor(0.5);
-        d.set_scale_factor(0.8);
+        d.set_scale_factor(0.5);
         
         a.set_timing(true);
         b.set_timing(true);
@@ -57,11 +57,11 @@ int main(){
         a.set_print(true);
         b.set_print(true);
         c.set_print(true);
-        
+        d.set_print(true);
         //a.set_print_grid(true);
         //b.set_print_grid(true);
         c.set_print_grid(true);
-        
+        d.set_print_grid(true);
 //         a.set_refine_status(true);
 //         b.set_refine_status(true);
         //c.set_refine_status(true, 0.1);		
@@ -70,14 +70,14 @@ int main(){
         a.run();
         b.run();
         c.run();
-        //d.run();
+        d.run();
         //c.print_grid("Griglia");
         //c.print_solution_gnuplot("Soluzione");
         
         cout<<a.get_price()<<"\n";
         cout<<b.get_price()<<"\n";
         cout<<c.get_price()<<"\n";
-        //cout<<d.get_price()<<"\n";
+        cout<<d.get_price()<<"\n";
         
         auto x=a.get_times();
         cout<<x.first/1.e6<<" "<<x.second/1.e6<<"\n";
@@ -85,8 +85,8 @@ int main(){
         cout<<y.first/1.e6<<" "<<y.second/1.e6<<"\n";
         auto z=c.get_times();
         cout<<z.first/1.e6<<" "<<z.second/1.e6<<"\n";
-        //auto w=d.get_times();
-        //cout<<w.first/1.e6<<" "<<w.second/1.e6<<"\n";
+        auto w=d.get_times();
+        cout<<w.first/1.e6<<" "<<w.second/1.e6<<"\n";
         
 //         cout<<d.get_price()<<"\n";
         
