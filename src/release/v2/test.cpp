@@ -31,7 +31,7 @@ int main(){
         
         EuropeanOptionLogPrice<2> d
         (tipo, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 5, 100);
+         -0.2, 0.1, 1., 200., 6, 100);
         
         a.set_scale_factor(0.5);
         b.set_scale_factor(0.5);
