@@ -31,7 +31,7 @@ int main(){
         
         EuropeanOptionLogPrice<2> d
         (tipo, model4.get_pointer(), model5.get_pointer(),
-         -0.2, 0.1, 1., 200., 6, 100);
+         -0.2, 0.1, 1., 200., 5, 100);
         
         a.set_scale_factor(0.5);
         b.set_scale_factor(0.5);
@@ -51,21 +51,21 @@ int main(){
         c.set_print_grid(true);
         d.set_print_grid(true);
         
-// 		a.set_refine_status(true, 0.2, 0);
-// 		b.set_refine_status(true, 0.2, 0);
+		a.set_refine_status(true, 0.2, 0);
+		b.set_refine_status(true, 0.2, 0);
 // 		c.set_refine_status(true, 0.3, 0);
-// 		d.set_refine_status(true, 0.3, 0.1);
+		d.set_refine_status(true, 0.2, 0.);
         
-        a.run();
-        b.run();
-        c.run();
+//         a.run();
+//         b.run();
+//         c.run();
         d.run();
         
 
         
-        cout<<"1d Price "<< a.get_price()<<"\n";
-		cout<<"1d LogPrice "<< b.get_price()<<"\n";
-		cout<<"2d Price "<< c.get_price()<<"\n";
+//         cout<<"1d Price "<< a.get_price()<<"\n";
+// 		cout<<"1d LogPrice "<< b.get_price()<<"\n";
+// 		cout<<"2d Price "<< c.get_price()<<"\n";
 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 
 		/*        
@@ -83,7 +83,13 @@ int main(){
 		<<"PDE  1d Call price model (10, 100): 9.66063\n"
 		<<"PDE  1d Call logprice model  (10, 100): 9.6606\n"
 		<<"PDE  2d Call price model1 model2 (6, 100): 21.6607\n"
-		<<"PDE  2d Call logprice model1 model2 (6,  100): 21.6065\n";
+		<<"PDE  2d Call logprice model1 model2 (6,  100): 21.6065\n"
+		<<"And\n"
+		<< "Targets for levy with scale factor 0.5\n"
+		<< "1d Kou Price model 3 12.4258\n"
+		<< "1d Kou LogPrice model 3 12.4264\n"
+		<< "2d Kou Price models 3 4 25.1415\n"
+		<< " 2d Kou LogPrice models 3 4 25.1219\n";
         
         return 0;
         
