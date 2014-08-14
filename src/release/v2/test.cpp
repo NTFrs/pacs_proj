@@ -89,7 +89,12 @@ int main(){
 		<< "1d Kou Price model 3 12.4258\n"
 		<< "1d Kou LogPrice model 3 12.4264\n"
 		<< "2d Kou Price models 3 4 25.1415\n"
-		<< " 2d Kou LogPrice models 3 4 25.1219\n";
+		<< " 2d Kou LogPrice models 3 4 25.1219\n"
+		<< "And\n"
+		<< "1d Merton Price model 6 5.05387\n"
+		<< "1d Merton LogPrice model 6 5.05362\n"
+		<< "2d Merton Price model 6 7 25.5609\n"
+		<< "2d Merton LogPrice model 6 7 \n";
         
         return 0;
         
