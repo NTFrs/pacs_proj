@@ -51,10 +51,10 @@ int main(){
         c.set_print_grid(true);
         d.set_print_grid(true);
         
-// 		a.set_refine_status(true, 0.2, 0);
-// 		b.set_refine_status(true, 0.2, 0);
-// 		c.set_refine_status(true, 0.03, 0.);
-// 		d.set_refine_status(true, 0.2, 0.);
+		a.set_refine_status(true, 0.2, 0);
+		b.set_refine_status(true, 0.2, 0);
+		c.set_refine_status(true, 0.05, 0.);
+		d.set_refine_status(true, 0.2, 0.);
         
 //         a.run();
 //         b.run();
@@ -94,7 +94,7 @@ int main(){
 		<< "1d Merton Price model 6 5.05387\n"
 		<< "1d Merton LogPrice model 6 5.05362\n"
 		<< "2d Merton Price model 6 7 25.5609\n"
-		<< "2d Merton LogPrice model 6 7 \n";
+		<< "2d Merton LogPrice model 6 7 25.5211 \n";
         
         return 0;
         

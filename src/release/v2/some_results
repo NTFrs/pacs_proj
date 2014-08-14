@@ -1,3 +1,4 @@
+Kous
 2d LogPrice 25.1245 refining 0.2 0 starting from 6 refs - nice meshes
 2d LogPrice 25.1221 refining 0.03 0.1 starting from 6 refs - nice meshes
 2d LogPrice 25.1219 refining 0.0 0.1 starting from 6 refs - nice meshes
@@ -5,8 +6,16 @@
 2d LogPrice 25.3581 refining 0.2 0 starting from 5 ref - average meshes
 2d LogPrice 25.1816 refininf 0.2 0 starting from 5 ref and enhacing refiniement by 1.5 - a bit more than average meshes
 
-Prices
+Kou Prices
 2d Price 24.6312 refining 0.2 0 starting from 6 ref - weird meshes (refines on interface but also on borders)
 2d Price 25.1415 refining 0.03 0 starting from 6 refs - barely changed meshes on left border
+
+Merton all
+1d Price Merton 5.05365 refine 0.2 0 starting from 10
+1d LogPrice Merton 5.05361 refine 0.2 0 starting from 10
+2d Price Merton 25.4398 refine 0.05 0 starting from 6 - meshes like Kou
+
+
+
 
 
