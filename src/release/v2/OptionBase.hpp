@@ -67,6 +67,8 @@ protected:
 	dealii::SparseMatrix<double>    dd_matrix;
 	dealii::SparseMatrix<double>    fd_matrix;
 	dealii::SparseMatrix<double>    ff_matrix;
+	
+		dealii::ConstraintMatrix	constraints;
         
         // Points of the grid
         std::vector< dealii::Point<dim> >       vertices;
@@ -471,12 +473,16 @@ void OptionBase<dim>::setup_system()
                 dof_handler.n_dofs()<<"\n";
         }
         
+    this->constraints.clear();
+    dealii::DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
+    this->constraints.close();
+    
 	dealii::CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity);
+	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, this->constraints, true);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
-        dd_matrix.reinit(sparsity_pattern);
+    dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);
 	system_matrix.reinit(sparsity_pattern);
@@ -503,9 +509,9 @@ void OptionBase<dim>::refine_grid()
                                             this->solution,
                                             estimated_error_per_cell);
         
-	GridRefinement::refine_and_coarsen_fixed_number (triangulation,
+	GridRefinement::refine_and_coarsen_fixed_number (this->triangulation,
                                                          estimated_error_per_cell,
-                                                         refine_index, coarse_index);
+                                                         this->refine_index, this->coarse_index);
 	
 	SolutionTransfer<dim> solution_trans(this->dof_handler);
 	Vector<double> previous_solution;
@@ -516,7 +522,7 @@ void OptionBase<dim>::refine_grid()
 	this->triangulation.execute_coarsening_and_refinement ();
 	this->setup_system ();
         
-	solution_trans.interpolate(previous_solution, solution);
+	solution_trans.interpolate(previous_solution, this->solution);
 	this->assemble_system();
 }
 
