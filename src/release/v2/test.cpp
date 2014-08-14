@@ -22,15 +22,15 @@ int main(){
         
         OptionType tipo(OptionType::Call);
         
-        EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
-        EuropeanOptionLogPrice<1> b(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
+        EuropeanOptionPrice<1> a(tipo, model6.get_pointer(), 0.0367, 1., 90., 10, 100);
+        EuropeanOptionLogPrice<1> b(tipo, model6.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         EuropeanOptionPrice<2> c
-        (tipo, model4.get_pointer(), model5.get_pointer(),
+        (tipo, model6.get_pointer(), model7.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
         
         EuropeanOptionLogPrice<2> d
-        (tipo, model4.get_pointer(), model5.get_pointer(),
+        (tipo, model6.get_pointer(), model7.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
         
         a.set_scale_factor(0.5);
@@ -56,16 +56,16 @@ int main(){
 // 		c.set_refine_status(true, 0.3, 0);
 // 		d.set_refine_status(true, 0.3, 0.1);
         
-        a.run();
-        b.run();
-        c.run();
+//         a.run();
+//         b.run();
+//         c.run();
         d.run();
         
 
         
-        cout<<"1d Price "<< a.get_price()<<"\n";
-		cout<<"1d LogPrice "<< b.get_price()<<"\n";
-		cout<<"2d Price "<< c.get_price()<<"\n";
+//         cout<<"1d Price "<< a.get_price()<<"\n";
+// 		cout<<"1d LogPrice "<< b.get_price()<<"\n";
+// 		cout<<"2d Price "<< c.get_price()<<"\n";
 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 
 		/*        
