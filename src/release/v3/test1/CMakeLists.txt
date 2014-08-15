@@ -42,6 +42,8 @@ ENDIF()
 CONFIGURE_FILE(../doxy-config @ONLY IMMEDIATE)
 ADD_CUSTOM_TARGET(doc
 	COMMAND ${DOXYGEN_EXECUTABLE} ../doxy-config )
+	
+set_directory_properties(ADDITIONAL_MAKE_CLEAN_FILES gnuplot/* matlab/* plot/*)
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})

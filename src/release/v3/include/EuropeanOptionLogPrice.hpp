@@ -206,7 +206,7 @@ void EuropeanOptionLogPrice<dim>::solve ()
                 solver.solve(this->system_rhs);
                 
                 this->solution=this->system_rhs;
-                
+                this->constraints.distribute(this->solution);
         }
         
         if (this->print) {
