@@ -120,13 +120,13 @@ int main(){
                                                                 OptionType::Call,
                                                                 Transformation::Price,
                                                                 model.get_pointer(),
-                                                                0.0367, 1., 90., 8, 25);
+                                                                0.0367, 1., 90., 1, 25);
                         
                         auto daisy=Factory::instance()->create(ExerciseType::EU,
                                                                OptionType::Call,
                                                                Transformation::LogPrice,
                                                                model.get_pointer(),
-                                                               0.0367, 1., 90., 8, 25);
+                                                               0.0367, 1., 90., 1, 25);
                         
                         minnie->set_verbose(false);
                         minnie->set_timing(true);
@@ -193,14 +193,14 @@ int main(){
                                                                 Transformation::Price,
                                                                 model1.get_pointer(),
                                                                 model2.get_pointer(),
-                                                                -0.2, 0.1, 1., 200., 4, 25);
+                                                                -0.2, 0.1, 1., 200., 1, 25);
                         
                         auto daisy=Factory::instance()->create(ExerciseType::EU,
                                                                OptionType::Put,
                                                                Transformation::LogPrice,
                                                                model1.get_pointer(),
                                                                model2.get_pointer(),
-                                                               -0.2, 0.1, 1., 200., 4, 25);
+                                                               -0.2, 0.1, 1., 200., 1, 25);
                         
                         minnie->set_verbose(false);
                         minnie->set_timing(true);
@@ -251,6 +251,8 @@ int main(){
                         cout<<"\n";
                         
                 }
+                
+                return 0;
 
         }
         else if (s!="n") {

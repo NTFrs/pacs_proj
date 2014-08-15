@@ -43,7 +43,6 @@ int main(){
                         times_s[i]=clock.second;
                 }
         }
-        cout<<"I'm parallel now..\n";
         //Parallel
         {
                 omp_set_num_threads(number_of_threads);
@@ -70,7 +69,7 @@ int main(){
                 }
         }
         
-        cout<<"*** Times tables (with "<<number_of_threads<<" threads).\nSerial:\n";
+        cout<<"*** Times tables 1d (with "<<number_of_threads<<" threads).\nSerial:\n";
         cout<<"Grid\tPrice\tTime\tRatio\n";
         for (unsigned i=0; i<refinement.size(); ++i) {
                 cout<<pow(2, refinement[i])<<"\t"<<price_s[i]<<"\t"<<times_s[i]/1.e6<<"s\t";
@@ -88,6 +87,97 @@ int main(){
                 }
                 cout<<times_s[i]/times_p[i]<<"x\n";
         }
-
-        return 0;
+        
+        cout<<"*** Do you want to perform also a 2d test? (y/n) ";
+        string s;
+        cin>>s;
+        
+        if (s=="y") {
+                KouModel model1(80, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
+                KouModel model2(120, 0.2, 0.33189, 0.400123, 8.3456, 5.12904);
+                
+                refinement={4, 5, 6, 7};
+                
+                // Serial
+                {
+                        omp_set_num_threads(1);
+                        
+                        auto minnie=Factory::instance()->create(ExerciseType::EU,
+                                                                OptionType::Call,
+                                                                Transformation::LogPrice,
+                                                                model1.get_pointer(),
+                                                                model2.get_pointer(),
+                                                                0.2, 0.0367, 1., 200., 1, 100);
+                        
+                        minnie->set_verbose(false);
+                        
+                        for (unsigned i=0; i<refinement.size(); ++i) {
+                                minnie->reset();
+                                minnie->set_refs(refinement[i]);
+                                minnie->set_timing(true);
+                                
+                                minnie->run();
+                                
+                                price_s[i]=minnie->get_price();
+                                
+                                auto clock=minnie->get_times();
+                                times_s[i]=clock.second;
+                        }
+                }
+                //Parallel
+                {
+                        omp_set_num_threads(number_of_threads);
+                        
+                        auto daisy=Factory::instance()->create(ExerciseType::EU,
+                                                               OptionType::Call,
+                                                               Transformation::LogPrice,
+                                                               model1.get_pointer(),
+                                                               model2.get_pointer(),
+                                                               0.2, 0.0367, 1., 200., 1, 100);
+                        
+                        daisy->set_verbose(false);
+                        
+                        for (unsigned i=0; i<refinement.size(); ++i) {
+                                daisy->reset();
+                                daisy->set_refs(refinement[i]);
+                                daisy->set_timing(true);
+                                
+                                daisy->run();
+                                
+                                price_p[i]=daisy->get_price();
+                                
+                                auto clock=daisy->get_times();
+                                times_p[i]=clock.second;
+                        }
+                }
+                
+                cout<<"*** Times tables 2d (with "<<number_of_threads<<" threads).\nSerial:\n";
+                cout<<"Grid\tPrice\tTime\tRatio\n";
+                for (unsigned i=0; i<refinement.size(); ++i) {
+                        cout<<pow(2, 2*refinement[i])<<"\t"<<price_s[i]<<"\t"<<times_s[i]/1.e6<<"s\t";
+                        if (i>0) {
+                                cout<<times_s[i]/times_s[i-1]<<"\t";
+                        }
+                        cout<<"\n";
+                }
+                cout<<"Parallel:\n";
+                cout<<"Grid\tPrice\tTime\tRatio\tSpeedUp\n";
+                for (unsigned i=0; i<refinement.size(); ++i) {
+                        cout<<pow(2, 2*refinement[i])<<"\t"<<price_p[i]<<"\t"<<times_p[i]/1.e6<<"s\t";
+                        if (i>0) {
+                                cout<<times_p[i]/times_p[i-1]<<"\t";
+                        }
+                        cout<<times_s[i]/times_p[i]<<"x\n";
+                }
+                
+                return 0;
+        }
+        else if (s!="n") {
+                throw(logic_error("Something went wrong..."));
+        }
+        else {
+                return 0;
+        }
+        
+        
 }

@@ -5,7 +5,7 @@
 include_directories(../include)
 
 # Set the name of the project and target:
-SET(TARGET "test1")
+SET(TARGET "test4")
 
 # Declare all source files the target consists of:
 SET(TARGET_SRC
@@ -34,14 +34,6 @@ IF(NOT ${deal.II_FOUND})
     "or set an environment variable \"DEAL_II_DIR\" that contains this path."
     )
 ENDIF()
-
-FIND_PACKAGE(Doxygen)
-IF(NOT DOXYGEN_FOUND)
-	MESSAGE(FATAL ERROR "Doxygen not found")
-ENDIF()
-CONFIGURE_FILE(../doxy-config @ONLY IMMEDIATE)
-ADD_CUSTOM_TARGET(doc
-	COMMAND ${DOXYGEN_EXECUTABLE} ../doxy-config )
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
