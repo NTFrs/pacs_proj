@@ -30,7 +30,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        cin.get();
+        //cin.get();
         
         {
                 // We create an object of type Option, a European Put with the LogPrice transformation
@@ -51,7 +51,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        cin.get();
+        //cin.get();
         
         cout<<"*** European Call 2d.\n";
         
@@ -78,7 +78,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        cin.get();
+        //cin.get();
         
         {
                 auto mickey=Factory::instance()->create(ExerciseType::EU,
@@ -99,7 +99,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        cin.get();
+        //cin.get();
         
         cout<<"*** Do you want to perform some convergence tests? (y/n) ";
         string s;
