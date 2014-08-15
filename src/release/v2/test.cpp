@@ -69,7 +69,7 @@ int main(){
 // 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 
 		AmericanOptionLogPrice<1> Am1d(model3.get_pointer(), 0.0367, 1., 90., 10, 100);
-		Am1d.set_refine_status(true, 0.2, 0.1);
+		Am1d.set_refine_status(true, 0., 0.1);
 		cout<< "American Logprice Kou "<< Am1d.get_price()<< endl
 	<< "and expected price is BS: 1.54931 Kou: 4.40311\n";
 
