@@ -42,11 +42,14 @@ ENDIF()
 CONFIGURE_FILE(../doxy-config @ONLY IMMEDIATE)
 ADD_CUSTOM_TARGET(doc
 	COMMAND ${DOXYGEN_EXECUTABLE} ../doxy-config )
-	
-set_directory_properties(ADDITIONAL_MAKE_CLEAN_FILES gnuplot/* matlab/* plot/*)
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
+
+SET(CLEAN_UP_FILES
+  # a custom list of globs, e.g. *.log *.vtk
+  ${CLEAN_UP_FILES} matlab/*m plot/*eps gnuplot/*gpl
+)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)

@@ -5,7 +5,7 @@
 include_directories(../include)
 
 # Set the name of the project and target:
-SET(TARGET "test5")
+SET(TARGET "test1")
 
 # Declare all source files the target consists of:
 SET(TARGET_SRC
@@ -45,6 +45,11 @@ ADD_CUSTOM_TARGET(doc
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
+
+SET(CLEAN_UP_FILES
+  # a custom list of globs, e.g. *.log *.vtk
+  ${CLEAN_UP_FILES} matlab/*m plot/*eps gnuplot/*gpl
+)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)

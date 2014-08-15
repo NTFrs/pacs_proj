@@ -99,7 +99,7 @@ void AmericanOptionPrice<dim>::solve ()
                         cout<< "Step "<<Step<<"\t at time "<<time<<"\n";
                 }
                 
-                if (this->refine && Step%20==0) {
+		 if (this->refine && Step%20==0 && Step!=this->time_step) {
                         this->refine_grid();
                         if (dim==2 && this->print_grids) {
                                 this->print_grid(Step);

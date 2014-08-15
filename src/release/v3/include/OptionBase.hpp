@@ -478,7 +478,7 @@ void OptionBase<dim>::setup_system()
     this->constraints.close();
     
 	dealii::CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
-	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, this->constraints, true);
+	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, this->constraints, false);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
@@ -519,7 +519,7 @@ void OptionBase<dim>::refine_grid()
 	this->triangulation.prepare_coarsening_and_refinement();
 	solution_trans.prepare_for_coarsening_and_refinement(previous_solution);
         
-	this->triangulation.execute_coarsening_and_refinement ();
+	this->triangulation.execute_coarsening_and_refinement();
 	this->setup_system ();
         
 	solution_trans.interpolate(previous_solution, this->solution);
