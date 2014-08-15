@@ -54,7 +54,7 @@ int main(){
 		a.set_refine_status(true, 0.2, 0);
 		b.set_refine_status(true, 0.2, 0);
 		c.set_refine_status(true, 0.05, 0.);
-		d.set_refine_status(true, 0.2, 0.);
+		d.set_refine_status(true, 0.0, 0.15);
         
 //         a.run();
 //         b.run();

@@ -14,7 +14,7 @@ Merton all
 1d Price Merton 5.05365 refine 0.2 0 starting from 10
 1d LogPrice Merton 5.05361 refine 0.2 0 starting from 10
 2d Price Merton 25.4398 refine 0.05 0 starting from 6 - meshes like Kou
-
+2d LogPrice Merton 25.5322 refine 0 0.15 starting from 6 refs - meshes pretty nice and coarsened
 
 
 
