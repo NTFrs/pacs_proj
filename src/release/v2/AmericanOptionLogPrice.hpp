@@ -219,7 +219,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         }
                         
                 }
-                
+				this->constraints.distribute(this->solution);                
         }
         
         if (this->print) {

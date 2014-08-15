@@ -187,7 +187,8 @@ void AmericanOptionPrice<dim>::solve ()
                                 cout<<"Warning: maxiter reached, with error="<<temp.linfty_norm()<<"\n";
                         }
                         
-                }
+				  }
+		 this->constraints.distribute(this->solution);
                 
         }
         
