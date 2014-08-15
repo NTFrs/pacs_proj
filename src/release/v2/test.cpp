@@ -22,15 +22,15 @@ int main(){
         
         OptionType tipo(OptionType::Call);
         
-        EuropeanOptionPrice<1> a(tipo, model6.get_pointer(), 0.0367, 1., 90., 10, 100);
-        EuropeanOptionLogPrice<1> b(tipo, model6.get_pointer(), 0.0367, 1., 90., 10, 100);
+        EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
+        EuropeanOptionLogPrice<1> b(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         EuropeanOptionPrice<2> c
-        (tipo, model6.get_pointer(), model7.get_pointer(),
+        (tipo, model4.get_pointer(), model5.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
         
         EuropeanOptionLogPrice<2> d
-        (tipo, model6.get_pointer(), model7.get_pointer(),
+        (tipo, model4.get_pointer(), model5.get_pointer(),
          -0.2, 0.1, 1., 200., 6, 100);
         
         a.set_scale_factor(0.5);
@@ -51,9 +51,9 @@ int main(){
         c.set_print_grid(true);
         d.set_print_grid(true);
         
-		a.set_refine_status(true, 0.2, 0);
-		b.set_refine_status(true, 0.2, 0);
-		c.set_refine_status(true, 0.05, 0.);
+		a.set_refine_status(true, 0.1, 0.05);
+		b.set_refine_status(true, 0.1, 0.05);
+// 		c.set_refine_status(true, 0.05, 0.);
 		d.set_refine_status(true, 0.0, 0.15);
         
 //         a.run();
@@ -68,10 +68,10 @@ int main(){
 // 		cout<<"2d Price "<< c.get_price()<<"\n";
 // 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 
-		AmericanOptionLogPrice<1> Am1d(model3.get_pointer(), 0.0367, 1., 90., 10, 100);
-		Am1d.set_refine_status(true, 0., 0.1);
+		AmericanOptionPrice<1> Am1d(model3.get_pointer(), 0.0367, 1., 90., 10, 100);
+		Am1d.set_refine_status(true, 0.03, 0.);
 		cout<< "American Logprice Kou "<< Am1d.get_price()<< endl
-	<< "and expected price is BS: 1.54931 Kou: 4.40311\n";
+		<< "and expected price is BS: 1.54931 Kou: 4.40311\n";
 
 		/*        
         auto x=a.get_times();
