@@ -19,6 +19,7 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{lstautogobble}
+%\usepackage{easytable}
 %\usepackage{color}
 
 %%editing
@@ -700,7 +701,8 @@ Durante la scrittura dei codici finali, abbiamo notato che alcune parti del prog
 \section{\textsf{Doxygen}}
 Infine, tutto il codice \`e commentato con il \emph{lexical-scanner} \textsf{Doxygen}, di molto facile utilizzo. 
 %Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
-
+\section{Quadrature Rules}
+\section{astyle}
 \chapter{Codice}
 \section{Introduzione}
 In questo capitolo descriviamo come il problema \`e stato implementato da un punto di vista computazionale, elencando le varie classi scritte e le loro caratteristiche. Inizialmente mostriamo delle piccole classi che si occupano di gestire i parametri dei modelli e le loro densit\`a. Nella seconda sezione descriviamo gli oggetti opzione che costruiscono il sistema per risolvere il problema a elementi finiti in una e due dimensioni. Questi oggetti utilizzano poi le funzioni di altri oggetti, \textsf{LevyIntegral}, per il calcolo della parte integrale. Successivamente, descriviamo brevemente la \emph{Factory} che abbiamo scritto per instanziare gli oggetti opzione e infine spieghiamo brevemente le linee guida per utilizzare questa libreria.
@@ -782,6 +784,67 @@ static OptionFactory * instance()
 Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{OptionFactory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
 \section{Come utilizzare la libreria}
 \chapter{Risultati}
+In questo capitolo riportiamo e commentiamo i risultati ottenuti tramite la nostra libreria. In particolare, analizzeremo nel dettaglio i vari output ottenuti dai programmi \textsf{test} contenuti a titolo esplicativo nel nostro codice. Tutti i risultati seguenti sono stati ottenuti su un computer con un processore \emph{intel i5} quad-core, con 4GB di memoria RAM e la versione 8.1.0 di \textsf{deal.ii}.
+\section{\textsf{test-1}}
+In questo primo semplice programma, abbiamo calcolato il prezzo di opzioni europee il cui sottostante evolve secondo un classico modello di \emph{Black\&Scholes}, ovvero l'equazione da risolvere \`e la solo PDE, senza parte integrale. I risultati ottenuti sono i seguenti:
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
+1 & \emph{price} & 4096 & 250 & 1.42046 & 1.36864s \\ \hline
+1 & \emph{log-price} & 4096 & 250 & 1.42046 & 1.38591s \\ \hline
+2 & \emph{price} & 16384 & 100 & 21.5627 & 10.1907s \\ \hline
+2 & \emph{log-price} & 16384 & 100 & 21.5476 & 10.0676s \\ \hline
+\end{tabular}
+\end{center}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=10cm]{img/test1-put1dprice.eps}
+\label{fig:test1-put1d-price}
+\caption{Put Europea, con trasformazione \emph{price}}
+\end{center}
+\end{figure}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=10cm]{img/test1-put1dlogprice.eps}
+\label{fig:test1-put1d-logprice}
+\caption{Put Europea, con trasformazione \emph{log-price}}
+\end{center}
+\end{figure}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=12cm]{img/test1-call2dpriceFinalC.eps}
+\label{fig:test1-call1d-fc}
+\caption{Call Europea, con trasformazione \emph{price}, condizione finale}
+\end{center}
+\end{figure}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=12cm]{img/test1-call2dpriceSolution.eps}
+\label{fig:test1-call1d-sol}
+\caption{Call Europea, con trasformazione \emph{price}, soluzione}
+\end{center}
+\end{figure}
+Come possiamo notare i tempi di calcolo sono davvero rapidissimi in tutti i casi, mentre i prezzi dell'opzione monodimensionale sono identici per entrambe le trasformazioni, mentre per il 2d c\`e una differenza apprezzabile, e aumentando il numero di elementi nella \emph{mesh} questa differenza scompare.
+Nelle figure \ref{fig:test1-put1d-price}, \ref{fig:test1-put1d-logprice}, \ref{fig:test1-call1d-fc} e \ref{fig:test1-call1d-sol} sono riportati, a titolo di esempio i grafici della soluzione e della condizione finale.\\Oltre a questi semplici calcoli, abbiamo deciso di testare la convergenza del prezzo al variare della griglia, ottenendo i seguenti risultati per l'1d:
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+Griglia/Timesptes& 256/25 & 512/50 & 1024/100 & 2048/250 & 4196/500 \\ \hline
+\emph{price} & 9.64979 & 9.65598 & 9.66063 & 9.66336 & 9.66431 \\ \hline
+\emph{log-price} & 9.64951 & 9.65587 & 9.66060 & 9.66339 & 9.66431 \\ \hline
+\end{tabular}
+\end{center}
+e per il 2d:
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+Griglia/Timesptes& 256/25 & 1024/50 & 4096/100 & 16384/250 & 65536/500 \\ \hline
+\emph{price} & 5.13714 & 2.88788 & 2.63722 & 2.54018 & 2.49968 \\ \hline
+\emph{log-price} & 3.42608 & 2.79298 & 2.54516 & 2.51124 & 2.49826 \\ \hline
+\end{tabular}
+\end{center}
+Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo giusto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
 \chapter{Estensioni}
 Il programma che abbiamo scritto si presta molto a possibili estensioni, su molti livelli. In particolare, a partire dalle classi base \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$} \`e possibile scrivere dei \emph{solver} che prezzino tutte le opzioni barriera, ovvero opzioni caratterizzate da condizioni al bordi di \emph{Dirichlet} nulle in alcune parti o su tutto il bordo dominio.\\\`E inoltre possibile estendere la libreria in modo che prezzi opzioni con altri modelli, per esempio ad attivit\`a infinita, caratterizzati cio\`e da misure di L\'evy non limitate (come, ad esempio, il \emph{Normal Inverse Gaussian} e il \emph{Variance Gamma}). Per fare ci\`o occorre modificare le classi integrale, in modo che calcolino il parametro $\lambda$, che per questi modelli \`e incognito e calcolare all'interno della classe opzione la diffusione che approssima i piccoli salti (che in questo caso, sono infiniti).\\Un'altra estensione possibile, ma abbastanza delicata, \`e estendere il programma al calcolo di opzioni con tre sottostanti, ovvero risolvere un PIDE 3d. Teoricamente l'equazione sarebbe formalmente la stessa, con l'aggiunta di un terzo integrale su $\mathbb{R}$. Occorrerebbe tuttavia prestare attenzione a dove integrare i vari integrali: in 2d, infatti, abbiamo calcolato gli integrali sui lati dei quadrilateri che costituiscono la \emph{mesh}, in 3d si dovrebbe invece integrare sui lati delle facce dei parallelepipedi????\\Si potrebbe provare poi a utilizzare le funzioni offerte dalla libreria \textsf{deal.ii} per la soluzione del problema con memoria distribuita. Per quanto riguarda la parte PDE si pu\`o sfruttare quanto implementato nella libreria, mentre per il calcolo dell'integrale in \emph{price} occorrerebbe spedire tutta la soluzione a tutti i processi (perch\'e il termine \`e non locale), in \emph{log-price} invece tutti i processi devono conoscere tutta la griglia, per poter valutare la funzione nei punti $y+x$ (\ref{intnonlocal}).\\\\
 Heston?
