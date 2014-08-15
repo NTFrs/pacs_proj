@@ -217,6 +217,7 @@ public:
          */
         virtual void set_timestep(unsigned time_step_) {
                 time_step=time_step_;
+                dt=T/static_cast<double>(time_step_);
                 reset();
         }
         
@@ -268,15 +269,33 @@ public:
         }
         
         //!
+        /*! This function return the number of cells in the mesh.
+         */
+        virtual unsigned long get_number_of_cells() {
+                return  dim==1
+                        ?
+                        pow(2, refs)
+                        :
+                        pow(2, 2*refs);
+        }
+        
+        //!
+        /*! This function return the number timesteps.
+         */
+        virtual unsigned long get_number_of_timesteps() {
+                return time_step;
+        }
+        
+        //!
         /*! If timing is true, this function returns a pair of times in microseconds,
          *  the clock time and the real time taken by the class to solve the system
          */
         virtual std::pair<double, double> get_times() {
                 if (clock_time==log(-1)) {
-                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                        throw(std::logic_error("Error! The flag timing must be set BEFORE running the calculation.\n"));
                 }
                 else if (!timing) {
-                        throw(std::logic_error("Error! The flag timing is not set.\n"));
+                        throw(std::logic_error("Error! The flag timing must be set BEFORE running the calculation.\n"));
                 }
                 else {
                         auto times=std::make_pair(clock_time, real_time);
@@ -292,6 +311,8 @@ public:
         virtual void reset() {
                 ran=false;
                 triangulation.clear();
+                system_matrix.clear();
+                system_M2.clear();
         }
         
         //!
