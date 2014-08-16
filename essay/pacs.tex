@@ -361,9 +361,9 @@ per la \emph{call} europea.
 \subsection{Troncamento del dominio}
 Come \`e facile osservare $x\in(-\infty,\infty)$, perci\`o \`e necessario adottare un troncamento del dominio monodimensionale. Generalmente, in finanza si applica il seguente troncamento:
 \begin{align}
+\label{cut}
 S_{min}&=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\right),\\
 S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right), \nonumber
-\label{cut}
 \end{align}
 dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$x_{min}=log(\sfrac{S_{min}}{S_0}), \qquad x_{max}=log(\sfrac{S_{max}}{S_0}).$$
 \subsection{Discretizzazione della PDE}
@@ -800,29 +800,29 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-put1dprice.eps}
-\label{fig:test1-put1d-price}
 \caption{Put Europea, con trasformazione \emph{price}}
+\label{fig:test1-put1d-price}
 \end{center}
 \end{figure}
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-put1dlogprice.eps}
-\label{fig:test1-put1d-logprice}
 \caption{Put Europea, con trasformazione \emph{log-price}}
+\label{fig:test1-put1d-logprice}
 \end{center}
 \end{figure}
-\begin{figure}[h!]
+\begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test1-call2dpriceFinalC.eps}
-\label{fig:test1-call1d-fc}
 \caption{Call Europea, con trasformazione \emph{price}, condizione finale}
+\label{fig:test1-call1d-fc}
 \end{center}
 \end{figure}
-\begin{figure}[h!]
+\begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test1-call2dpriceSolution.eps}
-\label{fig:test1-call1d-sol}
 \caption{Call Europea, con trasformazione \emph{price}, soluzione}
+\label{fig:test1-call1d-sol}
 \end{center}
 \end{figure}
 Come possiamo notare i tempi di calcolo sono davvero rapidissimi in tutti i casi, mentre i prezzi dell'opzione monodimensionale sono identici per entrambe le trasformazioni, mentre per il 2d c\`e una differenza apprezzabile, e aumentando il numero di elementi nella \emph{mesh} questa differenza scompare.
@@ -845,6 +845,119 @@ Griglia/Timesptes& 256/25 & 1024/50 & 4096/100 & 16384/250 & 65536/500 \\ \hline
 \end{tabular}
 \end{center}
 Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo giusto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
+\section{\textsf{test-2}}
+In questo secondo programma di esempio calcoliamo i prezzi di opzioni i cui sottostanti evolvono con modelli di L\'evy. In particolare, a titolo di esempio abbiamo prezzato delle \emph{call} europee in 1d con un modello di Kou, il cui grafico \`e riportato in figura \ref{fig:test2-call1d-kou}, e in 2d con dei modelli di Merton. I risultati ottenuti sono i seguenti:
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
+1 & \emph{price} & 1024 & 100 & 12.4258 & 19.3725s \\ \hline
+1 & \emph{log-price} & 1024 & 100 & 12.4264 & 18.4103s \\ \hline
+2 & \emph{price} & 4096 & 100 & 23.9055 & 15.811s \\ \hline
+2 & \emph{log-price} & 4096 & 100 & 24.0966 & 305.049s \\ \hline
+\end{tabular}
+\end{center}
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=12cm]{img/test2-call1dkou.eps}
+\caption{Call Europea, con modello di Kou}
+\label{fig:test2-call1d-kou}
+\end{center}
+\end{figure}
+La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di ordini di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e un poco pi\`u veloce rispetto alla trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} \`e pi\`u veloce.\\\todo{Nahuel spiega bene tu perch\'e.}In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}.\\\\Un altro test effettuato in questo programma \`e il calcolo del prezzo al variare del fattori di scala $f$, introdotto in \eqref{cut}. Testando infatti il comportamento della libreria, ci siamo resi conto che i prezzi delle opzioni erano leggermente inferiori ai prezzi target, specialmente nella trasformazione \emph{price}. Nella figura \ref{fig:test2-scalefactor} possiamo osservare l'andamento dei prezzi nelle due trasformazioni all'aumentare del fattore di scala. Come accennato in precedenza, un fattore di scala piccolo determina un grosso errore nella valutazione di questo tipo di opzioni nella trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che la griglia su cui risolviamo la PDE in questa trasformazione coincide con la griglia su cui calcoliamo l'integrale: se il troncamento \`e troppo elevato rischiamo di perdere dei contributi importanti della parte integrale. La trasformazione \emph{log-price} invece risente meno di questo problema poich\'e grazie ai nodi di quadratura di Hermite e di Laguerre il dominio di integrazione non \`e troncato, ma coincide con tutto l'asse reale, e infatti con questa trasformazione l'errore con $f$ piccolo \`e contenuto e all'aumentare di $f$ converge velocemente al valore esatto.
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=12cm]{img/test2-scalefactor.eps}
+\caption{Prezzi di una Put con modello di Kou, al variare di $f$.}
+\label{fig:test2-scalefactor}
+\end{center}
+\end{figure}
+\section{\textsf{test-3}}
+In quest programma abbiamo mostrato come risolvere il problema con l'ostacolo, ovvero come calcolare il prezzo di opzioni americane. Inizialmente, abbiamo calcolato i prezzi di opzioni con modelli di \emph{Black\&Scholes} in una e due dimensioni, ottenendo i seguenti risultati:
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l |}
+\hline
+Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
+1 & \emph{price} & 1024 & 100 & 1.54933 & 0.885832s \\ \hline
+1 & \emph{log-price} & 1024 & 100 & 1.54931 & 1.08148s \\ \hline
+2 & \emph{price} & 16384 & 100 & 4.4392 & 1.2148s \\ \hline
+2 & \emph{log-price} & 16384 & 100 & 4.41147 & 0.990322s \\ \hline
+\end{tabular}
+\end{center}
+Il nostro \emph{solver}, che \`e in grado di lavorare anche in parallelo, sembra comportarsi molto bene, sia per quanto riguarda la velocit\`a di calcolo che la precisione raggiunta: la tolleranza per bloccare il \emph{solver} iterativo \`e infatti impostata a $10^{-12}$ e le iterazioni massime sono 1000. Qualora il \emph{solver} non dovesse convergere alla tolleranza in 1000 iterazioni, il programma stampa un \emph{warning}, avvisando l'utente di aver raggiunto il numero massimo di iterazioni e riportando l'errore attuale. Calcolando i prezzi precedenti con una griglia pi\`u fitta il \emph{solver} stampa il \emph{warning}, ma arriva comunque a un errore minore di $10^{-10}$, un valore decisamente accettabile.\\\\Oltre al modello di \emph{Blacj\&Scholes}, abbiamo anche utilizzato un modello di Kou, per calcolare il prezzo di un'opzione americana monodimensionale. Con una griglia di 1024 celle e 100 iterazioni temporali otteniamo i seguenti prezzi:
+\begin{center}
+\begin{tabular}{| l | l | l |}
+\hline
+Trasformazione & Prezzo & Tempo \\ \hline
+\emph{price} & 4.23452 & 22.9670s \\ \hline
+\emph{log-price} & 4.23452 & 22.9427s \\ \hline
+\end{tabular}
+\end{center}
+Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una put europea.
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=12cm]{img/test2-putamkou.eps}
+\caption{Put americana, con trasformazione \emph{price}.}
+\label{fig:test2-putamkou}
+\end{center}
+\end{figure}
+\newpage
+\section{\textsf{test-4}}
+Il \textsf{test-4} permette di confrontare le prestazioni e in particolare lo \emph{speed-up} del calcolo dell'integrale in \emph{log-price} sfruttando il calcolo parallelo. Il programma permette di confrontare la velocit\`a del calcolo effettuato con uno e con il numero di processori disponibili sul computer. Oltre a questo, abbiamo anche osservato il comportamento del programma con pi\`u \emph{threads} rispetto ai processori disponibili. Nelle tabelle \ref{speedtest1d} e \ref{speedtest2d} sono riportati i risultati che riassumono l'andamento dell'accelerazione permessa dal \emph{multi-threading}.
+\begin{table}[htp!]
+\begin{center}
+\begin{tabular}{| l | l | l | l |}
+\hline
+Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
+\multicolumn{4}{| l |} {1 core:} \\ \hline
+256	& 12.4289		& 7.69022		& \\ \hline
+512	& 12.4264		& 18.4018		& \\ \hline
+1024	& 12.4264		& 48.7283		& \\ \hline
+2048	& 12.4264		& 145.728		&  \\ \hline
+\multicolumn{4}{| l |} {4 cores:} \\ \hline
+256	& 12.4289		& 3.63051		& 2.11822x \\ \hline
+512	& 12.4264		& 7.72159		& 2.38316x \\ \hline
+1024	& 12.4264		& 18.1312		& 2.68754x \\ \hline
+2048	& 12.4264		& 51.4363		& 2.83317x \\ \hline
+\multicolumn{4}{| l |} {8 cores:} \\ \hline
+256	& 12.4289		& 4.19548		& 1.83298x \\ \hline
+512	& 12.4264		& 9.01837		& 2.04048x \\ \hline
+1024	& 12.4264		& 21.2442		& 2.29372x \\ \hline
+2048	& 12.4264		& 57.4038		& 2.53865x \\ \hline
+\end{tabular}
+\end{center}
+\caption{\emph{Speed test} 1d}
+\label{speedtest1d}
+\end{table}
+
+\begin{table}[htp!]
+\begin{center}
+\begin{tabular}{| l | l | l | l |}
+\hline
+Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
+\multicolumn{4}{| l |} {1 core:} \\ \hline
+256		& 19.3597		& 23.7028		& \\ \hline
+1024		& 17.6553		& 143.614		& \\ \hline
+4096		& 17.3574		& 1396.02		& \\ \hline
+16384	& 17.2676		& 18532.9		& \\ \hline
+\multicolumn{4}{| l |} {4 cores:} \\ \hline
+256		& 19.3597		& 10.2234		& 2.31849x \\ \hline
+1024		& 17.6553		& 53.7631		& 2.67124x \\ \hline
+4096		& 17.3574		& 467.613		& 2.98541x \\ \hline
+16384	& 17.2676		& 6058.25		& 3.05912x \\ \hline
+\multicolumn{4}{| l |} {8 cores:} \\ \hline
+256		& 19.3597		& 12.6293		& 1.87681x \\ \hline
+1024		& 17.6553		& 64.1341		& 2.23928x \\ \hline
+4096		& 17.3574		& 501.632		& 2.78296x \\ \hline
+16384	& 17.2676		& 6053.36		& 3.06159x \\ \hline
+\end{tabular}
+\end{center}
+\caption{\emph{Speed test} 2d}
+\label{speedtest2d}
+\end{table}
+Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i processori sono decisamente migliori rispetto al calcolo seriale. Non riusciamo tuttavia a raggiungere uno \emph{speed-up} vicino ai 4x, probabilmente perch\'e la funzione che calcola l'integrale sfrutta alcune funzioni della libreria \textsf{deal.ii} che ricercano i punti nella griglia, ed \`e possibile che queste funzioni non lavorino in parallelo\todo{Possibile?? Altre spiegazioni pi\`u o meno valide??}. Notiamo infine che lanciare il programma con 8 \emph{threads} su 4 processori non porta ad alcun miglioramento tangibile, anzi in alcuni casi le prestazioni calano.
+\newpage
+\section{\textsf{test-5}}
 \chapter{Estensioni}
 Il programma che abbiamo scritto si presta molto a possibili estensioni, su molti livelli. In particolare, a partire dalle classi base \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$} \`e possibile scrivere dei \emph{solver} che prezzino tutte le opzioni barriera, ovvero opzioni caratterizzate da condizioni al bordi di \emph{Dirichlet} nulle in alcune parti o su tutto il bordo dominio.\\\`E inoltre possibile estendere la libreria in modo che prezzi opzioni con altri modelli, per esempio ad attivit\`a infinita, caratterizzati cio\`e da misure di L\'evy non limitate (come, ad esempio, il \emph{Normal Inverse Gaussian} e il \emph{Variance Gamma}). Per fare ci\`o occorre modificare le classi integrale, in modo che calcolino il parametro $\lambda$, che per questi modelli \`e incognito e calcolare all'interno della classe opzione la diffusione che approssima i piccoli salti (che in questo caso, sono infiniti).\\Un'altra estensione possibile, ma abbastanza delicata, \`e estendere il programma al calcolo di opzioni con tre sottostanti, ovvero risolvere un PIDE 3d. Teoricamente l'equazione sarebbe formalmente la stessa, con l'aggiunta di un terzo integrale su $\mathbb{R}$. Occorrerebbe tuttavia prestare attenzione a dove integrare i vari integrali: in 2d, infatti, abbiamo calcolato gli integrali sui lati dei quadrilateri che costituiscono la \emph{mesh}, in 3d si dovrebbe invece integrare sui lati delle facce dei parallelepipedi????\\Si potrebbe provare poi a utilizzare le funzioni offerte dalla libreria \textsf{deal.ii} per la soluzione del problema con memoria distribuita. Per quanto riguarda la parte PDE si pu\`o sfruttare quanto implementato nella libreria, mentre per il calcolo dell'integrale in \emph{price} occorrerebbe spedire tutta la soluzione a tutti i processi (perch\'e il termine \`e non locale), in \emph{log-price} invece tutti i processi devono conoscere tutta la griglia, per poter valutare la funzione nei punti $y+x$ (\ref{intnonlocal}).\\\\
 Heston?
