@@ -74,7 +74,7 @@ public:
 	
 	virtual void compute_J(dealii::Vector<double> & sol, 
                                dealii::DoFHandler<dim> & dof_handler,
-                               dealii::FE_Q<dim> & fe)=0;
+	 dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices)=0;
 	
 	virtual inline void set_time(double tm){};
 	

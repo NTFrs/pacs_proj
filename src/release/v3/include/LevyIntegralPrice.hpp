@@ -37,15 +37,14 @@ public:
          * \param fe			DealII Finite elements associated to this triangulation and solution
          */
         virtual void compute_J(dealii::Vector<double> & sol,
-                               dealii::DoFHandler<dim> & dof_handler,
-                               dealii::FE_Q<dim> & fe) {
-                std::cerr<<"Not defined for this dimension"<< std::endl;
+                               dealii::DoFHandler<dim> & dof_handler,dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices) {
+                std::cerr<<"Compute_J not defined for this dimension"<< std::endl;
         }
 };
 
 //! Specialization of compute_J for 1 dimensional options
 template<>
-void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<1> & dof_handler, dealii::FE_Q<1> & fe) {
+void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<1> & dof_handler, dealii::FE_Q<1> & fe, std::vector< dealii::Point<1> > const & vertices) {
 	
 	using namespace dealii;
 	//make j1 a vector of zeros with the same size as solution
@@ -67,10 +66,7 @@ void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	std::vector< Point <1> > quad_points(n_q_points);
 	
 	double logz(0.);
-        
-	std::vector< Point<1> > vertices(dof_handler.n_dofs());
-	DoFTools::map_dofs_to_support_points(MappingQ1<1>(), dof_handler, vertices);
-        
+                
 	//we loop over cells. In each cell,  we get the values of the function as well as the quadrature points.
         for (;cell !=endc;++cell) {
 		fe_values.reinit(cell);
@@ -93,7 +89,7 @@ void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 
 //! Specialization of compute_J for 2 dimensional options
 template<>
-void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<2> & dof_handler, dealii::FE_Q<2> & fe) {
+void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<2> & dof_handler, dealii::FE_Q<2> & fe, std::vector< dealii::Point<2> > const & vertices) {
 	using namespace dealii;
 	using namespace std;
         
@@ -113,9 +109,6 @@ void LevyIntegralPrice<2>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
         //an iterator over cells and the final condition
 	typename DoFHandler<2>::active_cell_iterator cell=dof_handler.begin_active(), endc=dof_handler.end();
         
-        //the mapping between the dof_index and the points
-	std::vector< Point<2> > vertices(dof_handler.n_dofs());
-	DoFTools::map_dofs_to_support_points(MappingQ1<2>(), dof_handler, vertices);
         
 	double z, karg;
         

@@ -512,8 +512,9 @@ void OptionBase<dim>::setup_system()
 	solution.reinit(dof_handler.n_dofs());
 	system_rhs.reinit(dof_handler.n_dofs());
         
+        vertices.clear();
         vertices.resize(dof_handler.n_dofs());
-        dealii::DoFTools::map_dofs_to_support_points(dealii::MappingQ1<dim>(), dof_handler, vertices);
+        dealii::DoFTools::map_dofs_to_support_points(dealii::MappingQ1<dim>(), this->dof_handler, this->vertices);
         
         return;
         

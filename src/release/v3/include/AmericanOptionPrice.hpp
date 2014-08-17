@@ -111,7 +111,7 @@ void AmericanOptionPrice<dim>::solve ()
                         Vector<double> *J_y;
                         Vector<double> temp;
                         
-                        this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+						this->levy->compute_J(this->solution, this->dof_handler, this->fe, this->vertices);
                         
                         if (dim==1)
                                 this->levy->get_j_1(J_x);
@@ -139,7 +139,7 @@ void AmericanOptionPrice<dim>::solve ()
                 else
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
-                bc.set_time(this->T/*time*/);
+                bc.set_time(this->T);
                 
                 {
                         
@@ -149,6 +149,8 @@ void AmericanOptionPrice<dim>::solve ()
                                                                   0,
                                                                   bc,
                                                                   boundary_values);
+                    if (dim==1)                                              
+					VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             (this->system_matrix),
@@ -170,7 +172,7 @@ void AmericanOptionPrice<dim>::solve ()
                                                               solution_old,
                                                               this->system_rhs,
                                                               this->vertices,
-                                                              this->K);
+							FinalConditionPrice<dim>(this->K, OptionType::Put));
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);
