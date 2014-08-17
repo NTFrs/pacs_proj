@@ -28,6 +28,7 @@ public:
          * \param K_            Strike Price
          * \param refs_         Refinement of the grid (e.g. insert 10 for 2^10=1024 cells)
          * \param time_step_    Number of TimeStep
+         * \note The objects "model" are passed through a pointer and addressed this way in the library. So, please, do not destroy them before destroying this object.
          */
         AmericanOptionPrice(Model * const model,
                             double r_,
@@ -40,7 +41,7 @@ public:
         us(ExerciseType::US)
         {};
         
-        //! 1d Constructor
+        //! 2d Constructor
         /*!
          * Constructor for American Option with payoff max(K-S^1_T-S^2_T,0).
          * \param model1        Model class pointer: it takes a pointer to a class inherited by the abstract class Model in "models.hpp"
@@ -52,6 +53,7 @@ public:
          * \param refs_         Refinement of the grid (e.g. insert 8 for 2^(2*6)=4096 cells)
          * \param time_step_    Number of TimeStep
          * \note                model1 and model2 MUST be of the same type.
+         * \note The objects "model" are passed through a pointer and addressed this way in the library. So, please, do not destroy them before destroying this object.
          */
         AmericanOptionPrice(Model * const model1,
                             Model * const model2,
@@ -99,7 +101,7 @@ void AmericanOptionPrice<dim>::solve ()
                         cout<< "Step "<<Step<<"\t at time "<<time<<"\n";
                 }
                 
-		 if (this->refine && Step%20==0 && Step!=this->time_step) {
+                if (this->refine && Step%20==0 && Step!=this->time_step) {
                         this->refine_grid();
                         if (dim==2 && this->print_grids) {
                                 this->print_grid(Step);
@@ -111,7 +113,7 @@ void AmericanOptionPrice<dim>::solve ()
                         Vector<double> *J_y;
                         Vector<double> temp;
                         
-						this->levy->compute_J(this->solution, this->dof_handler, this->fe, this->vertices);
+                        this->levy->compute_J(this->solution, this->dof_handler, this->fe, this->vertices);
                         
                         if (dim==1)
                                 this->levy->get_j_1(J_x);
@@ -149,8 +151,8 @@ void AmericanOptionPrice<dim>::solve ()
                                                                   0,
                                                                   bc,
                                                                   boundary_values);
-                    if (dim==1)                                              
-					VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
+                        if (dim==1)                                              
+                                VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             (this->system_matrix),
@@ -159,25 +161,23 @@ void AmericanOptionPrice<dim>::solve ()
                         
                 }
                 
-                unsigned maxiter=1000;
-                double tollerance=constants::high_toll;
-                
                 Vector<double> solution_old=this->solution;
                 
                 bool converged=false;
                 
-                for (unsigned k=0; k<maxiter && !converged; ++k) {
+                for (unsigned k=0; k<this->maxiter && !converged; ++k) {
                         
                         this->system_matrix.ProjectedSOR_step(this->solution,
                                                               solution_old,
                                                               this->system_rhs,
                                                               this->vertices,
-							FinalConditionPrice<dim>(this->K, OptionType::Put));
+                                                              FinalConditionPrice<dim>(this->K, OptionType::Put),
+                                                              this->omega);
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);
                         
-                        if (temp.linfty_norm()<tollerance){
+                        if (temp.linfty_norm()<this->tollerance){
                                 converged=true;
                         }
                         
@@ -185,12 +185,12 @@ void AmericanOptionPrice<dim>::solve ()
                                 solution_old=this->solution;
                         
                         
-                        if (k==maxiter) {
+                        if (k==this->maxiter-1) {
                                 cout<<"Warning: maxiter reached, with error="<<temp.linfty_norm()<<"\n";
                         }
                         
-				  }
-		 this->constraints.distribute(this->solution);
+                }
+                this->constraints.distribute(this->solution);
                 
         }
         

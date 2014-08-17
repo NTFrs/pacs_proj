@@ -29,6 +29,7 @@ public:
          * \param K_            Strike Price
          * \param refs_         Refinement of the grid (e.g. insert 10 for 2^10=1024 cells)
          * \param time_step_    Number of TimeStep
+         * \note The objects "model" are passed through a pointer and addressed this way in the library. So, please, do not destroy them before destroying this object.
          */
         EuropeanOptionPrice(OptionType type_,
                             Model * const model,
@@ -43,7 +44,7 @@ public:
         eu(ExerciseType::EU)
         {};
         
-        //! 1d Constructor
+        //! 2d Constructor
         /*!
          * Constructor for European Option with payoff max(S^1_T+S^2_T-K,0) and max(K-S^1_T-S^2_T,0).
          * \param type_         Option Type, Call or Put
@@ -56,6 +57,7 @@ public:
          * \param refs_         Refinement of the grid (e.g. insert 8 for 2^(2*6)=4096 cells)
          * \param time_step_    Number of TimeStep
          * \note                model1 and model2 MUST be of the same type.
+         * \note The objects "model" are passed through a pointer and addressed this way in the library. So, please, do not destroy them before destroying this object.
          */
         EuropeanOptionPrice(OptionType type_,
                             Model * const model1,

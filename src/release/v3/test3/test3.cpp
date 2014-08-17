@@ -7,7 +7,7 @@ int main(){
         using namespace std;
         
         cout<<"*** American Put Price 1d, Black&Scholes\n";
-        /*
+        
         BlackScholesModel model(95., 0.120381);
         
         {
@@ -98,7 +98,7 @@ int main(){
         
         cout<<"Press return to continue...\n";
         //cin.get();
-        */
+        
         cout<<"*** American Put Price 1d, Kou\n";
         
         KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);

@@ -68,7 +68,7 @@ protected:
 	dealii::SparseMatrix<double>    fd_matrix;
 	dealii::SparseMatrix<double>    ff_matrix;
 	
-		dealii::ConstraintMatrix	constraints;
+        dealii::ConstraintMatrix	constraints;
         
         // Points of the grid
         std::vector< dealii::Point<dim> >       vertices;
@@ -93,6 +93,11 @@ protected:
         float                   refine_index;
         
         unsigned                id;
+        
+        // PSOR parameters
+        double                  tollerance;
+        unsigned                maxiter;
+        double                  omega;
         
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;
@@ -193,7 +198,9 @@ public:
         
         //!
         /*!
-         * This function is used to set the scale factor of the grid boundary.
+         * This function is used to set the scale factor f of the grid limits, calulated in this way:
+         * \f[ S_{min}=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\right), \f]
+         * \f[ S_{max}=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right). \f]
          * \param f_    is set by default to 0.5. The user can specify it in ]0,1[.
          */
         virtual void set_scale_factor(double f_) {
@@ -236,10 +243,37 @@ public:
         
         //!
         /*! This function allows to clock the execution of the method run(). Default is false.
+         * \note This function must be set before running the calculation, not after.
          */
         virtual void set_timing(bool timing_) {
                 timing=timing_;
                 reset();
+        }
+        
+        //!
+        /*! This function allows the user to set the PSOR parameters used in American Options.
+         * \param tollerance_   The tollerance for stopping the PSOR iterations
+         * \param maxiter       Max number of iteration, after this number the solver iteration stops, even if the tollerance has not been reached.
+         * \param omega_        SOR relaxation parameter, must be in ]0, 2[.
+         */
+        virtual void set_PSOR_parameters(double tollerance_,
+                                         unsigned maxiter_=1000,
+                                         double omega_=1.)
+        {
+                if (type!=ExerciseType::US) {
+                        throw(std::logic_error("PSOR is used only in American Options."));
+                }
+                else if (omega_>2. || omega_<0.) {
+                        throw(std::logic_error("omega_ must be in ]0,2[."));
+                }
+                else if (tollerance_<0.) {
+                        throw(std::logic_error("tollerance_ must be in ]0,2[.")); 
+                }
+                else {
+                        tollerance=tollerance_;
+                        maxiter=maxiter_;
+                        omega=omega_;
+                }
         }
         
         //!
@@ -273,10 +307,10 @@ public:
          */
         virtual unsigned long get_number_of_cells() {
                 return  dim==1
-                        ?
-                        pow(2, refs)
-                        :
-                        pow(2, 2*refs);
+                ?
+                pow(2, refs)
+                :
+                pow(2, 2*refs);
         }
         
         //!
@@ -301,7 +335,7 @@ public:
                         auto times=std::make_pair(clock_time, real_time);
                         return times;
                 }
-                        
+                
                 
         }
         
@@ -361,6 +395,9 @@ price(0.),
 f(0.5),
 ran(false), 
 refine(false),
+tollerance(constants::high_toll),
+maxiter(1000),
+omega(1.),
 clock_time(log(-1)),
 real_time(log(-1)),
 timing(false),
@@ -439,6 +476,9 @@ price(0.),
 f(0.5),
 ran(false), 
 refine(false),
+tollerance(constants::high_toll),
+maxiter(1000),
+omega(1.),
 clock_time(log(-1)),
 real_time(log(-1)),
 timing(false),
@@ -494,16 +534,16 @@ void OptionBase<dim>::setup_system()
                 dof_handler.n_dofs()<<"\n";
         }
         
-    this->constraints.clear();
-    dealii::DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
-    this->constraints.close();
-    
+        this->constraints.clear();
+        dealii::DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
+        this->constraints.close();
+        
 	dealii::CompressedSparsityPattern c_sparsity(dof_handler.n_dofs());
 	dealii::DoFTools::make_sparsity_pattern (dof_handler, c_sparsity, this->constraints, false);
         
 	sparsity_pattern.copy_from(c_sparsity);
         
-    dd_matrix.reinit(sparsity_pattern);
+        dd_matrix.reinit(sparsity_pattern);
 	fd_matrix.reinit(sparsity_pattern);
 	ff_matrix.reinit(sparsity_pattern);
 	system_matrix.reinit(sparsity_pattern);
