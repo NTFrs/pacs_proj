@@ -7,7 +7,7 @@ int main(){
         using namespace std;
         
         cout<<"*** American Put Price 1d, Black&Scholes\n";
-        
+        /*
         BlackScholesModel model(95., 0.120381);
         
         {
@@ -98,7 +98,7 @@ int main(){
         
         cout<<"Press return to continue...\n";
         //cin.get();
-        
+        */
         cout<<"*** American Put Price 1d, Kou\n";
         
         KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
@@ -110,6 +110,7 @@ int main(){
                                                         model3.get_pointer(),
                                                         0.0367, 1., 90., 10, 100);
                 
+                minnie->set_scale_factor(0.99);
                 minnie->set_print(true);
                 minnie->set_timing(true);
                 minnie->run();
@@ -127,7 +128,7 @@ int main(){
         {
                 auto daisy=Factory::instance()->create(ExerciseType::US,
                                                        OptionType::Put,
-                                                       Transformation::Price,
+                                                       Transformation::LogPrice,
                                                        model3.get_pointer(),
                                                        0.0367, 1., 90., 10, 100);
                 
