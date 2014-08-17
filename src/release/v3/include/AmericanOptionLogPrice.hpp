@@ -140,6 +140,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         Vector<double> *J_y;
                         Vector<double> temp;
                         
+                        this->levy->set_time(this->T);
                         this->levy->compute_J(this->solution, this->dof_handler, this->fe);
                         
                         if (dim==1)
@@ -169,7 +170,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
                 //
-                bc.set_time(time);
+                bc.set_time(this->T/*time*/);
                 
                 {
                         

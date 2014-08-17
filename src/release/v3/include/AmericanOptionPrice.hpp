@@ -139,7 +139,7 @@ void AmericanOptionPrice<dim>::solve ()
                 else
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
-                bc.set_time(time);
+                bc.set_time(this->T/*time*/);
                 
                 {
                         
