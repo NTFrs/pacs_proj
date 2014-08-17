@@ -51,10 +51,10 @@ int main(){
         c.set_print_grid(true);
         d.set_print_grid(true);
         
-		a.set_refine_status(true, 0.1, 0.05);
-		b.set_refine_status(true, 0.1, 0.05);
+// 		a.set_refine_status(true, 0.1, 0.05);
+// 		b.set_refine_status(true, 0.1, 0.05);
 // 		c.set_refine_status(true, 0.05, 0.);
-		d.set_refine_status(true, 0.0, 0.15);
+// 		d.set_refine_status(true, 0.0, 0.15);
         
 //         a.run();
 //         b.run();
@@ -72,6 +72,7 @@ int main(){
 		Am1d.set_refine_status(true, 0.03, 0.);
 		cout<< "American Logprice Kou "<< Am1d.get_price()<< endl
 		<< "and expected price is BS: 1.54931 Kou: 4.40311\n";
+		
 
 		/*        
         auto x=a.get_times();

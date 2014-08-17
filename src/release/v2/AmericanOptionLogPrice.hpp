@@ -139,8 +139,9 @@ void AmericanOptionLogPrice<dim>::solve ()
                         Vector<double> *J_x;
                         Vector<double> *J_y;
                         Vector<double> temp;
+						this->levy->set_time(this->T);
                         
-                        this->levy->compute_J(this->solution, this->dof_handler, this->fe);
+					this->levy->compute_J(this->solution, this->dof_handler, this->fe, this->vertices);
                         
                         if (dim==1)
                                 this->levy->get_j_1(J_x);
@@ -169,7 +170,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         this->system_M2.vmult(this->system_rhs, this->solution);
                 
                 //
-                bc.set_time(time);
+                bc.set_time(this->T);
                 
                 {
                         
@@ -179,6 +180,8 @@ void AmericanOptionLogPrice<dim>::solve ()
                                                                   0,
                                                                   bc,
                                                                   boundary_values);
+                        
+					VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             (this->system_matrix),
