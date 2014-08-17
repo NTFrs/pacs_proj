@@ -9,12 +9,14 @@
  */
 template<unsigned dim>
 class LevyIntegralLogPrice: public LevyIntegralBase<dim> {
-	
 protected:
-	//TODO if done like this can cause problems if Levy is called with LevyIntegralLogPrice(-.-.-.BC<>())
-	std::unique_ptr<dealii::Function<dim> > boundary;
-	
-	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
+        std::unique_ptr<dealii::Function<dim> > boundary;
+	bool adapting;
+        bool adapted;
+        
+        virtual void setup_quadratures(unsigned n){};
+        
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d, unsigned order=10);
 public:
         LevyIntegralLogPrice()=delete;
         
@@ -32,9 +34,14 @@ public:
         LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
                              std::vector<Model *> & models_,
-                             std::unique_ptr<dealii::Function<dim> > BC_)
+                             std::unique_ptr<dealii::Function<dim> > BC_,
+                             bool apt=true)
         :
-        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_), boundary(std::move(BC_)) {};
+        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_), 
+        boundary(std::move(BC_)),
+        adapting(apt),
+        adapted(false)
+        {};
         
 	//! Computes the J part of the integral for a logprice transformation
 	/*!
@@ -43,7 +50,12 @@ public:
 	 * \param dof_handler	DealII DoF Handler associated to this triangulation and solution
 	 * \param fe			DealII Finite elements associated to this triangulation and solution
 	 */
-	virtual void compute_J(dealii::Vector<double> & sol, dealii::DoFHandler<dim> & dof_handler, dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices) {std::cerr<<"Compute_J not defined in this dimension\n";};
+	virtual void compute_J(dealii::Vector<double> & sol,
+                               dealii::DoFHandler<dim> & dof_handler,
+                               dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices)
+        {
+                throw(std::logic_error("Compute_J not defined in this dimension."));
+        };
 	
 	//! Used to set the time for the boundary condition (if it depends on time)
 	virtual inline void set_time(double tm) {boundary->set_time(tm);};
@@ -51,7 +63,7 @@ public:
 };
 
 template<unsigned dim>
-double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned d)
+double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned d, unsigned order)
 {
 	using namespace dealii;
 	double j(0);
@@ -64,7 +76,7 @@ double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::So
 	FE_Q<1> fe_integral(1);
 	DoFHandler<1> dof_integral(integral_triangulation);
 	dof_integral.distribute_dofs(fe_integral);
-	QGauss<1> quadrature_formula2(10);
+	QGauss<1> quadrature_formula2(order);
 	FEValues<1> fe_values2 (fe_integral, quadrature_formula2, update_values | update_quadrature_points | update_JxW_values);
         
 	const unsigned int   n_q_points    = quadrature_formula2.size();
@@ -117,21 +129,51 @@ double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::So
 
 
 template<>
-void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<1>& dof_handler, dealii::FE_Q<1>& fe, std::vector< dealii::Point<1> > const & vertices)
+void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
+                                        dealii::DoFHandler<1>& dof_handler,
+                                        dealii::FE_Q<1>& fe, std::vector< dealii::Point<1> > const & vertices)
 {
 	using namespace dealii;
 	unsigned N(sol.size());
         
-	j1.reinit(N);
-	   
+        j1.reinit(N);
+        
         //the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
         tools::Solution_Trimmer<1> func(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
-        //thus,  for each node on the mesh
+        //thus,  for each node on the mesh we evaluate J(x_i)
+        if (!adapting || adapted) {
 #pragma omp parallel for
-        for (unsigned int it=0;it<N;++it)
-                this->j1(it)=this->get_one_J(vertices[it], func, 0);
-        
-        
+                for (unsigned int it=0;it<N;++it) {
+                        this->j1(it)=this->get_one_J(vertices[it], func, 0);
+                }
+        }
+        else {
+                unsigned order_max=32;
+                unsigned order=4;
+                
+                dealii::Vector<double> j1_old;
+                double err;
+                
+                do  {
+                        j1_old=this->j1;
+                        j1.reinit(N);
+
+#pragma omp parallel for
+                        for (unsigned int it=0;it<N;++it) {
+                                this->j1(it)=this->get_one_J(vertices[it], func, 0);
+                        }
+                        
+                        order=2*order;
+                        setup_quadratures(order);
+                        
+                        auto temp=j1;
+                        temp.add(-1, j1_old);
+                        err=temp.linfty_norm();
+                }
+                while (err>constants::light_toll && order<=order_max);
+                
+                adapted=true;        
+        }
 
         this->j_ran=true;
 }
@@ -154,9 +196,6 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
 		this->j1(it)=this->get_one_J(vertices[it], func1, 0);
 		this->j2(it)=this->get_one_J(vertices[it], func2, 1);
 	}
-        
-        
-        
         
 	this->j_ran=true;
 }

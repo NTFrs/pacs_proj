@@ -9,13 +9,12 @@ class LevyIntegralLogPriceKou: public LevyIntegralLogPrice<dim> {
 protected:
 	std::vector<Quadrature_Laguerre> leftQuads;
 	std::vector<Quadrature_Laguerre> rightQuads;
-	bool adapting;
 	
 	//! Creates quadrature nodes and weitghts of order n
 	virtual void setup_quadratures(unsigned n);
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Laguerre nodes
         virtual void compute_alpha();
-	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d, unsigned order=16);
         
 	
 public:
@@ -41,9 +40,9 @@ public:
         LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_,
                                                         upper_limit_,
                                                         Models_,
-                                                        std::move(BC_)),
-        adapting(apt) {
-                if (!adapting)
+                                                        std::move(BC_), apt)
+        {
+                if (!this->adapting)
                         this->setup_quadratures(32);
                 else
                         this->setup_quadratures(2);
@@ -70,7 +69,7 @@ template<unsigned dim>
 void LevyIntegralLogPriceKou<dim>::compute_alpha() {
 	this->alpha=std::vector<double>(dim, 0.);
         
-	if (!adapting) {
+	if (!this->adapting) {
                 //for each dimension it computes alpha
                 for (unsigned d=0;d<dim;++d) {
                         //since the exponential part is included in the weights,  we use the remaining part of the density exlicitly,  here for the positive part of the axis
@@ -128,7 +127,7 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
 }
 
 template<unsigned dim>
-double LevyIntegralLogPriceKou<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d)
+double LevyIntegralLogPriceKou<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d, unsigned order)
 {
 	using namespace dealii;
 	double j(0);

@@ -340,6 +340,23 @@ public:
         }
         
         //!
+        /*! This function allows to get a copy of the solution.
+         */
+        virtual void get_solution(std::vector<double> &sol){
+                sol.resize(solution.size());
+                for (unsigned i=0; i<solution.size(); ++i) {
+                        sol[i]=solution(i);
+                }
+        }
+        
+        //!
+        /*! This function allows the get a copy of the mesh.
+         */
+        virtual void get_mesh(std::vector< dealii::Point<dim> > &mesh) {
+                mesh=vertices;
+        }
+        
+        //!
         /*! This function allows to reset the class, in order to run again the solve method.
          */
         virtual void reset() {
@@ -351,7 +368,7 @@ public:
         
         //!
         /*!
-         * This function returns the price of the option
+         * This function returns the price of the option.
          */
         virtual double get_price()=0;
         
