@@ -149,6 +149,8 @@ void AmericanOptionPrice<dim>::solve ()
                                                                   0,
                                                                   bc,
                                                                   boundary_values);
+                    if (dim==1)                                              
+					VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             (this->system_matrix),
@@ -170,7 +172,7 @@ void AmericanOptionPrice<dim>::solve ()
                                                               solution_old,
                                                               this->system_rhs,
                                                               this->vertices,
-                                                              this->K);
+							FinalConditionPrice<dim>(this->K, OptionType::Put));
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);

@@ -68,10 +68,16 @@ int main(){
 // 		cout<<"2d Price "<< c.get_price()<<"\n";
 // 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 
-		AmericanOptionPrice<1> Am1d(model3.get_pointer(), 0.0367, 1., 90., 10, 100);
-		Am1d.set_refine_status(true, 0.03, 0.);
-		cout<< "American Logprice Kou "<< Am1d.get_price()<< endl
-		<< "and expected price is BS: 1.54931 Kou: 4.40311\n";
+		AmericanOptionPrice<1> Am1dPrice(model.get_pointer(), 0.0367, 1., 90., 10, 100);
+		AmericanOptionLogPrice<1> Am1dLogPrice(model.get_pointer(), 0.0367, 1., 90., 10, 100);
+// 		Am1dPrice.set_refine_status(true, 0.03, 0.);
+// 		Am1dLogPrice.set_refine_status(true, 0.03, 0.);
+		Am1dPrice.run();
+		Am1dLogPrice.run();
+		cout<< "American price "<< Am1dPrice.get_price()<< endl
+		<< "American logprice "<< Am1dLogPrice.get_price()<< endl
+		<< "and expected price is BS(model): 1.54933 Kou(model3): 4.2346\n"
+		<< "and expected logprice is BS(model): 1.54931 Kou(model3): 4.41344 \n";
 		
 
 		/*        

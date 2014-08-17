@@ -181,7 +181,8 @@ void AmericanOptionLogPrice<dim>::solve ()
                                                                   bc,
                                                                   boundary_values);
                         
-					VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
+						if (dim==1)
+						VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             (this->system_matrix),
@@ -203,8 +204,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                                                               solution_old,
                                                               this->system_rhs,
                                                               this->vertices,
-                                                              this->K,
-                                                              S0);
+							FinalConditionLogPrice<dim>(S0, this->K, OptionType::Put));
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);

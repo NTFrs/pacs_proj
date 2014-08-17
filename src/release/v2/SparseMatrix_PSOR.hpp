@@ -50,38 +50,21 @@ public:
          */
         using SparseMatrix<number>::add;
         
-        //! ProjectedSOR_step for Price
-        /*! This method performs a PSOR step, just like any other iterative method of SparseMatrix. This one tough solves the obstacle problem of the American Option.
-         *  \param v            solution
-         *  \param v_old        solution at the previous step
-         *  \param b            right hand side
-         *  \param vertices     vector of the mesh points
-         *  \param K            strike price
-         *  \param om           SOR parameter
-         */
-        void ProjectedSOR_step (Vector<number> &v,
-                                const Vector<number> &v_old,
-                                const Vector<number> &b,
-                                const std::vector< dealii::Point<dim> > &vertices,
-                                const number        K,
-                                const number        om = 1.);
         
-        //! ProjectedSOR_step for LogPrice
+        //! ProjectedSOR_step generic
         /*! This method performs a PSOR step, just like any other iterative method of SparseMatrix. This one tough solves the obstacle problem of the American Option.
          *  \param v            solution
          *  \param v_old        solution at the previous step
          *  \param b            right hand side
          *  \param vertices     vector of the mesh points
-         *  \param K            strike price
-         *  \param S0           vector of spot prices
+         *  \param payoff       Function that exprimes the payoff
          *  \param om           SOR parameter
          */
         void ProjectedSOR_step (Vector<number> &v,
                                 const Vector<number> &v_old,
                                 const Vector<number> &b,
                                 const std::vector< dealii::Point<dim> > &vertices,
-                                const number        K,
-                                const std::vector<number> &S0,
+								Function<dim> const & payoff,
                                 const number        om = 1.);
         
 };
@@ -92,7 +75,7 @@ dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                                                            const Vector<number> &v_old,
                                                            const Vector<number> &b,
                                                            const std::vector< dealii::Point<dim> > &vertices,                                                            
-                                                           const number        K,
+                                                           Function<dim> const & payoff,
                                                            const number        om)
 
 {
@@ -123,68 +106,10 @@ dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                         
                 }
                 
-                double point=0.;
                 
-                for (unsigned d=0; d<dim; ++d) {
-                        point+=vertices[row][d];
-                }
-                
-                v(row)=(K-point>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
+                v(row)=(payoff.value(vertices[row])>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
                 ?
-                (K-point)
-                :
-                v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
-                
-        }
-}
-
-template <typename number, unsigned dim>
-void
-dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
-                                                           const Vector<number> &v_old,
-                                                           const Vector<number> &b,
-                                                           const std::vector< dealii::Point<dim> > &vertices,                                                            
-                                                           const number        K,
-                                                           const std::vector<number> &S0,
-                                                           const number        om)
-
-{
-        AssertDimension (SparseMatrix<number>::m(), SparseMatrix<number>::n());
-        Assert (SparseMatrix<number>::m() == v.size(), ExcDimensionMismatch(SparseMatrix<number>::m(),v.size()));
-        Assert (SparseMatrix<number>::m() == v_old.size(), ExcDimensionMismatch(SparseMatrix<number>::m(),v_old.size()));
-        Assert (SparseMatrix<number>::m() == b.size(), ExcDimensionMismatch(SparseMatrix<number>::m(),b.size()));
-        
-#pragma omp parallel for
-        for (size_type row=1; row<SparseMatrix<number>::m()-1; ++row) {
-                
-                SparseMatrixIterators::Iterator< number, true > col=this->begin(row);
-                SparseMatrixIterators::Iterator< number, true > colend=this->begin(row+1);
-                
-                SparseMatrixIterators::Accessor< number, true > row_iterator(*col);
-                
-                number z=b(row);
-                
-                for ( ;  col<colend; ++col){
-                        
-                        row_iterator=*col;
-                        
-                        if (row_iterator.column()<row)
-                                z-=row_iterator.value()*v(row_iterator.column());
-                        
-                        if (row_iterator.column()>row)
-                                z-=row_iterator.value()*v_old(row_iterator.column());
-                        
-                }
-                
-                double point=0.;
-                
-                for (unsigned d=0; d<dim; ++d) {
-                        point+=S0[d]*exp(vertices[row][d]);
-                }
-                
-                v(row)=(K-point>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
-                ?
-                (K-point)
+				(payoff.value(vertices[row]))
                 :
                 v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
                 
