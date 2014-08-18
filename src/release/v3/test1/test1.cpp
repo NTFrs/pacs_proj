@@ -102,8 +102,8 @@ int main(){
         //cin.get();
         
         cout<<"*** Do you want to perform some convergence tests? (y/n) ";
-        string s;
-        cin>>s;
+        string s="y";
+        //cin>>s;
         
         if (s=="y") {
                 cout<<"*** Convergence test for 1d Call, Black&Scholes\n";
