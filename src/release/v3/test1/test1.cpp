@@ -251,15 +251,11 @@ int main(){
                         cout<<"\n";
                         
                 }
-                
-                return 0;
 
         }
         else if (s!="n") {
                 throw(logic_error("Something went wrong..."));
         }
-        else {
-                return 0;
-        }
         
+        return 0;
 }

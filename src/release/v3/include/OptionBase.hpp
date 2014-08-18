@@ -101,6 +101,10 @@ protected:
         
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;
+        bool                    integral_adapt;
+        unsigned                order_max;
+        double                  alpha_toll;
+        double                  J_toll;
         
         // Time parameters
         double                  clock_time;
@@ -217,6 +221,26 @@ public:
         virtual void set_refs(unsigned refs_) {
                 refs=refs_;
                 reset();
+        }
+        
+        //!
+        /*! This function allows to set some adaptivity parameters
+         * \param integral_adapt_       true for adapting, false for not adapting. True is default.
+         * \param order_max_            Max number of integration nodes
+         * \param alpha_toll_           Tollerance for alpha
+         * \param J_toll_               Tollerance for J
+         * \note J_toll is only used in LogPrice transformation. Any changes in J_toll will not affect the OptionBasePrice-type classes.
+         * \note For the LogPrice trasformations, a high number for order_max or a small tollerance for J will slow down the integral calculations.
+         */
+        virtual void set_integral_adaptivity_params(bool integral_adapt_,
+                                                    unsigned order_max_=32,
+                                                    double alpha_toll_=constants::light_toll,
+                                                    double J_toll_=constants::light_toll)
+        {
+                this->integral_adapt=integral_adapt_;
+                this->order_max=order_max_;
+                this->alpha_toll=alpha_toll_;
+                this->J_toll=J_toll_;
         }
         
         //!
@@ -415,6 +439,10 @@ refine(false),
 tollerance(constants::high_toll),
 maxiter(1000),
 omega(1.),
+integral_adapt(true),
+order_max(32),
+alpha_toll(constants::light_toll),
+J_toll(constants::light_toll),
 clock_time(log(-1)),
 real_time(log(-1)),
 timing(false),
@@ -496,6 +524,10 @@ refine(false),
 tollerance(constants::high_toll),
 maxiter(1000),
 omega(1.),
+integral_adapt(true),
+order_max(32),
+alpha_toll(constants::light_toll),
+J_toll(constants::light_toll),
 clock_time(log(-1)),
 real_time(log(-1)),
 timing(false),

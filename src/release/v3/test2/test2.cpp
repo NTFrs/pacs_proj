@@ -153,5 +153,55 @@ int main(){
         cout<<"Press return to continue...\n";
         //cin.get();
         
+        cout<<"*** Do you want to perform some convergence tests for the integral part? (y/n) ";
+        string s="y";
+        //cin>>s;
+        
+        if (s=="y") {
+                
+                array<unsigned, 6>      max_order={4, 8, 16, 32, 64, 128};
+                array<double, 6>        prices, times;
+                
+                auto foo=Factory::instance()->create(ExerciseType::EU,
+                                                     OptionType::Call,
+                                                     Transformation::LogPrice,
+                                                     model.get_pointer(),
+                                                     0.0367, 1., 90., 10, 100);
+                
+                foo->set_timing(true);
+                foo->set_verbose(false);
+                
+                for (unsigned i=0; i<max_order.size(); ++i) {
+                        
+                        cout<<"Evaluating option with "<<max_order[i]<<"...\n";
+                        
+                        foo->reset();
+                        foo->set_integral_adaptivity_params(true, max_order[i]);
+                        
+                        foo->run();
+                        
+                        auto time=foo->get_times();
+                        prices[i]=foo->get_price();
+                        times[i]=time.second;
+                }
+                cout<<"Convergence table\n";
+                for (unsigned i=0; i<max_order.size(); ++i) {
+                        cout<<"\t"<<max_order[i]<<"\t";
+                }
+                cout<<"\nPrices:";
+                for (unsigned i=0; i<max_order.size(); ++i) {
+                        cout<<"\t"<<prices[i]<<"\t";
+                }
+                cout<<"\nTimes:";
+                for (unsigned i=0; i<max_order.size(); ++i) {
+                        cout<<"\t"<<times[i]/1.e6<<"s\t";
+                }
+                cout<<"\n";
+                
+        }
+        else if (s!="n") {
+                throw(logic_error("Something went wrong..."));
+        }
+        
         return 0;
 }
