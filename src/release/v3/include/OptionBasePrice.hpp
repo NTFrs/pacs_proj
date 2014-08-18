@@ -89,11 +89,20 @@ template <unsigned dim>
 void OptionBasePrice<dim>::setup_integral(){
         
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
-                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> >
+                (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models, this->integral_adapt));
+                if (this->integral_adapt) {
+                        this->levy->set_adaptivity_params(round(this->order_max/2), this->alpha_toll);
+                }
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
-                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> >
+                (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models, this->integral_adapt));
+                if (this->integral_adapt) {
+                        this->levy->set_adaptivity_params(this->order_max, this->alpha_toll);
+                }
         }
+        
 }
 
 template <unsigned dim>
@@ -168,19 +177,19 @@ void OptionBasePrice<dim>::assemble_system()
                 
                 cell->get_dof_indices (local_dof_indices);
                 
-				auto pointer=static_cast<SparseMatrix<double> *> (&(this->system_matrix));
-				this->constraints.distribute_local_to_global(cell_mat, local_dof_indices, *pointer);
-				this->constraints.distribute_local_to_global(cell_ff, local_dof_indices, this->ff_matrix);
+                auto pointer=static_cast<SparseMatrix<double> *> (&(this->system_matrix));
+                this->constraints.distribute_local_to_global(cell_mat, local_dof_indices, *pointer);
+                this->constraints.distribute_local_to_global(cell_ff, local_dof_indices, this->ff_matrix);
                 /*
-                for (unsigned int i=0; i<dofs_per_cell;++i)
-                        for (unsigned int j=0; j< dofs_per_cell; ++j) {
-                                
-                                ((this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
-                                (this->ff_matrix).add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                                
-                        }
-		        */
-		}
+                 for (unsigned int i=0; i<dofs_per_cell;++i)
+                 for (unsigned int j=0; j< dofs_per_cell; ++j) {
+                 
+                 ((this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
+                 (this->ff_matrix).add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
+                 
+                 }
+                 */
+        }
         
 	(this->system_M2).add(1./(this->dt), this->ff_matrix);
         

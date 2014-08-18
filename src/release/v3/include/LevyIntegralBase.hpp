@@ -76,6 +76,10 @@ public:
 	 dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices)=0;
 	
 	virtual inline void set_time(double tm){};
+        
+        virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_, double J_toll_){};
+        
+        virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_){};
 	
 	//! Returns the value of the alpha part of the first integral
 	virtual double get_alpha_1() {

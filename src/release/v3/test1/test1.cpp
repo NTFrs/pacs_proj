@@ -102,8 +102,8 @@ int main(){
         //cin.get();
         
         cout<<"*** Do you want to perform some convergence tests? (y/n) ";
-        string s;
-        cin>>s;
+        string s="y";
+        //cin>>s;
         
         if (s=="y") {
                 cout<<"*** Convergence test for 1d Call, Black&Scholes\n";
@@ -251,15 +251,11 @@ int main(){
                         cout<<"\n";
                         
                 }
-                
-                return 0;
 
         }
         else if (s!="n") {
                 throw(logic_error("Something went wrong..."));
         }
-        else {
-                return 0;
-        }
         
+        return 0;
 }
