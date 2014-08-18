@@ -118,6 +118,49 @@ int main(){
                 auto times=minnie->get_times();
                 
                 cout<<"The price of the option is "<<minnie->get_price()<<", evaluated in "<<times.second/1.e6<<".\n";
+                
+                // We evaluate here the first and the second derivatives of the solution
+                vector< dealii::Point<1> >      grid;
+                vector<double>                  solution;
+                
+                minnie->get_mesh(grid);
+                minnie->get_solution(solution);
+                
+                vector<double> first_d(grid.size()-2);
+                vector<double> second_d(grid.size()-2);
+                
+                double dx=grid[2][0]-grid[1][0];
+                
+                for (unsigned i=0; i<grid.size()-2; ++i) {
+                        first_d[i]=(solution[i+2]-solution[i])/(2*dx);
+                        second_d[i]=(solution[i+2]+solution[i]-2*solution[i+1])/(dx*dx);
+                }
+                
+                ofstream stream;
+                stream.open("derivatives.m");
+                
+                if (stream.is_open()) {
+                        stream<<"mesh=[ ";
+                        for (unsigned i=0; i<grid.size()-3; ++i) {
+                                stream<<grid[i+1][0]<<"; ";
+                        }
+                        stream<<grid[grid.size()-2]<<" ];\n";
+                        stream<<"first_der=[ ";
+                        for (unsigned i=0; i<grid.size()-3; ++i) {
+                                stream<<first_d[i]<<"; ";
+                        }
+                        stream<<first_d[grid.size()-2]<<" ];\n";
+                        stream<<"second_der=[ ";
+                        for (unsigned i=0; i<grid.size()-3; ++i) {
+                                stream<<second_d[i]<<"; ";
+                        }
+                        stream<<second_d[grid.size()-2]<<" ];\n";
+                }
+                else {
+                        throw(ios_base::failure("Unable to open the file."));
+                }
+                
+                stream.close();
         }
         
         cout<<"Press return to continue...\n";

@@ -214,19 +214,19 @@ void OptionBasePrice<dim>::print_solution_matlab(std::string name_) {
         
         if (stream.is_open()) {
                 if (dim==1) {
-                        stream<<"grid=[ ";
+                        stream<<"mesh=[ ";
                         for (unsigned i=0; i<this->solution.size()-1; ++i) {
                                 stream<<this->vertices[i][0]<<"; ";
                         }
                         stream<<this->vertices[this->solution.size()-1][0]<<" ];\n";
                 }
                 else {
-                        stream<<"grid_x=[ ";
+                        stream<<"mesh_x=[ ";
                         for (unsigned i=0; i<this->solution.size()-1; ++i) {
                                 stream<<this->vertices[i][0]<<"; ";
                         }
                         stream<<this->vertices[this->solution.size()-1][0]<<" ];\n";
-                        stream<<"grid_y=[ ";
+                        stream<<"mesh_y=[ ";
                         for (unsigned i=0; i<this->solution.size()-1; ++i) {
                                 stream<<this->vertices[i][1]<<"; ";
                         }
