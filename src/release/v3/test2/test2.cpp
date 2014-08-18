@@ -138,7 +138,7 @@ int main(){
                                                        Transformation::LogPrice,
                                                        model1.get_pointer(),
                                                        model2.get_pointer(),
-                                                       -0.2, 0.1, 1., 200., 6, 100);
+                                                       -0.2, 0.1, 1., 200., 5, 100);
                 daisy->set_print_grid(true);
                 daisy->set_print(true);
                 daisy->set_timing(true);

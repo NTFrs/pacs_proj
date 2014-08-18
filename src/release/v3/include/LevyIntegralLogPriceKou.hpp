@@ -14,7 +14,7 @@ protected:
 	virtual void setup_quadratures(unsigned n);
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Laguerre nodes
         virtual void compute_alpha();
-	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d, unsigned order=16);
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
         
 	
 public:
@@ -121,13 +121,13 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                         
                 }
                 while (err>constants::light_toll &&
-                       rightQuads[0].get_order()<=order_max);
+                       rightQuads[0].get_order()<order_max);
         }
         
 }
 
 template<unsigned dim>
-double LevyIntegralLogPriceKou<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d, unsigned order)
+double LevyIntegralLogPriceKou<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d)
 {
 	using namespace dealii;
 	double j(0);

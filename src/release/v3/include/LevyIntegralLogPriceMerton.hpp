@@ -14,7 +14,7 @@ protected:
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Hermite nodes
 	virtual void compute_alpha();
 	
-	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d, unsigned order=16);
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
 	
 public:
 	LevyIntegralLogPriceMerton()=delete;
@@ -108,7 +108,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
                         
                 }
                 while (err>constants::light_toll &&
-                       quadratures[0].get_order()<=order_max);
+                       quadratures[0].get_order()<order_max);
         }
         
         
@@ -116,7 +116,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
 
 
 template<unsigned dim>
-double LevyIntegralLogPriceMerton<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d, unsigned order)
+double LevyIntegralLogPriceMerton<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d)
 {
 	using namespace dealii;
 	double j(0);
