@@ -83,8 +83,6 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
         
 	else {
                 // same as above but adaptive
-                unsigned order_max=64;
-                
                 std::vector<double> alpha_old;
                 double err;
                 do  {
@@ -108,12 +106,11 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
                         
                 }
-                while (err>constants::light_toll &&
-                       quadratures[0].get_order()<=order_max);
+                while (err>this->alpha_toll &&
+                       quadratures[0].get_order()<this->order_max);
         }
         
-        std::cout<<this->alpha[0]<<"\n";
-        
+        this->order=quadratures[0].get_order();
         
 }
 

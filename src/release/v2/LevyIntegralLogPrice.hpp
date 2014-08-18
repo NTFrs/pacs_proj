@@ -13,10 +13,16 @@ protected:
         std::unique_ptr<dealii::Function<dim> > boundary;
 	bool adapting;
         bool adapted;
+        unsigned order;
+        unsigned order_max;
+        double alpha_toll;
+        double J_toll;
         
-        virtual void setup_quadratures(unsigned n){};
+        virtual void setup_quadratures(unsigned n){
+                order=n;
+        };
         
-	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d, unsigned order=10);
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
 public:
         LevyIntegralLogPrice()=delete;
         
@@ -40,8 +46,27 @@ public:
         LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_), 
         boundary(std::move(BC_)),
         adapting(apt),
-        adapted(false)
+        adapted(false),
+        order(4),
+        order_max(64),
+        alpha_toll(constants::light_toll),
+        J_toll(constants::light_toll)
         {};
+        
+        //!
+        /*! This function allows to set some adaptivity parameters
+         * \param order_max_    Max number of integration nodes
+         * \param alpha_toll_   Tollerance for alpha
+         * \param J_toll_       Tollerance for J
+         */
+        virtual void set_adaptivity_params(unsigned order_max_,
+                                           double alpha_toll_=constants::light_toll,
+                                           double J_toll_=constants::light_toll)
+        {
+                order_max=order_max_;
+                alpha_toll=alpha_toll_;
+                J_toll=J_toll_;
+        }
         
 	//! Computes the J part of the integral for a logprice transformation
 	/*!
@@ -63,7 +88,7 @@ public:
 };
 
 template<unsigned dim>
-double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned d, unsigned order)
+double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned d)
 {
 	using namespace dealii;
 	double j(0);
@@ -148,8 +173,7 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
                 }
         }
         else {
-                unsigned order_max=32;
-                unsigned order=4;
+                order=4;
                 
                 dealii::Vector<double> j1_old;
                 double err;
@@ -157,7 +181,7 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
                 do  {
                         j1_old=this->j1;
                         j1.reinit(N);
-
+                        
 #pragma omp parallel for
                         for (unsigned int it=0;it<N;++it) {
                                 this->j1(it)=this->get_one_J(vertices[it], func, 0);
@@ -170,11 +194,10 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
                         temp.add(-1, j1_old);
                         err=temp.linfty_norm();
                 }
-                while (err>constants::light_toll && order<=order_max);
+                while (err>J_toll && order<order_max);
                 
-                adapted=true;        
         }
-
+        
         this->j_ran=true;
 }
 
@@ -186,16 +209,58 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
         
 	j1.reinit(N);
 	j2.reinit(N);
-
-		//the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
+        
+        //the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
 	tools::Solution_Trimmer<2> func1(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
 	tools::Solution_Trimmer<2> func2(1,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
         //thus,  for each node on the mesh
+        
+        if (!adapting || adapted) {
 # pragma omp parallel for
-	for (unsigned int it=0;it<N;++it) {
-		this->j1(it)=this->get_one_J(vertices[it], func1, 0);
-		this->j2(it)=this->get_one_J(vertices[it], func2, 1);
-	}
+                for (unsigned int it=0;it<N;++it) {
+                        this->j1(it)=this->get_one_J(vertices[it], func1, 0);
+                        this->j2(it)=this->get_one_J(vertices[it], func2, 1);
+                }
+        }
+        else {
+                order=4;
+                
+                dealii::Vector<double> j1_old;
+                dealii::Vector<double> j2_old;
+                double err1;
+                double err2;
+                
+                do  {
+                        j1_old=this->j1;
+                        j1.reinit(N);
+                        
+                        j2_old=this->j2;
+                        j2.reinit(N);
+                        
+#pragma omp parallel for
+                        for (unsigned int it=0;it<N;++it) {
+                                this->j1(it)=this->get_one_J(vertices[it], func1, 0);
+                                this->j2(it)=this->get_one_J(vertices[it], func2, 1);
+                        }
+                        
+                        order=2*order;
+                        setup_quadratures(order);
+                        
+                        auto temp1=j1;
+                        temp1.add(-1, j1_old);
+                        
+                        auto temp2=j2;
+                        temp2.add(-1, j2_old);
+                        
+                        err1=temp1.linfty_norm();
+                        err2=temp2.linfty_norm();
+                        
+                }
+                while ((err1>J_toll || err2>J_toll) && order<order_max);
+                
+                adapted=true;
+                
+        }
         
 	this->j_ran=true;
 }

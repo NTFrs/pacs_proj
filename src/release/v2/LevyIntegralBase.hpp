@@ -17,7 +17,6 @@
 
 template<unsigned dim>
 class LevyIntegralBase{
-        
 protected:
 	
 	std::vector<double> alpha;

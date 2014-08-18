@@ -14,7 +14,7 @@ protected:
 	virtual void setup_quadratures(unsigned n);
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Laguerre nodes
         virtual void compute_alpha();
-	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d, unsigned order=16);
+	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
         
 	
 public:
@@ -89,8 +89,6 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
         }
         
 	else {
-                unsigned order_max=64;
-                
                 std::vector<double> alpha_old;
                 double err;
                 //same but adaptive
@@ -114,20 +112,20 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                         
                         setup_quadratures(2*leftQuads[0].get_order());
                         
-                        
                         err=0.;
                         for (unsigned d=0;d<dim;++d)
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
                         
                 }
-                while (err>constants::light_toll &&
-                       rightQuads[0].get_order()<=order_max);
+                while (err>this->alpha_toll &&
+                       rightQuads[0].get_order()<this->order_max);
         }
+        this->order=rightQuads[0].get_order();
         
 }
 
 template<unsigned dim>
-double LevyIntegralLogPriceKou<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d, unsigned order)
+double LevyIntegralLogPriceKou<dim>::get_one_J(dealii::Point< dim > vert, tools::Solution_Trimmer< dim >& trim, unsigned int d)
 {
 	using namespace dealii;
 	double j(0);
