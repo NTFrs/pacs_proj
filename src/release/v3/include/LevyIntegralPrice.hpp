@@ -8,6 +8,10 @@
  */
 template<unsigned dim>
 class LevyIntegralPrice: public LevyIntegralBase< dim > {
+protected:
+        unsigned order;
+        unsigned order_max;
+        double alpha_toll;
 public:
         LevyIntegralPrice()=delete;
         
@@ -23,8 +27,23 @@ public:
                           dealii::Point<dim> upper_limit_,
                           std::vector<Model *> & Models_)
         :
-        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_)
+        LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_),
+        order(4),
+        order_max(64),
+        alpha_toll(constants::light_toll)
         {};
+        
+        //!
+        /*! This function allows to set some adaptivity parameters
+         * \param order_max_    Max number of integration nodes
+         * \param alpha_toll_   Tollerance for alpha
+         */
+        virtual void set_adaptivity_params(unsigned order_max_,
+                                           double alpha_toll_=constants::light_toll)
+        {
+                order_max=order_max_;
+                alpha_toll=alpha_toll_;
+        }
         
         LevyIntegralPrice& operator=(const LevyIntegralPrice &)=delete;
         

@@ -58,7 +58,8 @@ public:
 template<unsigned dim>
 void LevyIntegralPriceKou<dim>::setup_quadratures(unsigned int n)
 {
-	leftQuads.clear();rightQuads.clear();
+	leftQuads.clear();
+        rightQuads.clear();
         
 	for (unsigned d=0;d<dim;++d) {
                 leftQuads.emplace_back(Quadrature_Laguerre(n, (this->mods[d])->get_lambda_m()));
@@ -71,7 +72,6 @@ template<unsigned dim>
 void LevyIntegralPriceKou<dim>::compute_alpha(){
         
 	this->alpha=std::vector<double>(dim, 0.);
-	
 	
 	if (!adapting) {
                 //for each dimension it computes alpha
@@ -94,8 +94,6 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
         
 	else {
                 //same but adaptive
-                unsigned order_max=64;
-                
                 std::vector<double> alpha_old;
                 double err;
                 do  {
@@ -124,14 +122,11 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
                         
                 }
-                while (err>constants::light_toll &&
-                       rightQuads[0].get_order()<=order_max);
+                while (err>this->alpha_toll &&
+                       rightQuads[0].get_order()<=this->order_max);
         }
-        //TODO verbosity
-        //         for (unsigned i=0; i<dim; ++i) {
-        //                 std::cout<<this->alpha[i]<<"\t";
-        //         }
-        //         std::cout<<"\n";
+        
+        this->order=rightQuads[0].get_order();
         
 }
 

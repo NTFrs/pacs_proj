@@ -89,8 +89,6 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
         }
         
 	else {
-                unsigned order_max=64;
-                
                 std::vector<double> alpha_old;
                 double err;
                 //same but adaptive
@@ -114,15 +112,15 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                         
                         setup_quadratures(2*leftQuads[0].get_order());
                         
-                        
                         err=0.;
                         for (unsigned d=0;d<dim;++d)
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
                         
                 }
-                while (err>constants::light_toll &&
-                       rightQuads[0].get_order()<order_max);
+                while (err>this->alpha_toll &&
+                       rightQuads[0].get_order()<this->order_max);
         }
+        this->order=rightQuads[0].get_order();
         
 }
 

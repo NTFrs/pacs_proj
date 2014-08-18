@@ -107,10 +107,10 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
                         
                 }
-                while (err>constants::light_toll &&
+                while (err>this->alpha_toll &&
                        quadratures[0].get_order()<order_max);
         }
-        
+        this->order=quadratures[0].get_order();
         
 }
 
