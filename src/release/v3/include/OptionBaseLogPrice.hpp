@@ -231,7 +231,7 @@ void OptionBaseLogPrice<dim>::print_solution_matlab(std::string name_) {
                 stream<<this->solution(this->solution.size()-1)<<" ];\n";
         }
         else {
-                throw(ios_base::failure("Unable to open the file."));
+                throw(std::ios_base::failure("Unable to open the file."));
         }
         
         stream.close();
