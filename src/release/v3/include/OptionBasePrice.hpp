@@ -54,6 +54,8 @@ public:
         OptionBasePrice& operator=(const OptionBasePrice &)=delete;
         
         virtual double get_price();
+        
+		virtual void set_refine_status(bool status, float refine_=0.2, float coarse_=0.03);
 };
 
 
@@ -264,6 +266,15 @@ double OptionBasePrice<dim>::get_price() {
         
 	Functions::FEFieldFunction<dim> fe_function (this->dof_handler, this->solution);
 	return fe_function.value(p);
+}
+
+template<unsigned dim>
+void OptionBasePrice<dim>::set_refine_status(bool status, float refine_, float coarse_)
+{
+	if(dim==2)
+	throw(std::logic_error("Sorry! You cannot use mesh refinement with 2d Price transformation!"));
+	else
+	OptionBase<dim>::set_refine_status(status, refine_, coarse_);
 }
 
 
