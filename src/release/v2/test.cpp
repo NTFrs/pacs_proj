@@ -70,7 +70,7 @@ int main(){
 
 		AmericanOptionPrice<1> Am1dPrice(model.get_pointer(), 0.0367, 1., 90., 10, 100);
 		AmericanOptionLogPrice<1> Am1dLogPrice(model.get_pointer(), 0.0367, 1., 90., 10, 100);
-// 		Am1dPrice.set_refine_status(true, 0.03, 0.);
+		Am1dPrice.set_refine_status(true, 0.03, 0.);
 // 		Am1dLogPrice.set_refine_status(true, 0.03, 0.);
 		Am1dPrice.run();
 		Am1dLogPrice.run();

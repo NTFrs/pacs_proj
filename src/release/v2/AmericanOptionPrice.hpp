@@ -173,6 +173,9 @@ void AmericanOptionPrice<dim>::solve ()
                                                               this->vertices,
                                                               FinalConditionPrice<dim>(this->K, OptionType::Put),
                                                               this->omega);
+                                                              
+						this->constraints.distribute(this->solution);
+						this->constraints.distribute(solution_old);
                         auto temp=this->solution;
                         temp.add(-1, solution_old);
                         
@@ -190,10 +193,10 @@ void AmericanOptionPrice<dim>::solve ()
                         
                 }
 			 this->constraints.distribute(this->solution);
-              std::string name("Step-");
+              /*std::string name("Step-");
               name.append(to_string(Step));
               this->print_solution_gnuplot(name);  
-                
+                */
         }
         
         if (this->print) {
