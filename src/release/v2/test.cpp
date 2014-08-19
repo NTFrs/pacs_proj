@@ -21,7 +21,7 @@ int main(){
         MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
         
         OptionType tipo(OptionType::Call);
-        /*
+        
 	    EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
         EuropeanOptionLogPrice<1> b(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
         
@@ -51,23 +51,23 @@ int main(){
         c.set_print_grid(true);
         d.set_print_grid(true);
         
-// 		a.set_refine_status(true, 0.1, 0.05);
+		a.set_refine_status(true, 0.1, 0.05);
 // 		b.set_refine_status(true, 0.1, 0.05);
 // 		c.set_refine_status(true, 0.05, 0.);
 // 		d.set_refine_status(true, 0.0, 0.15);
         
-//         a.run();
+        a.run();
 //         b.run();
-//         c.run();
+        c.run();
 //         d.run();
         
 
-        */
-//         cout<<"1d Price "<< a.get_price()<<"\n";
+        
+        cout<<"1d Price "<< a.get_price()<<"\n";
 // 		cout<<"1d LogPrice "<< b.get_price()<<"\n";
-// 		cout<<"2d Price "<< c.get_price()<<"\n";
+		cout<<"2d Price "<< c.get_price()<<"\n";
 // 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
-
+/*
 		AmericanOptionPrice<1> Am1dPrice(model.get_pointer(), 0.0367, 1., 100., 10, 100);
 		AmericanOptionPrice<1> Am1dPrice2(model.get_pointer(), 0.0367, 1., 100., 10, 100);
 		Am1dPrice.set_print(true);
@@ -81,7 +81,7 @@ int main(){
 		<< "American price 2 no ref"<< Am1dPrice2.get_price()<< endl
 		<< "and expected price is BS(model): 1.54933 Kou(model3): 4.2346\n"
 		<< "and expected logprice is BS(model): 1.54931 Kou(model3): 4.41344 \n";
-		
+		*/
 
 		/*        
         auto x=a.get_times();
