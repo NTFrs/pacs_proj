@@ -1,5 +1,5 @@
 #include <iostream>
-//#include "Levy.hpp"
+// #include "Levy.hpp"
 #include "Factory.hpp"
 
 int main(){
@@ -21,8 +21,8 @@ int main(){
         MertonModel model7(120., 0.2, -0.390078, 0.338796, 0.174814);
         
         OptionType tipo(OptionType::Call);
-        
-        EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
+        /*
+	    EuropeanOptionPrice<1> a(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
         EuropeanOptionLogPrice<1> b(tipo, model3.get_pointer(), 0.0367, 1., 90., 10, 100);
         
         EuropeanOptionPrice<2> c
@@ -62,20 +62,23 @@ int main(){
 //         d.run();
         
 
-        
+        */
 //         cout<<"1d Price "<< a.get_price()<<"\n";
 // 		cout<<"1d LogPrice "<< b.get_price()<<"\n";
 // 		cout<<"2d Price "<< c.get_price()<<"\n";
 // 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 
-		AmericanOptionPrice<1> Am1dPrice(model.get_pointer(), 0.0367, 1., 90., 10, 100);
-		AmericanOptionLogPrice<1> Am1dLogPrice(model.get_pointer(), 0.0367, 1., 90., 10, 100);
-		Am1dPrice.set_refine_status(true, 0.03, 0.);
+		AmericanOptionPrice<1> Am1dPrice(model.get_pointer(), 0.0367, 1., 100., 10, 100);
+		AmericanOptionPrice<1> Am1dPrice2(model.get_pointer(), 0.0367, 1., 100., 10, 100);
+		Am1dPrice.set_print(true);
+		Am1dPrice2.set_print(true);
+		Am1dPrice.set_refine_status(true, 0.2, 0.);
+		Am1dPrice.set_PSOR_parameters(constants::high_toll, 1e6);
 // 		Am1dLogPrice.set_refine_status(true, 0.03, 0.);
 		Am1dPrice.run();
-		Am1dLogPrice.run();
+		Am1dPrice2.run();
 		cout<< "American price "<< Am1dPrice.get_price()<< endl
-		<< "American logprice "<< Am1dLogPrice.get_price()<< endl
+		<< "American price 2 no ref"<< Am1dPrice2.get_price()<< endl
 		<< "and expected price is BS(model): 1.54933 Kou(model3): 4.2346\n"
 		<< "and expected logprice is BS(model): 1.54931 Kou(model3): 4.41344 \n";
 		

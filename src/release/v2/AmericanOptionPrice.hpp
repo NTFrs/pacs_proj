@@ -103,6 +103,8 @@ void AmericanOptionPrice<dim>::solve ()
                 
                 if (this->refine && Step%20==0 && Step!=this->time_step) {
                         this->refine_grid();
+
+                        
                         if (dim==2 && this->print_grids) {
                                 this->print_grid(Step);
                         }
@@ -192,11 +194,8 @@ void AmericanOptionPrice<dim>::solve ()
                         }
                         
                 }
-			 this->constraints.distribute(this->solution);
-              /*std::string name("Step-");
-              name.append(to_string(Step));
-              this->print_solution_gnuplot(name);  
-                */
+
+                
         }
         
         if (this->print) {

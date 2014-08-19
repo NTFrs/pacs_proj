@@ -209,6 +209,9 @@ void AmericanOptionLogPrice<dim>::solve ()
                                                               this->vertices,
                                 FinalConditionLogPrice<dim>(S0, this->K, OptionType::Put),
                                                               this->omega);
+                                                              
+						this->constraints.distribute(this->solution);
+						this->constraints.distribute(solution_old);
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);
