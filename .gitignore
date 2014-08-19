@@ -65,3 +65,7 @@ plot
 
 #doc folder
 doc
+
+#profiling files
+gmon.out
+callgrind.out.*
