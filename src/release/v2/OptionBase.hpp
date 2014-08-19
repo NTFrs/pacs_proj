@@ -396,8 +396,6 @@ public:
          */
         virtual double get_price()=0;
         
-        virtual void estimate_doubling(double time, dealii::Vector<float> & errors);
-        
 };
 
 // Constructor 1d
@@ -637,63 +635,6 @@ void OptionBase<dim>::refine_grid()
 	this->assemble_system();
 }
 
-
-template<unsigned dim>
-void OptionBase<dim>::estimate_doubling(double time, dealii::Vector< float >& errors)
-{
-	using namespace dealii;
-	using namespace std;
-	
-	Triangulation<dim> old_tria;
-	old_tria.copy_triangulation(triangulation);
-	FE_Q<dim> old_fe(1);
-	DoFHandler<dim> old_dof(old_tria);
-	old_dof.distribute_dofs(old_fe);
-	Vector<double> old_solution=solution;
-	{
-                Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
-                
-                triangulation.refine_global(1);
-                setup_system();
-                VectorTools::interpolate(dof_handler, moveSol, solution);
-        }
-	assemble_system();
-	//TODO need a solve_one_step here if using this
-        // solve_one_step(time);
-	{
-                Functions::FEFieldFunction<dim> moveSol(dof_handler, solution); 
-                cerr<< "dof size "<< dof_handler.n_dofs()<< " solution size "<< solution.size()<< endl;
-                cerr<< "olddof size "<< old_dof.n_dofs()<< " oldsolution size "<< old_solution.size()<< endl;
-                
-                Vector<double> temp(old_dof.n_dofs());
-                cerr<< "this one2\n";
-                VectorTools::interpolate(old_dof, moveSol, temp);
-                cerr<< "this one2\n";
-                solution=temp;
-        }
-	triangulation.clear();
-	triangulation.copy_triangulation(old_tria);
-	setup_system();
-	assemble_system();
-        
-	typename DoFHandler<dim>::active_cell_iterator cell=dof_handler.begin_active(),  endc=dof_handler.end();
-	vector<types::global_dof_index> local_dof_indices(fe.dofs_per_cell);
-	errors.reinit(old_tria.n_active_cells());
-	double err(0);
-	unsigned ind(0),  count(0);
-	for (;cell !=endc;++cell) {
-                err=0;
-                cell->get_dof_indices(local_dof_indices);
-                for (unsigned i=0;i<fe.dofs_per_cell;++i) {
-                        ind=local_dof_indices[i];
-                        err+=(solution[ind]-old_solution[ind])*(solution[ind]-old_solution[ind]);
-                }
-                errors[count]=(err);
-                count++;
-        }
-        
-	solution=old_solution;
-}
 
 template<unsigned dim>
 void OptionBase<dim>::run()
