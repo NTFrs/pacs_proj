@@ -52,19 +52,19 @@ int main(){
         d.set_print_grid(true);
         
 		a.set_refine_status(true, 0.1, 0.05);
-// 		b.set_refine_status(true, 0.1, 0.05);
+		b.set_refine_status(true, 0.1, 0.05);
 // 		c.set_refine_status(true, 0.05, 0.);
 // 		d.set_refine_status(true, 0.0, 0.15);
         
         a.run();
-//         b.run();
-        c.run();
+        b.run();
+//         c.run();
 //         d.run();
         
 
         
         cout<<"1d Price "<< a.get_price()<<"\n";
-// 		cout<<"1d LogPrice "<< b.get_price()<<"\n";
+		cout<<"1d LogPrice "<< b.get_price()<<"\n";
 		cout<<"2d Price "<< c.get_price()<<"\n";
 // 		cout<<"2d LogPrice "<< d.get_price()<<"\n";
 /*
