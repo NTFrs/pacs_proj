@@ -1023,6 +1023,44 @@ Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
 Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i processori sono decisamente migliori rispetto al calcolo seriale. Non riusciamo tuttavia a raggiungere uno \emph{speed-up} vicino ai 4x, probabilmente perch\'e la funzione che calcola l'integrale sfrutta alcune funzioni della libreria \textsf{deal.ii} che ricercano i punti nella griglia, ed \`e possibile che queste funzioni non lavorino in parallelo\todo{Possibile?? Altre spiegazioni pi\`u o meno valide??}. Notiamo infine che lanciare il programma con 8 \emph{threads} su 4 processori non porta ad alcun miglioramento tangibile, anzi in alcuni casi le prestazioni calano.
 \newpage
 \section{\textsf{test-5}}
+
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=10cm]{img/meshes/Price1.eps}
+\caption{Griglia iniziale.}
+\label{fig:test5-price1}
+\end{center}
+\end{figure}
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=10cm]{img/meshes/Price2.eps}
+\caption{Griglia dopo 2 step di raffinamento, con parametri 0.03 di \emph{refinement} e 0.15 di \emph{coarsening}.}
+\label{fig:test5-price2}
+\end{center}
+\end{figure}
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=10cm]{img/meshes/Price3.eps}
+\caption{Griglia dopo 4 step di raffinamento, con parametri 0.03 di \emph{refinement} e 0.15 di \emph{coarsening}.}
+\label{fig:test5-price3}
+\end{center}
+\end{figure}
+
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=10cm]{img/meshes/LogPrice2.eps}
+\caption{Griglia dopo 2 step di raffinamento, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
+\label{fig:test5-logprice2}
+\end{center}
+\end{figure}
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=10cm]{img/meshes/LogPrice3.eps}
+\caption{Griglia dopo 2 step di raffinamento, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
+\label{fig:test5-logprice3}
+\end{center}
+\end{figure}
+
 \chapter{Estensioni}
 Il programma che abbiamo scritto si presta molto a possibili estensioni, su molti livelli. In particolare, a partire dalle classi base \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$} \`e possibile scrivere dei \emph{solver} che prezzino tutte le opzioni barriera, ovvero opzioni caratterizzate da condizioni al bordo di \emph{Dirichlet} nulle in alcune parti o su tutto il bordo dominio.\\\`E inoltre possibile estendere la libreria in modo che prezzi opzioni con altri modelli, per esempio ad attivit\`a infinita, caratterizzati cio\`e da misure di L\'evy non limitate (come, ad esempio, il \emph{Normal Inverse Gaussian} e il \emph{Variance Gamma}). Per fare ci\`o occorre modificare le classi integrale, in modo che calcolino il parametro $\lambda$, che per questi modelli \`e incognito e calcolare all'interno della classe opzione la diffusione che approssima i piccoli salti (che in questo caso, sono infiniti).\\Un'altra estensione possibile, ma abbastanza delicata, \`e estendere il programma al calcolo di opzioni con tre sottostanti, ovvero risolvere un PIDE 3d. Teoricamente l'equazione sarebbe formalmente la stessa, con l'aggiunta di un terzo integrale su $\mathbb{R}$. Occorrerebbe tuttavia prestare attenzione a dove integrare i vari integrali: in 2d, infatti, abbiamo calcolato gli integrali sui lati dei quadrilateri che costituiscono la \emph{mesh}, in 3d si dovrebbe invece integrare sui lati delle facce dei parallelepipedi????\\Si potrebbe provare poi a utilizzare le funzioni offerte dalla libreria \textsf{deal.ii} per la soluzione del problema con memoria distribuita. Per quanto riguarda la parte PDE si pu\`o sfruttare quanto implementato nella libreria, mentre per il calcolo dell'integrale in \emph{price} occorrerebbe spedire tutta la soluzione a tutti i processi (perch\'e il termine \`e non locale), in \emph{log-price} invece tutti i processi devono conoscere tutta la griglia, per poter valutare la funzione nei punti $y+x$ (\ref{intnonlocal}).\\\\
 Heston?
