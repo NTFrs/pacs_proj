@@ -5,7 +5,7 @@
 include_directories(../include)
 
 # Set the name of the project and target:
-SET(TARGET "need_to_be_profiled")
+SET(TARGET "main_profiling")
 
 # Declare all source files the target consists of:
 SET(TARGET_SRC
