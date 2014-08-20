@@ -21,7 +21,13 @@ protected:
         virtual void setup_quadratures(unsigned n){
                 order=n;
         };
-        
+        //! Computes one entry of the J vector
+        /*!
+         * Computes,  using a generic Gauss quadrature formula,  the value of a single entry of J relative the point vert. All info needed is passed through the Solution_Trimmer trim,  and the dimension.
+		 * \param vert		dealii::Point<dim> on wich the entry is calculated
+		 * \param trim		tools::Solution_Trimmer<dim> that returns the correct value of solution
+		 * \param d			dimension along which is calculated (0 for x and 1 for y normally)
+         */
 	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
 public:
         LevyIntegralLogPrice()=delete;
@@ -70,7 +76,7 @@ public:
         
 	//! Computes the J part of the integral for a logprice transformation
 	/*!
-	 * This method computes the j part of the integrals and stores them inside j1 and j2 members. It uses Gauss quadrature points,  so it works with any model.
+	 * This method computes the j part of the integrals and stores them inside j1 and j2 members. It calls the LevyIntegralLogPrice::get_one_J() method.
 	 * \param sol			DealII Vector containing the values of the solutio function
 	 * \param dof_handler	DealII DoF Handler associated to this triangulation and solution
 	 * \param fe			DealII Finite elements associated to this triangulation and solution
@@ -152,7 +158,7 @@ double LevyIntegralLogPrice<dim>::get_one_J(dealii::Point< dim > vert, tools::So
         return j;
 }
 
-
+//! Specialization of compute J for 1 dimension
 template<>
 void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
                                         dealii::DoFHandler<1>& dof_handler,
@@ -166,12 +172,15 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
         //the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
         tools::Solution_Trimmer<1> func(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
         //thus,  for each node on the mesh we evaluate J(x_i)
+        
+        //noadapting case
         if (!adapting || adapted) {
 #pragma omp parallel for
                 for (unsigned int it=0;it<N;++it) {
                         this->j1(it)=this->get_one_J(vertices[it], func, 0);
                 }
         }
+        //adapting case
         else {
                 order=4;
                 
@@ -201,6 +210,7 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
         this->j_ran=true;
 }
 
+//! Specialization of compute J for two dimensions
 template<>
 void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::DoFHandler<2>& dof_handler, dealii::FE_Q<2>& fe, std::vector< dealii::Point<2> > const & vertices)
 {

@@ -14,6 +14,13 @@ protected:
 	//! Reimplementation of LevyIntegralBase::compute_alpha() using Hermite nodes
 	virtual void compute_alpha();
 	
+	//! Reimplementation of LevyIntegralLogPrice::get_one_J() using Hermite nodes
+	/*!
+	 * Computes,  using a generic Gauss quadrature formula,  the value of a single entry of J relative the point vert. All info needed is passed through the Solution_Trimmer trim,  and the dimension.
+	 * \param vert		dealii::Point<dim> on wich the entry is calculated
+	 * \param trim		tools::Solution_Trimmer<dim> that returns the correct value of solution
+	 * \param d			dimension along which is calculated (0 for x and 1 for y normally)
+	 */
 	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
 	
 public:

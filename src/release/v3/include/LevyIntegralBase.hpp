@@ -22,12 +22,12 @@ protected:
 	std::vector<double> alpha;
 	dealii::Vector<double> j1, j2;
 	
-	
+	//limits of the inegration domain and differential domain
 	dealii::Point<dim> bMin, bMax, lower_limit, upper_limit;
 	
-	//should be const? 
 	std::vector<Model *> mods;
 	
+	//indicators if it has already been ran
 	bool alpha_ran;
 	bool j_ran;
 	
@@ -64,8 +64,7 @@ public:
         j_ran(false)
         {
                 if (Models_.size() !=dim)
-                        //TODO add exception
-                        std::cerr<< "Wrong dimension! Number of models is different from option dimension\n";
+                        throw(std::logic_error("Wrong dimension! Number of models is different from option dimension\n"));
                 this->compute_bounds();
         };
 	
@@ -77,8 +76,21 @@ public:
 	
 	virtual inline void set_time(double tm){};
         
+        //! Used to set the adaptivity parameters both for alpha and J
+        /*!
+         * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
+		 * \param order_max_	Maximum order of quadrature
+		 * \param alpha_toll_	Tollerance for error in alpha 
+         * \param J_toll_		Tollerance for the error in J
+         */
         virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_, double J_toll_){};
-        
+
+		//! Used to set the adaptivity parameters both for alpha
+		/*!
+		 * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
+		 * \param order_max_	Maximum order of quadrature
+		 * \param alpha_toll_	Tollerance for error in alpha 
+		 */
         virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_){};
 	
 	//! Returns the value of the alpha part of the first integral
@@ -92,7 +104,7 @@ public:
 	virtual double get_alpha_2() {
                 //TODO add exception
                 if (dim<2) {
-                        std::cerr<< "Dimension of this object is 1,  can't calculate alpha_2\n";
+                        throw(std::logic_error("Dimension of this object is 1,  can't calculate alpha_2\n"));
                         exit(-1);
                 }
                 if (!alpha_ran) {                    // add exception if dim < 2
@@ -112,8 +124,7 @@ public:
 	//! Used to get the j part of the first integral
 	virtual void get_j_1(dealii::Vector<double> * &J_x) {
                 if (!j_ran) {
-                        //TODO add exception
-                        std::cerr<< "Run J first!"<< std::endl;
+                        throw(std::logic_error("Run J first!\n"));
                 }
                 else {
                         J_x=&j1;
@@ -125,7 +136,7 @@ public:
         //! Used to get j parts of both integrals
 	virtual void get_j_both(dealii::Vector<double> * &J_x, dealii::Vector<double> * &J_y) {
                 if (!j_ran) {
-                        std::cerr<< "Run J first!"<< std::endl;
+						throw(std::logic_error("Run J first!\n"));
                 }
                 else{
                         J_x=&j1;
@@ -140,7 +151,7 @@ public:
 template<unsigned dim>
 void LevyIntegralBase<dim>::compute_bounds() {
 	for (unsigned d=0;d<dim;++d) {
-                //TODO may misbehave with merton model,  but Merton has a special quadrature so no big deal
+                //may misbehave with merton model,  but Merton has a special quadrature so no big deal
                 bMin[d]=std::min(0., lower_limit(d));
                 bMax[d]=upper_limit(d);
                 while ((*mods[d]).density(bMin[d])>constants::light_toll)

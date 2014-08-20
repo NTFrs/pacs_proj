@@ -57,7 +57,7 @@ public:
          */
         virtual void compute_J(dealii::Vector<double> & sol,
                                dealii::DoFHandler<dim> & dof_handler,dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices) {
-                std::cerr<<"Compute_J not defined for this dimension"<< std::endl;
+                throw(std::logic_error("Compute_J not defined for this dimension\n"));
         }
 };
 
