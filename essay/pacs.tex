@@ -813,25 +813,30 @@ Questa funzione permette di istanziare uno e un solo oggetto della classe \texts
 \chapter{Risultati}
 In questo capitolo riportiamo e commentiamo i risultati ottenuti tramite la nostra libreria. In particolare, analizzeremo nel dettaglio i vari output ottenuti dai programmi \textsf{test} contenuti a titolo esplicativo nel nostro codice. Tutti i risultati seguenti sono stati ottenuti su un computer con un processore \emph{intel i5} quad-core, con 4GB di memoria RAM e la versione 8.1.0 di \textsf{deal.ii}.
 \section{\textsf{test-1}}
-In questo primo semplice programma, abbiamo calcolato il prezzo di opzioni europee il cui sottostante evolve secondo un classico modello di \emph{Black\&Scholes}, ovvero l'equazione da risolvere \`e la solo PDE, senza parte integrale. I risultati ottenuti sono i seguenti:
+In questo primo semplice programma, abbiamo calcolato il prezzo di opzioni europee il cui sottostante evolve secondo un classico modello di \emph{Black\&Scholes}, ovvero l'equazione da risolvere \`e la solo PDE, senza parte integrale. I risultati ottenuti sono illustrati nella tabella \ref{test1-1}:
+\begin{table}[htp!]
 \begin{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
-1 & \emph{price} & 4096 & 250 & 1.42046 & 1.36864s \\ \hline
-1 & \emph{log-price} & 4096 & 250 & 1.42046 & 1.38591s \\ \hline
-2 & \emph{price} & 16384 & 100 & 21.5627 & 10.1907s \\ \hline
-2 & \emph{log-price} & 16384 & 100 & 21.5476 & 10.0676s \\ \hline
+1 & \emph{price} & 4096 & 250 & 1.42046\officialeuro & 1.36864s \\ \hline
+1 & \emph{log-price} & 4096 & 250 & 1.42046\officialeuro & 1.38591s \\ \hline
+2 & \emph{price} & 16384 & 100 & 21.5627\officialeuro & 10.1907s \\ \hline
+2 & \emph{log-price} & 16384 & 100 & 21.5476\officialeuro & 10.0676s \\ \hline
 \end{tabular}
 \end{center}
-\begin{figure}[h!]
+\caption{Prezzi di una Put 1d e di una Call 2d.}
+%\caption{Prezzi di una Put 1d, con $S_0=95$\officialeuro, $\sigma=0.120381$, $r=3.67\%$, $T=1$, $K=90$\officialeuro $ $ e prezzi di una Call 2d, con $S_{0,1}=80$\officialeuro, $\sigma_1=0.1256$, $S_{0,2}=120$\officialeuro, $\sigma_2=0.2$}
+\label{test1-1}
+\end{table}
+\begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-put1dprice.eps}
 \caption{Put Europea, con trasformazione \emph{price}}
 \label{fig:test1-put1d-price}
 \end{center}
 \end{figure}
-\begin{figure}[h!]
+\begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-put1dlogprice.eps}
 \caption{Put Europea, con trasformazione \emph{log-price}}
@@ -853,37 +858,48 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \end{center}
 \end{figure}
 Come possiamo notare i tempi di calcolo sono davvero rapidissimi in tutti i casi, mentre i prezzi dell'opzione monodimensionale sono identici per entrambe le trasformazioni, mentre per il 2d c'\`e una differenza apprezzabile, e aumentando il numero di elementi nella \emph{mesh} questa differenza scompare.
-Nelle figure \ref{fig:test1-put1d-price}, \ref{fig:test1-put1d-logprice}, \ref{fig:test1-call1d-fc} e \ref{fig:test1-call1d-sol} sono riportati, a titolo di esempio i grafici della soluzione e della condizione finale.\\Oltre a questi semplici calcoli, abbiamo deciso di testare la convergenza del prezzo al variare della griglia, ottenendo i seguenti risultati per l'1d:
+Nelle figure \ref{fig:test1-put1d-price}, \ref{fig:test1-put1d-logprice}, \ref{fig:test1-call1d-fc} e \ref{fig:test1-call1d-sol} sono riportati, a titolo di esempio i grafici della soluzione e della condizione finale.\\Oltre a questi semplici calcoli, abbiamo deciso di testare la convergenza del prezzo al variare della griglia, ottenendo i seguenti risultati nelle tabelle \ref{step1-2} e \ref{step1-3}. Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo corretto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
+\begin{table}[htp!]
 \begin{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Griglia/Timesptes& 256/25 & 512/50 & 1024/100 & 2048/250 & 4196/500 \\ \hline
-\emph{price} & 9.64979 & 9.65598 & 9.66063 & 9.66336 & 9.66431 \\ \hline
-\emph{log-price} & 9.64951 & 9.65587 & 9.66060 & 9.66339 & 9.66431 \\ \hline
+\emph{price} & 9.64979\officialeuro & 9.65598\officialeuro & 9.66063\officialeuro & 9.66336\officialeuro & 9.66431\officialeuro \\ \hline
+\emph{log-price} & 9.64951\officialeuro & 9.65587\officialeuro & 9.66060\officialeuro & 9.66339\officialeuro & 9.66431\officialeuro \\ \hline
 \end{tabular}
 \end{center}
-e per il 2d:
+\caption{Test di convergenza per una Call 1d.}
+\label{step1-2}
+\end{table}[htp!]
+\begin{table}
 \begin{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Griglia/Timesptes& 256/25 & 1024/50 & 4096/100 & 16384/250 & 65536/500 \\ \hline
-\emph{price} & 5.13714 & 2.88788 & 2.63722 & 2.54018 & 2.49968 \\ \hline
-\emph{log-price} & 3.42608 & 2.79298 & 2.54516 & 2.51124 & 2.49826 \\ \hline
+\emph{price} & 5.13714\officialeuro & 2.88788\officialeuro & 2.63722\officialeuro & 2.54018\officialeuro & 2.49968\officialeuro \\ \hline
+\emph{log-price} & 3.42608\officialeuro & 2.79298\officialeuro & 2.54516\officialeuro & 2.51124\officialeuro & 2.49826\officialeuro \\ \hline
 \end{tabular}
 \end{center}
-Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo corretto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
+\caption{Test di convergenza per una Put 2d.}
+\label{step1-3}
+\end{table}
+\newpage
 \section{\textsf{test-2}}
-In questo secondo programma di esempio calcoliamo i prezzi di opzioni i cui sottostanti evolvono con modelli di L\'evy. In particolare, a titolo di esempio abbiamo prezzato delle \emph{call} europee in 1d con un modello di Kou, il cui grafico \`e riportato in figura \ref{fig:test2-call1d-kou}, e in 2d con dei modelli di Merton. I risultati ottenuti sono i seguenti:
+In questo secondo programma di esempio calcoliamo i prezzi di opzioni i cui sottostanti evolvono con modelli di L\'evy. In particolare, a titolo di esempio abbiamo prezzato delle \emph{call} europee in 1d con un modello di Kou, il cui grafico \`e riportato in figura \ref{fig:test2-call1d-kou}, e in 2d con dei modelli di Merton. I risultati ottenuti sono i riportati nella tabella \ref{step2-1}.\\\\
+\begin{table}[htp!]
 \begin{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
-1 & \emph{price} & 1024 & 100 & 12.4258 & 19.3725s \\ \hline
-1 & \emph{log-price} & 1024 & 100 & 12.4264 & 18.4103s \\ \hline
-2 & \emph{price} & 4096 & 100 & 23.9055 & 15.811s \\ \hline
-2 & \emph{log-price} & 4096 & 100 & 24.0966 & 305.049s \\ \hline
+1 & \emph{price} & 1024 & 100 & 12.4258\officialeuro & 19.3725s \\ \hline
+1 & \emph{log-price} & 1024 & 100 & 12.4279\officialeuro & 21.5571ss \\ \hline
+2 & \emph{price} & 4096 & 100 & 23.9055\officialeuro & 15.811s \\ \hline
+2 & \emph{log-price} & 4096 & 100 & 24.0966\officialeuro & 305.049s \\ \hline
 \end{tabular}
 \end{center}
+\caption{Prezzi di una Call 1d e 2d.}
+\label{step2-1}
+\end{table}
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test2-call1dkou.eps}
@@ -891,7 +907,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \label{fig:test2-call1d-kou}
 \end{center}
 \end{figure}
-La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di ordini di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e un poco pi\`u veloce rispetto alla trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`u pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} \`e pi\`u veloce.\\In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}. Questo è probabilmente dovuto al fatto in due dimensioni la ricerca delle celle in cui si trovano i punti in cui deve essere valutata la soluzione diventa molto più onerosa, trattandosi di una griglia bidimensionale.\\\\
+La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di almeno un ordine di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e quasi pi\`u veloce rispetto alla trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`u pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} ha prestazioni comparabili.\\In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}. Questo è dovuto al fatto in due dimensioni la ricerca delle celle in cui si trovano i punti in cui deve essere valutata la soluzione diventa molto più onerosa, trattandosi di una griglia bidimensionale.\\\\
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test2-scalefactor.eps}
@@ -899,29 +915,50 @@ La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al s
 \label{fig:test2-scalefactor}
 \end{center}
 \end{figure}
-Un altro test effettuato in questo programma \`e il calcolo del prezzo al variare del fattori di scala $f$, introdotto in \eqref{cut}. Testando infatti il comportamento della libreria, ci siamo resi conto che i prezzi delle opzioni erano leggermente inferiori ai prezzi target, specialmente nella trasformazione \emph{price}. Nella figura \ref{fig:test2-scalefactor} possiamo osservare l'andamento dei prezzi nelle due trasformazioni all'aumentare del fattore di scala. Come accennato in precedenza, un fattore di scala piccolo determina un grosso errore nella valutazione di questo tipo di opzioni nella trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che la griglia su cui risolviamo la PDE in questa trasformazione coincide con la griglia su cui calcoliamo l'integrale: se il troncamento \`e troppo elevato rischiamo di perdere dei contributi importanti della parte integrale. La trasformazione \emph{log-price} invece risente meno di questo problema poich\'e grazie ai nodi di quadratura di Hermite e di Laguerre il dominio di integrazione non \`e troncato, ma coincide con tutto l'asse reale, e infatti con questa trasformazione l'errore con $f$ piccolo \`e contenuto e all'aumentare di $f$ converge velocemente al valore esatto.
+Un altro test effettuato in questo programma \`e il calcolo del prezzo al variare del fattori di scala $f$, introdotto in \eqref{cut}. Testando infatti il comportamento della libreria, ci siamo resi conto che i prezzi delle opzioni erano leggermente inferiori ai prezzi target, specialmente nella trasformazione \emph{price}. Nella figura \ref{fig:test2-scalefactor} possiamo osservare l'andamento dei prezzi nelle due trasformazioni all'aumentare del fattore di scala. Come accennato in precedenza, un fattore di scala piccolo determina un grosso errore nella valutazione di questo tipo di opzioni nella trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che la griglia su cui risolviamo la PDE in questa trasformazione coincide con la griglia su cui calcoliamo l'integrale: se il troncamento \`e troppo elevato rischiamo di perdere dei contributi importanti della parte integrale. La trasformazione \emph{log-price} invece risente meno di questo problema poich\'e grazie ai nodi di quadratura di Hermite e di Laguerre il dominio di integrazione non \`e troncato, ma coincide con tutto l'asse reale, e infatti con questa trasformazione l'errore con $f$ piccolo \`e contenuto e all'aumentare di $f$ converge velocemente al valore esatto.\\\\Infine, abbiamo studiato come varia il prezzo della trasformazione \emph{log-price} al variare dei nodi di quadratura: il programma permette infatti di adattare la quadratura numerica in modo da scendere al di sotto di errore target. Nella tabella \ref{step2-2}, mostriamo la variazione di prezzo all'aumentare dei nodi di quadratura.\\
+\begin{table}[htp!]
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l | l |}
+\hline
+$\#$ di nodi & 4 & 8 & 16 & 32 & 64 & 128 \\ \hline
+Prezzi & 12.4443\officialeuro & 12.4443\officialeuro & 12.4279\officialeuro & 12.4279\officialeuro & 12.427\officialeuro & 12.4264\officialeuro \\ \hline
+Tempi & 9.11581s & 9.02705s & 9.23609s & 22.285s & 44.6299s & 68.0055s \\ \hline
+\end{tabular}
+\end{center}
+\caption{Prezzi e tempi di calcolo del prezzo di Call 1d al variare dei nodi di quadratura.}
+\label{step2-2}
+\end{table}
+Come possiamo notare, la differenza di prezzo all'aumentare dei nodi di quadratura \`e davvero irrisoria. Ci\`o \`e probabilmente dovuto al fatto che nonostante l'errore sul vettore $J$ possa essere grande, esso viene moltiplicato per la matrice di massa, che generalmente ha numeri molto piccoli. Per questo un errore pur grande su $J$ si manifesta in misura molto attenuata nel prezzo finale. Inoltre, all'aumentare dei nodi di quadratura il tempo di calcolo aumenta considerevolmente. Per questo motivo abbiamo deciso di settare come numero massimo di nodi 32 (ovviamente modificabile con un apposito metodo), in quanto ci sembra l'equilibrio giusto fra precisione e velocit\`a di calcolo.
 \section{\textsf{test-3}}
-In quest programma abbiamo mostrato come risolvere il problema con l'ostacolo, ovvero come calcolare il prezzo di opzioni americane. Inizialmente, abbiamo calcolato i prezzi di opzioni con modelli di \emph{Black\&Scholes} in una e due dimensioni, ottenendo i seguenti risultati:
+In questo programma abbiamo mostrato come risolvere il problema con l'ostacolo, ovvero come calcolare il prezzo di opzioni americane. Inizialmente, abbiamo calcolato i prezzi di opzioni con modelli di \emph{Black\&Scholes} in una e due dimensioni, ottenendo i risultati in \ref{test3-1}.
+\begin{table}[htb!]
 \begin{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
-1 & \emph{price} & 1024 & 100 & 1.54933 & 0.885832s \\ \hline
-1 & \emph{log-price} & 1024 & 100 & 1.54931 & 1.08148s \\ \hline
-2 & \emph{price} & 16384 & 100 & 4.4392 & 1.2148s \\ \hline
-2 & \emph{log-price} & 16384 & 100 & 4.41147 & 0.990322s \\ \hline
+1 & \emph{price} & 1024 & 100 & 1.54933\officialeuro & 0.885832s \\ \hline
+1 & \emph{log-price} & 1024 & 100 & 1.54931\officialeuro & 1.08148s \\ \hline
+2 & \emph{price} & 16384 & 100 & 4.4392\officialeuro & 1.2148s \\ \hline
+2 & \emph{log-price} & 16384 & 100 & 4.41147\officialeuro & 0.990322s \\ \hline
 \end{tabular}
 \end{center}
-Il nostro \emph{solver}, che \`e in grado di lavorare anche in parallelo, sembra comportarsi molto bene, sia per quanto riguarda la velocit\`a di calcolo che la precisione raggiunta: la tolleranza per bloccare il \emph{solver} iterativo \`e infatti\todo{da rivedere} impostata a $10^{-10}$ e le iterazioni massime sono 1000. Qualora il \emph{solver} non dovesse convergere alla tolleranza in 1000 iterazioni, il programma stampa un \emph{warning}, avvisando l'utente di aver raggiunto il numero massimo di iterazioni e riportando l'errore attuale. Calcolando i prezzi precedenti con una griglia pi\`u fitta il \emph{solver} stampa il \emph{warning}, ma arriva comunque a un errore minore di $10^{-9}$, un valore decisamente accettabile.\\\\Oltre al modello di \emph{Black\&Scholes}, abbiamo anche utilizzato un modello di Kou, per calcolare il prezzo di un'opzione americana monodimensionale. Con una griglia di 1024 celle e 100 iterazioni temporali otteniamo i seguenti prezzi:
+\caption{Prezzi di Put americane 1d e 2d, \emph{Black\&Scholes}.}
+\label{test3-1}
+\end{table}
+Il nostro \emph{solver}, che \`e in grado di lavorare anche in parallelo, sembra comportarsi molto bene, sia per quanto riguarda la velocit\`a di calcolo che la precisione raggiunta: la tolleranza per bloccare il \emph{solver} iterativo \`e infatti impostata a $10^{-10}$ e le iterazioni massime sono 1000. Qualora il \emph{solver} non dovesse convergere alla tolleranza in 1000 iterazioni, il programma stampa un \emph{warning}, avvisando l'utente di aver raggiunto il numero massimo di iterazioni e riportando l'errore attuale. Calcolando i prezzi precedenti con una griglia pi\`u fitta il \emph{solver} stampa il \emph{warning}, ma arriva comunque a un errore minore di $10^{-9}$, un valore decisamente accettabile.\\\\Oltre al modello di \emph{Black\&Scholes}, abbiamo anche utilizzato un modello di Kou, per calcolare il prezzo di un'opzione americana monodimensionale. Con una griglia di 1024 celle e 100 iterazioni temporali otteniamo i seguenti prezzi riportati in \ref{test3-2}.
+\begin{table}[htb!]
 \begin{center}
 \begin{tabular}{| l | l | l |}
 \hline
 Trasformazione & Prezzo & Tempo \\ \hline
-\emph{price} & 4.23452 & 22.9670s \\ \hline
-\emph{log-price} & 4.23452 & 22.9427s \\ \hline
+\emph{price} & 4.23452\officialeuro & 22.9670s \\ \hline
+\emph{log-price} & 4.23452\officialeuro & 22.9427s \\ \hline
 \end{tabular}
 \end{center}
-Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una put europea.
+\caption{Prezzi di una Put americana, Kou.}
+\label{test3-2}
+\end{table}
+Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una put europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: possiamo vedere come esse siano molto ``liscie'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=\textwidth]{img/test2-putamkou.eps}
