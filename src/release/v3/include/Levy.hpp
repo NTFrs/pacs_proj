@@ -18,7 +18,7 @@
 
 /*! \mainpage A Fem solver for pricing financial derivatives
  * 
- * The present project is a small library that can be used to price financial derivatives on Levy Assets in both one and two dimensions.
+ * The present project is a small library that can be used to price financial derivatives on Levy Assets in both one and two dimensions. It provides the functions to price the basic financial objects,  as well as the base structure to easily create new financial objects with few lines of code.
  * 
  * \section install_sec Installing
  * 
@@ -40,15 +40,15 @@
  *
  * In the default configuration, the main file is in a directory,  while the include and source directories with the library files are just outside it. In that case,  it would only be needed to add the name of the main file and eventual sources.
  * 
- * \subsection basic_usne Basic use of the library
+ * \subsection basic_use Basic use of the library
  * 
- * An object that represent the most common financial derivative,  a \a Call or \a Put,  is already implemented through the classes EuropeanOptionLogPrice\<dim\> and EuropeanOptionPrice\<dim\>. The difference between them is the transformation used on the equation to solve the problem. Also,  AmericanOptionLogPrice\<dim\> and AmericanOptionPrice\<dim\> are present to price <em>American Put Options</em>
+ * An object that represent the most common financial derivative,  a \a Call or \a Put,  is already implemented through the classes EuropeanOptionLogPrice\<dim\> and EuropeanOptionPrice\<dim\>. The difference between them is the transformation used on the equation to solve the problem. Also,  AmericanOptionLogPrice\<dim\> and AmericanOptionPrice\<dim\> are present to price <em>American Put Options</em>. The usage is pretty simple,  just declare a Model,  and declare an option passing the Model (or models) with the Model::get_pointer() method,  as well as the other parameters. Then, run() and get_price().
  * 
  * \subsection create_more_options Advanced use: Creating new financial options
  * 
  * It is possible to create new options for specific financial derivatives. The standard way to do it is to create a class that inherits from OptionBasePrice\<dim\> or OptionBaseLogPrice\<dim\> and implement the solve method in which it is possible to specify different boundary conditions or solvers. Most of the times,  it is only needed to specify different Boundary Conditions, and specify how to use the Integral part computed by the LevyIntegral classes (see LevyIntegralBase\<dim\> ).
  * 
- * Also,  it is possible to add more models besides the three that are already there. In that case,  all that is needed is to inherit from Model class and specify the needed parameters and the density. In that case it may be needed to redefine the method OptionBase::setup_integral() in order to use the specific levy class needed.
+ * Also,  it is possible to add more models besides the three that are already there. In that case,  all that is needed is to inherit from Model class and specify the needed parameters and the density. In that case it may be needed to redefine the method OptionBase\<dim\>::setup_integral() in order to use the specific levy class needed.
  * 
  */
 
