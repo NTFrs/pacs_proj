@@ -686,7 +686,9 @@ if (OPENMP_FOUND)
 	$\$\{$OpenMP$\_$CXX$\_$FLAGS$\}$")
 endif()
 \end{lstlisting}
-in modo che, se il \textsf{CMake} trova \textsf{OpenMP}, aggiunge il \emph{flag} \textsf{-fopenmp} al compilatore, altrimenti non aggiunge nulla.\\Abbiamo infine aggiunto:
+in modo che, se il \textsf{CMake} trova \textsf{OpenMP}, aggiunge il \emph{flag} \textsf{-fopenmp} al compilatore, altrimenti non aggiunge nulla.\\
+\iffalse
+Abbiamo infine aggiunto:
 \begin{lstlisting}
 FIND_PACKAGE(Doxygen)
 IF(NOT DOXYGEN_FOUND)
@@ -697,6 +699,7 @@ ADD_CUSTOM_TARGET(doc
 	COMMAND $\$\{$DOXYGEN_EXECUTABLE$\}$ doxy-config )
 \end{lstlisting}
 in modo da creare il \emph{target} \textsf{doc} che generi la documentazione con \textsf{Doxygen}.
+\fi
 \section{GitHub}
 Durante lo sviluppo di questo progetto, abbiamo sempre utilizzato il sistema di controllo di versioni Git e il servizio di \emph{web hosting} GitHub per lo sviluppo di progetti software. Abbiamo quindi creato una \emph{repository} remota all'indirizzo \url{https://github.com/NTFrs/pacs_proj}. L'uso di git ci ha permesso di lavorare in contemporanea sul progetto senza doverci preoccupare di fare cambiamenti allo stesso file, anche attraverso l'uso di diversi \emph{branch}.
 \begin{figure}[!h]
@@ -711,9 +714,15 @@ Durante lo sviluppo di questo progetto, abbiamo sempre utilizzato il sistema di 
 Durante la scrittura dei codici finali, abbiamo notato che alcune parti del programma erano più lente rispetto a implementazioni fatte precedentemente. L'utilizzo del \emph{profiler} \textsf{gprof} ci ha permesso di analizzare e ristrutturare quelle parti ottenendo uno \emph{speedup} considerevole, anche rispetto ai codici antecedenti. In particolare, uno dei problemi risiedeva nel calcolo dell'integrale con la trasformazione \emph{price}, e tramite il \emph{profiler} abbiamo scoperto che una delle funzioni di \textsf{deal.ii} di accesso agli elementi della griglia era particolarmente lenta. Abbiamo quindi cercato di ridurre quanto possibile il numero di chiamate ad essa.\\
 Abbiamo anche analizzato il codice con l'uso di \textsf{valgrind} usando le seguenti tool:
 \begin{itemize}
- \item \textsf{callgrind} Nel caso logprice, eravamo interessati a sapere quanto la parte \textsf{compute\_J()} incidesse sul programma per valutare l'effetto della parallelizzazione. Purtroppo, \textsf{gprof} non è riesce a riconoscere bene la successione di chiamate di funzioni (in particolare alcune interne a deal.ii) e quindi abbiamo utilizzazo la tool \textsf{callgrind} di \textsf{callgrind} insieme al visualizzatore \textsf{KCacheGrind} (o \textsf{QCacheGrind}), ottenendo un analisi migliore. La figura riporta la parte del call graph che ci interessava
+ \item \textsf{callgrind} Nel caso logprice, eravamo interessati a sapere quanto la parte \textsf{compute\_J()} incidesse sul programma per valutare l'effetto della parallelizzazione. Purtroppo, \textsf{gprof} non è riesce a riconoscere bene la successione di chiamate di funzioni (in particolare alcune interne a deal.ii) e quindi abbiamo utilizzazo la tool \textsf{callgrind} di \textsf{callgrind} insieme al visualizzatore \textsf{KCacheGrind} (o \textsf{QCacheGrind}), ottenendo un analisi migliore. La figura \ref{fig:callgraph} riporta la parte del call graph che ci interessava.
  \item \todo{Giorgio's Business}\textsf{memcheck}  
 \end{itemize}
+\begin{figure}[!h]
+ \centering
+ \includegraphics[width=\textwidth]{img/callgraph.eps}
+ \caption{Call Graph generato da \textsf{KCacheGrind} con i pesi relativi delle funzioni per un opzione con trasformazione logprice bidimensionale.}
+ \label{fig:callgraph}
+\end{figure}
 
 \section{\textsf{Doxygen}}
 Infine, tutto il codice \`e commentato con il \emph{lexical-scanner} \textsf{Doxygen}, molto semplice da utilizzare. 
