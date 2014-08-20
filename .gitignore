@@ -14,7 +14,8 @@
 
 #compiled practice mains
 main
-test
+test*
+main_profiling
 
 # Cmake Files
 CMakeCache.txt
