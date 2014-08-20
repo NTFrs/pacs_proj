@@ -1,5 +1,5 @@
 #
-#  CMake script for the step-26 tutorial program:
+#  CMake script for the profiling program:
 ##
 
 include_directories(../include)
