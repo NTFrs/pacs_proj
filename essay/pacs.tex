@@ -19,6 +19,8 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{lstautogobble}
+\usepackage{changepage}
+\usepackage{multicol}
 %\usepackage{easytable}
 %\usepackage{color}
 
@@ -845,14 +847,18 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \end{figure}
 \begin{figure}[htp!]
 \begin{center}
-\includegraphics[width=12cm]{img/test1-call2dpriceFinalC.eps}
+\makebox[\textwidth][c]{
+\includegraphics[width=15cm]{img/test1-call2dpriceFinalC.eps}
+}
 \caption{Call Europea, con trasformazione \emph{price}, condizione finale}
 \label{fig:test1-call1d-fc}
 \end{center}
 \end{figure}
 \begin{figure}[htp!]
 \begin{center}
-\includegraphics[width=12cm]{img/test1-call2dpriceSolution.eps}
+\makebox[\textwidth][c]{
+\includegraphics[width=15cm]{img/test1-call2dpriceSolution.eps}
+}
 \caption{Call Europea, con trasformazione \emph{price}, soluzione}
 \label{fig:test1-call1d-sol}
 \end{center}
@@ -1023,7 +1029,59 @@ Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
 Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i processori sono decisamente migliori rispetto al calcolo seriale. Non riusciamo tuttavia a raggiungere uno \emph{speed-up} vicino ai 4x, probabilmente perch\'e la funzione che calcola l'integrale sfrutta alcune funzioni della libreria \textsf{deal.ii} che ricercano i punti nella griglia, ed \`e possibile che queste funzioni non lavorino in parallelo\todo{Possibile?? Altre spiegazioni pi\`u o meno valide??}. Notiamo infine che lanciare il programma con 8 \emph{threads} su 4 processori non porta ad alcun miglioramento tangibile, anzi in alcuni casi le prestazioni calano.
 \newpage
 \section{\textsf{test-5}}
+In quest'ultimo test abbiamo valutato le prestazioni della nostra libreria attivando il flag del \emph{mesh refinement}. In particolare, l'abbiamo provato con opzioni monodimensionali in entrambe le trasformazioni, e nel caso bidimensionale per il \emph{log-price}. I risultati ottenuti sono riportati nella tabella \ref{test5-1}.
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l | l |}
+\hline
+Trasformazione & Celle di partenza & Celle di arrivo & Timesteps & Prezzo & Tempo \\ \hline
+\emph{price} & 256 & 520 & 100 & 12.4267\officialeuro & 3.31924s \\ \hline
+\emph{log-price} & 256 & 520 & 100 & 12.429\officialeuro & 6.89238s \\ \hline
+\end{tabular}
+\end{center}
+\caption{Prezzi di una Call 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
+\label{test5-1}
+\end{table}
+Questi risultati sono stati ottenuti con il medesimo modello utilizzato per il caso monodimensionale di \ref{step2-1}, e come possiamo notare, non solo i prezzi ottenuti sono praticamente gli stessi, ma sono calcolati molto pi\`u velocemente, in particolare per la trasformazione \emph{price}.\\Oltre alle opzioni europee, abbiamo testato il \emph{mesh refinement} anche sulle opzioni americane, con risultati non pienamente soddisfacenti. Come gi\`a detto infatti, i prezzi di queste opzioni viene calcolato mediante un \emph{solver} iterativo, che con l'adattivit\`a di griglia fatica a convergere. Abbiamo quindi calcolato i prezzi di una semplice opzione americana con il modello di \emph{Black\&Scholes} al variare delle iterazioni massime del \emph{solver}, ottenendo i risultati illustrati nelle tabelle \ref{test5-2} e \ref{test5-3}. I prezzi target sono quelli monodimensionali riportati in \label{test3-1}, e come possiamo vedere i prezzi faticano a convergere, anche con 1000 iterazioni massime (ovvero il parametro di default). \todo{Altro??}L'unica spiegazione che riusciamo a dare \`e la possibilit\`a che la matrice sia molto mal condizionata e per questo motivo il \emph{solver} fatica a convergere.
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{| l | l | l | l |}
+\hline
+Maxiter & 100 & 1000 & 10000 \\ \hline
+Prezzo & 1.09713\officialeuro & 1.46016\officialeuro	& 1.54845\officialeuro \\ \hline
+Tempo & 0.54812s	& 3.79223s & 18.0422s\\ \hline
+\end{tabular}
+\end{center}
+\caption{Prezzi di una Put Americana in \emph{price}, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
+\label{test5-2}
+\end{table}
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{| l | l | l | l |}
+\hline
+Maxiter & 100 & 1000 & 10000\\ \hline
+Prezzo & 1.26063\officialeuro &	1.50763\officialeuro & 1.52639\officialeuro \\ \hline
+Tempo & 0.851332s	 & 5.55052es & 17.7176s\\ \hline
+\end{tabular}
+\end{center}
+\caption{Prezzi di una Put Americana in \emph{log-price}, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
+\label{test5-3}
+\end{table}
 
+Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensionali, con la trasformazione \emph{log-price} (ricordiamo infatti che poich\'e il \emph{price} richiede una griglia strutturata, non \`e possibile fare \emph{mesh adapting}). Abbiamo quindi testato il comportamento di una Call 2d al variare dei coefficienti di adattivit\`a, i cui sottostanti evolvono secondo modelli di Merton, ottenendo i risultati riportati in \ref{test5-4}.
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{| l | l | l | l | l | l | l |}
+\hline
+Ref/Coar & g.d.l di partenza & g.d.l di arrivo & Timesteps & Prezzo & Tempo \\ \hline
+0.03/0.15 & 4225 & 4779 & 100 & 24.1056\officialeuro & 840.652s \\ \hline
+0/0.1 & 4225 & 3526 & 100 & 24.0971\officialeuro & 594.241s \\ \hline
+\end{tabular}
+\end{center}
+\caption{Prezzi di una Call 2d, Merton.}
+\label{test5-4}
+\end{table}
+Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-1}.\todo{Altro??}Come possiamo notare, qui i prezzi convergono al valore giusto, ma impiegano pi\`u tempo rispetto al caso senza \emph{mesh refinement}. Di seguito sono riportate le \emph{mesh} generate nei due casi: nel set con parametri 0.03/0.15 possiamo vedere come la griglia diventi pi\`u lasca nella parte in cui la soluzione \`e nulla e dove la soluzione cresce in modo costante, mentre si infittisce dove la soluzione si alza e vicino ai bordi, dove c'\`e una condizione al contorno $\mathcal{C}^0$. Nel set di griglie con parametri 0/0.1 notiamo invece come la soluzione diventi pi\`u lasca nella zona in cui la soluzione vale 0.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/meshes/Price1.eps}
@@ -1048,6 +1106,16 @@ Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i process
 
 \begin{figure}[htp!]
 \begin{center}
+\makebox[\textwidth][c]{
+\includegraphics[width=15cm]{img/test5-1.eps}
+}
+\caption{Valore della soluzione di una Call 2d \emph{log-price}, con parametri 0.03 di \emph{refinement} e 0.15 di \emph{coarsening}.}
+\label{fig:test5-1}
+\end{center}
+\end{figure}
+
+\begin{figure}[htp!]
+\begin{center}
 \includegraphics[width=10cm]{img/meshes/LogPrice2.eps}
 \caption{Griglia dopo 2 step di raffinamento, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
 \label{fig:test5-logprice2}
@@ -1056,8 +1124,19 @@ Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i process
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/meshes/LogPrice3.eps}
-\caption{Griglia dopo 2 step di raffinamento, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
+\caption{Griglia dopo 4 step di raffinamento, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
 \label{fig:test5-logprice3}
+\end{center}
+\end{figure}
+
+
+\begin{figure}[htp!]
+\begin{center}
+\makebox[\textwidth][c]{
+\includegraphics[width=15cm]{img/test5-2.eps}
+}
+\caption{Valore della soluzione di una Call 2d \emph{log-price}, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
+\label{fig:test5-2}
 \end{center}
 \end{figure}
 
