@@ -42,7 +42,25 @@
  * 
  * \subsection basic_use Basic use of the library
  * 
- * An object that represent the most common financial derivative,  a \a Call or \a Put,  is already implemented through the classes EuropeanOptionLogPrice\<dim\> and EuropeanOptionPrice\<dim\>. The difference between them is the transformation used on the equation to solve the problem. Also,  AmericanOptionLogPrice\<dim\> and AmericanOptionPrice\<dim\> are present to price <em>American Put Options</em>. The usage is pretty simple,  just declare a Model,  and declare an option passing the Model (or models) with the Model::get_pointer() method,  as well as the other parameters. Then, run() and get_price().
+ * An object that represent the most common financial derivative,  a \a Call or \a Put,  is already implemented through the classes EuropeanOptionLogPrice\<dim\> and EuropeanOptionPrice\<dim\>. The difference between them is the transformation used on the equation to solve the problem. Also,  AmericanOptionLogPrice\<dim\> and AmericanOptionPrice\<dim\> are present to price <em>American Put Options</em>.
+ * The usage is pretty simple:
+ * \arg  first declare a Model or more
+ * \arg  Althought it is possible to instantiate options directly,  it is easier to use the Factory provided, using the Factory::create() function. An example of how it works is
+ * \code {.cpp}
+ * // We create here a BlackScholesModel object with spot price and volatility
+ * BlackScholesModel model(95., 0.120381);
+ * // We create an object of type Option, a European Put with the Price transformation
+ * // with the model created above.
+ * auto foo=Factory::instance()->create(ExerciseType::EU,
+ * OptionType::Put,
+ * Transformation::Price,
+ * model.get_pointer(),
+ * 0.0367, 1., 90., 12, 250);
+ * 
+ * //we run it and get the price
+ * foo->run();
+ * std::cout<<"The price of the option is "<<foo->get_price()<<std::endl;
+ * \endcode
  * 
  * \subsection create_more_options Advanced use: Creating new financial options
  * 
