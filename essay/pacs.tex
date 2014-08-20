@@ -800,15 +800,15 @@ La classe \textsf{LevyIntegralPrice$<$dim$>$}, invece, implementa \textsf{comput
 Come si nota in figura \ref{fig:levybase}, esistono poi delle classi derivate da \textsf{LevyIntegralPrice$<$dim$>$} e \textsf{LevyIntegralLogPrice$<$dim$>$}. Esse implementano di nuovo i metodi per il calcolo delle parti integrali con dei nodi di quadratura specifici per i vari modelli. In particolare \textsf{LevyIntegralPriceKou$<$dim$>$} e \textsf{LevyIntegralPriceMerton$<$dim$>$} implementano solo la funzione \textsf{void compute\_alpha()} utilizzando rispettivamente nodi di Gauss-Laguerre e di Gauss-Hermite, poich\'e grazie alla trasformazione $y=Se^y$, le densit\`a contro cui integriamo non sono pi\`u esponenziali o gaussiane. Le classi \textsf{LevyIntegralLogPriceKou$<$dim$>$} e {LevyIntegralLogPriceMerton$<$dim$>$}, invece, oltre a implementare di nuovo \textsf{void compute\_alpha()} con i nodi specifici, implementano pure \textsf{get\_one\_J} sfruttando le potenzialit\`a dei nodi specializzati sui modelli. Nel caso si vogliano aggiungere altri modelli, questo design permette di creare nuove classi specifiche che ereditano dal secondo livello, permettendo all'utente di modificare solo piccole parti.
 
 \section{\emph{Factory}}
-Data la complessit\`a strutturale delle classi Opzione, abbiamo deciso di utilizzare il \emph{design pattern} della \emph{factory}, altrimenti noto come costruttore virtuale, per permettere a un qualsiasi utente di istanziare l'oggetto giusto per il suo problema. Abbiamo quindi creato una classe, \textsf{OptionFactory} che ha costruttore di default, costruttore di copia e operatore di copia privati, perci\`o non \`e possibile istanziare la classe, e abbiamo scritto il seguente metodo:
+Data la complessit\`a strutturale delle classi Opzione, abbiamo deciso di utilizzare il \emph{design pattern} della \emph{factory}, altrimenti noto come costruttore virtuale, per permettere a un qualsiasi utente di istanziare l'oggetto giusto per il suo problema. Abbiamo quindi creato una classe, \textsf{Factory} che ha costruttore di default, costruttore di copia e operatore di copia privati, perci\`o non \`e possibile istanziare la classe, e abbiamo scritto il seguente metodo:
 \begin{lstlisting}
-static OptionFactory * instance()
+static Factory * instance()
         {
-                static OptionFactory instance;
+                static Factory instance;
                 return &instance;
         }
 \end{lstlisting}
-Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{OptionFactory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
+Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{Factory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
 \section{Come utilizzare la libreria}
 \chapter{Risultati}
 In questo capitolo riportiamo e commentiamo i risultati ottenuti tramite la nostra libreria. In particolare, analizzeremo nel dettaglio i vari output ottenuti dai programmi \textsf{test} contenuti a titolo esplicativo nel nostro codice. Tutti i risultati seguenti sono stati ottenuti su un computer con un processore \emph{intel i5} quad-core, con 4GB di memoria RAM e la versione 8.1.0 di \textsf{deal.ii}.
