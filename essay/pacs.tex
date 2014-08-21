@@ -867,26 +867,26 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 Come possiamo notare i tempi di calcolo sono davvero rapidissimi in tutti i casi, mentre i prezzi dell'opzione monodimensionale sono identici per entrambe le trasformazioni, mentre per il 2d c'\`e una differenza apprezzabile, e aumentando il numero di elementi nella \emph{mesh} questa differenza scompare.
 Nelle figure \ref{fig:test1-put1d-price}, \ref{fig:test1-put1d-logprice}, \ref{fig:test1-call1d-fc} e \ref{fig:test1-call1d-sol} sono riportati, a titolo di esempio i grafici della soluzione e della condizione finale.\\Oltre a questi semplici calcoli, abbiamo deciso di testare la convergenza del prezzo al variare della griglia, ottenendo i seguenti risultati nelle tabelle \ref{step1-2} e \ref{step1-3}. Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo corretto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
 \begin{table}[htp!]
-\begin{center}
+\begin{adjustbox}{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Griglia/Timesptes& 256/25 & 512/50 & 1024/100 & 2048/250 & 4196/500 \\ \hline
 \emph{price} & 9.64979\officialeuro & 9.65598\officialeuro & 9.66063\officialeuro & 9.66336\officialeuro & 9.66431\officialeuro \\ \hline
 \emph{log-price} & 9.64951\officialeuro & 9.65587\officialeuro & 9.66060\officialeuro & 9.66339\officialeuro & 9.66431\officialeuro \\ \hline
 \end{tabular}
-\end{center}
+\end{adjustbox}
 \caption{Test di convergenza per una Call 1d.}
 \label{step1-2}
 \end{table}[htp!]
 \begin{table}
-\begin{center}
+\begin{adjustbox}{center}
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Griglia/Timesptes& 256/25 & 1024/50 & 4096/100 & 16384/250 & 65536/500 \\ \hline
 \emph{price} & 5.13714\officialeuro & 2.88788\officialeuro & 2.63722\officialeuro & 2.54018\officialeuro & 2.49968\officialeuro \\ \hline
 \emph{log-price} & 3.42608\officialeuro & 2.79298\officialeuro & 2.54516\officialeuro & 2.51124\officialeuro & 2.49826\officialeuro \\ \hline
 \end{tabular}
-\end{center}
+\end{adjustbox}
 \caption{Test di convergenza per una Put 2d.}
 \label{step1-3}
 \end{table}
@@ -924,14 +924,14 @@ La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al s
 \end{figure}
 Un altro test effettuato in questo programma \`e il calcolo del prezzo al variare del fattori di scala $f$, introdotto in \eqref{cut}. Testando infatti il comportamento della libreria, ci siamo resi conto che i prezzi delle opzioni erano leggermente inferiori ai prezzi target, specialmente nella trasformazione \emph{price}. Nella figura \ref{fig:test2-scalefactor} possiamo osservare l'andamento dei prezzi nelle due trasformazioni all'aumentare del fattore di scala. Come accennato in precedenza, un fattore di scala piccolo determina un grosso errore nella valutazione di questo tipo di opzioni nella trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che la griglia su cui risolviamo la PDE in questa trasformazione coincide con la griglia su cui calcoliamo l'integrale: se il troncamento \`e troppo elevato rischiamo di perdere dei contributi importanti della parte integrale. La trasformazione \emph{log-price} invece risente meno di questo problema poich\'e grazie ai nodi di quadratura di Hermite e di Laguerre il dominio di integrazione non \`e troncato, ma coincide con tutto l'asse reale, e infatti con questa trasformazione l'errore con $f$ piccolo \`e contenuto e all'aumentare di $f$ converge velocemente al valore esatto.\\\\Infine, abbiamo studiato come varia il prezzo della trasformazione \emph{log-price} al variare dei nodi di quadratura: il programma permette infatti di adattare la quadratura numerica in modo da scendere al di sotto di errore target. Nella tabella \ref{step2-2}, mostriamo la variazione di prezzo all'aumentare dei nodi di quadratura.\\
 \begin{table}[htp!]
-\begin{center}
+\begin{adjustbox}{center}
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 $\#$ di nodi & 4 & 8 & 16 & 32 & 64 & 128 \\ \hline
 Prezzi & 12.4443\officialeuro & 12.4443\officialeuro & 12.4279\officialeuro & 12.4279\officialeuro & 12.427\officialeuro & 12.4264\officialeuro \\ \hline
 Tempi & 9.11581s & 9.02705s & 9.23609s & 22.285s & 44.6299s & 68.0055s \\ \hline
 \end{tabular}
-\end{center}
+\end{adjustbox}
 \caption{Prezzi e tempi di calcolo del prezzo di Call 1d al variare dei nodi di quadratura.}
 \label{step2-2}
 \end{table}
@@ -1043,7 +1043,7 @@ Trasformazione & Celle di partenza & Celle di arrivo & Timesteps & Prezzo & Temp
 \caption{Prezzi di una Call 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
 \label{test5-1}
 \end{table}
-Questi risultati sono stati ottenuti con il medesimo modello utilizzato per il caso monodimensionale di \ref{step2-1}, e come possiamo notare, non solo i prezzi ottenuti sono praticamente gli stessi, ma sono calcolati molto pi\`u velocemente, in particolare per la trasformazione \emph{price}.\\Oltre alle opzioni europee, abbiamo testato il \emph{mesh refinement} anche sulle opzioni americane, con risultati non pienamente soddisfacenti. Come gi\`a detto infatti, i prezzi di queste opzioni viene calcolato mediante un \emph{solver} iterativo, che con l'adattivit\`a di griglia fatica a convergere. Abbiamo quindi calcolato i prezzi di una semplice opzione americana con il modello di \emph{Black\&Scholes} al variare delle iterazioni massime del \emph{solver}, ottenendo i risultati illustrati nelle tabelle \ref{test5-2} e \ref{test5-3}. I prezzi target sono quelli monodimensionali riportati in \label{test3-1}, e come possiamo vedere i prezzi faticano a convergere, anche con 1000 iterazioni massime (ovvero il parametro di default). \todo{Altro??}L'unica spiegazione che riusciamo a dare \`e la possibilit\`a che la matrice sia molto mal condizionata e per questo motivo il \emph{solver} fatica a convergere.
+Questi risultati sono stati ottenuti con il medesimo modello utilizzato per il caso monodimensionale di \ref{step2-1}, e come possiamo notare, non solo i prezzi ottenuti sono praticamente gli stessi, ma sono calcolati molto pi\`u velocemente, in particolare per la trasformazione \emph{price}.\\Oltre alle opzioni europee, abbiamo testato il \emph{mesh refinement} anche sulle opzioni americane, con risultati non pienamente soddisfacenti. Come gi\`a detto infatti, i prezzi di queste opzioni viene calcolato mediante un \emph{solver} iterativo, che con l'adattivit\`a di griglia fatica a convergere. Abbiamo quindi calcolato i prezzi di una semplice opzione americana con il modello di \emph{Black\&Scholes} al variare delle iterazioni massime del \emph{solver}, ottenendo i risultati illustrati nelle tabelle \ref{test5-2} e \ref{test5-3}. I prezzi target sono quelli monodimensionali riportati in \ref{test3-1}, e come possiamo vedere i prezzi faticano a convergere, anche con 1000 iterazioni massime (ovvero il parametro di default). \todo{Altro??}L'unica spiegazione che riusciamo a dare \`e la possibilit\`a che la matrice sia molto mal condizionata e per questo motivo il \emph{solver} fatica a convergere.
 \begin{table}[htb!]
 \begin{center}
 \begin{tabular}{| l | l | l | l |}
