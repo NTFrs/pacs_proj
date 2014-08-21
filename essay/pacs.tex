@@ -694,7 +694,7 @@ Nella trasformazione \emph{logprice} non vi sono invece problemi, visto che il m
 Per risolvere i sistemi lineari, abbiamo sfruttato l'integrazione di \textsf{deal.ii} con la libreria di solutori diretti per matrici sparse asimmetriche UMFPACK, come consigliato in alcuni dei tutorial.\\
 In generale, un problema a elementi finiti viene affrontato in \textsf{deal.ii} creando una triangolazione (\textsf{Triangulation}), un \emph{handler} dei gradi di libert\'a (\textsf{DoF\_Handler}) e un oggetto elementi finiti (\textsf{FE\_Q} per esempio). Si costruiscono le varie matrici del sistema e si usano i \emph{solver} integrati per risolvere il sistema.
 \\\\
-In definitva, la libreria deal.ii si presenta come un prodotto solido e con una \emph{learning curve} molto morbida all'inizio, ma che necessita un po' pi\'u di sforzo se si vogliono utilizzare \emph{features} meno comuni.
+In definitva, la libreria deal.ii si presenta come un prodotto solido e con una curva di apprendimento molto morbida all'inizio, ma che necessita un po' pi\'u di sforzo se si vogliono utilizzare \emph{features} meno comuni.
 
 \section{\textsf{Cmake}}
 La libreria \textsf{deal.ii} utilizza \textsf{Cmake} per compilare i codici dei tutorial. Perci\`o anche noi abbiamo utilizzato questo \emph{tool}. In particolare, in un qualsiasi file \textsf{CMakeLists.txt} come quelli forniti da \textsf{deal.ii} occorre aggiungere tutti i file sorgente, scrivere il nome dell'eseguibile desiderato e il \textsf{CMake} crea da solo il \textsf{Makefile} specificando dove si trovano gli \emph{header file} da includere e le librerie di \textsf{deal.ii} da linkare. Utilizzando due sistemi operativi diversi, il \textsf{CMake} \`e stato molto utile per poter lavorare sui codici senza avere problemi di portabilit\`a che pu\`o avere il semplice \textsf{Makefile}. Inoltre, siccome abbiamo utilizzato nel nostro codice \textsf{OpenMP} e il \textsf{CMakeLists.txt} di \textsf{deal.ii} non lo prevede, abbiamo aggiunto la ricerca del pacchetto \textsf{OpenMP} nel modo seguente:
@@ -723,32 +723,31 @@ in modo da creare il \emph{target} \textsf{doc} che generi la documentazione con
 \fi
 \section{GitHub}
 Durante lo sviluppo di questo progetto, abbiamo sempre utilizzato il sistema di controllo di versioni Git e il servizio di \emph{web hosting} GitHub per lo sviluppo di progetti software. Abbiamo quindi creato una \emph{repository} remota all'indirizzo \url{https://github.com/NTFrs/pacs_proj}. L'uso di git ci ha permesso di lavorare in contemporanea sul progetto senza doverci preoccupare di fare cambiamenti allo stesso file, anche attraverso l'uso di diversi \emph{branch}.
-\begin{figure}[!h]
+\begin{figure}[!htb]
  \begin{center}
  \includegraphics[width=8cm]{img/Git.eps}
  \caption{Cammino di alcuni \emph{branch} sui quali abbiamo lavorato. Immagine tratta da \textsf{gitk}.}
  \label{fig:gitk}
  \end{center}
 \end{figure}
-
-\section{Profilers:\textsf{gprof} e \textsf{valgrind}}
+\section{Profilers e Memory Checkers: \textsf{gprof} e \textsf{valgrind}}
 Durante la scrittura dei codici finali, abbiamo notato che alcune parti del programma erano più lente rispetto a implementazioni fatte precedentemente. L'utilizzo del \emph{profiler} \textsf{gprof} ci ha permesso di analizzare e ristrutturare quelle parti ottenendo uno \emph{speedup} considerevole, anche rispetto ai codici antecedenti. In particolare, uno dei problemi risiedeva nel calcolo dell'integrale con la trasformazione \emph{price}, e tramite il \emph{profiler} abbiamo scoperto che una delle funzioni di \textsf{deal.ii} di accesso agli elementi della griglia era particolarmente lenta. Abbiamo quindi cercato di ridurre quanto possibile il numero di chiamate ad essa.\\
-Abbiamo anche analizzato il codice con l'uso di \textsf{valgrind} usando le seguenti tool:
+Abbiamo anche analizzato il codice con l'uso di \textsf{valgrind} e usando le seguenti tool:
 \begin{itemize}
- \item \textsf{callgrind} Nel caso logprice, eravamo interessati a sapere quanto la parte \textsf{compute\_J()} incidesse sul programma per valutare l'effetto della parallelizzazione. Purtroppo, \textsf{gprof} non è riesce a riconoscere bene la successione di chiamate di funzioni (in particolare alcune interne a deal.ii) e quindi abbiamo utilizzazo la tool \textsf{callgrind} di \textsf{callgrind} insieme al visualizzatore \textsf{KCacheGrind} (o \textsf{QCacheGrind}), ottenendo un analisi migliore. La figura \ref{fig:callgraph} riporta la parte del call graph che ci interessava.
- \item \todo{Giorgio's Business}\textsf{memcheck}  
+ \item \textsf{callgrind} nel caso \emph{log-price}, eravamo interessati a sapere quanto la parte \textsf{compute\_J()} incidesse sul programma per valutare l'effetto della parallelizzazione. Purtroppo, \textsf{gprof} non è riesce a riconoscere bene la successione di chiamate di funzioni (in particolare alcune interne a deal.ii) e quindi abbiamo utilizzazo la tool \textsf{callgrind} di \textsf{callgrind} insieme al visualizzatore \textsf{KCacheGrind} (o \textsf{QCacheGrind}), ottenendo un analisi migliore. La figura \ref{fig:callgraph} riporta la parte del call graph che ci interessava;
+ \item \textsf{memcheck} abbiamo inoltre analizzato i nostri programmi alla ricerca di \emph{memory leaks}, notando un comportamento un po' strano di \textsf{valgrind}: l'output del programma afferma che non ci sono problemi di memoria, ma \`e possibile che ci sia un \emph{leak} di 792 byte. Questo valore rimane costante in ogni programma testato, anche allocando due o pi\`u oggetti Opzione, e la lista di chiamate a funzione stampata da \textsf{valgrind} indica che il problema si trova all'interno della funzione che esegue il prodotto matrice-vettore di \textsf{deal.ii}. Per questo motivo riteniamo che \textsf{valgrind} non capisca cosa succeda in quella funzione e ritenga che ci possa essere un \emph{memory leak}. A scanso di equivoci, abbiamo anche analizzato i programmi con un \emph{tool} di Xcode che analizza l'uso della memoria, e quest'ultimo non ha evidenziato alcun problema.
 \end{itemize}
-\begin{figure}[!h]
- \makebox[\textwidth][c]{\includegraphics[width=1.3\textwidth]{img/callgraph.eps}}
- \caption{Call Graph generato da \textsf{KCacheGrind} con i pesi relativi delle funzioni per un opzione con trasformazione logprice monodimensionale. Le funzioni con un costo relativo basso non sono mostrate.}
+\begin{figure}[!htb]
+ \makebox[\textwidth][c]{\includegraphics[width=1.4\textwidth]{img/callgraph.eps}}
+ \caption{Call Graph generato da \textsf{KCacheGrind} con i pesi relativi delle funzioni per un opzione con trasformazione \emph{log-price} monodimensionale. Le funzioni con un costo relativo basso non sono mostrate.}
 \label{fig:callgraph}
  \end{figure}
-
 \section{\textsf{Doxygen}}
 Infine, tutto il codice \`e commentato con il \emph{lexical-scanner} \textsf{Doxygen}, molto semplice da utilizzare. 
-%Cmake (molto comodo perch\'e abbiamo due piattaforme diverse ma funziona tutto perfettamente)\\Doxygen\\git (molto comodo per poterlo usare in 2)\\deal ii $\to$ utilit\`a offerte, pregi, difetti, come usarla, tutorial, eventualmente tutta la documentazione, gruppo molto attivo (abbiamo avuto una difficolt\`a ma l'abbiamo risolta subito)
 \section{Quadrature Rules}
-\section{astyle}
+Per il calcolo degli integrali con nodi di Gauss-Laguerre e Gauss-Hermite, abbiamo utilizzato una piccola libreria di funzioni utilizzata durante uno dei laboratori del corso, disponibile sul sito \url{http://people.sc.fsu.edu/~jburkardt/cpp_src/laguerre_rule/laguerre_rule.cpp} e distribuita sotto la licenza GNU LGPL. Si tratta di un insieme di funzioni scritte in C che permettono di calcolare nodi di integrazione di diverso tipo: oltre a quelli di nostro interesse, Chebyshev, Jacobi, esponenziali, razionali e altri.
+\section{\textsf{astyle}}
+Abbiamo infine utilizzato un piccolo programma disponibile al sito \url{http://astyle.sourceforge.net/} che permette di formattare automaticamente il codice, in modo da avere un \emph{layout} uniforme in tutti i file sorgente.
 \chapter{Codice}
 \section{Introduzione}
 In questo capitolo descriviamo come il problema \`e stato implementato da un punto di vista computazionale, elencando le varie classi scritte e le loro caratteristiche. Inizialmente mostriamo delle piccole classi che si occupano di gestire i parametri dei modelli e le loro densit\`a. Nella seconda sezione descriviamo gli oggetti opzione che costruiscono il sistema per risolvere il problema a elementi finiti in una e due dimensioni. Questi oggetti utilizzano poi le funzioni di altri oggetti, \textsf{LevyIntegral}, per il calcolo della parte integrale. Successivamente, descriviamo brevemente la \emph{Factory} che abbiamo scritto per instanziare gli oggetti opzione e infine spieghiamo brevemente le linee guida per utilizzare questa libreria.
@@ -831,6 +830,31 @@ static Factory * instance()
 \end{lstlisting}
 Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{Factory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
 \section{Come utilizzare la libreria}
+Sfruttando la \emph{factory} di cui abbiamo appena parlato, utilizzare questa libreria \`e molto semplice:
+\begin{itemize}
+\item la prima cosa da fare \`e creare un oggetto di tipo \textsf{Model}, introducendo parametri come il valore del sottostante, la sua volatilit\`a e l'intensit\`a dei salti, nel caso di un modello di L\'evy,
+\begin{lstlisting}
+BlackScholesModel model(95., 0.120381);
+\end{lstlisting}
+\item dopodich\'e, utilizzando la \emph{factory}, si stabilisce che tipo di opzione istanziare, europea o americana, put o call, con trasformazione \emph{price} o \emph{log-price}, e si passano i parametri del contratto e di mercato, quali tasso di interesse, scadenza del contratto, prezzo di esercizio, e i parametri di discretizzazione,
+\begin{lstlisting}
+auto foo=
+Factory::instance()->create(ExerciseType::EU,
+OptionType::Put,
+Transformation::Price,
+model.get_pointer(),
+0.0367, 1., 90., 12, 250);
+\end{lstlisting}
+\item poi, dopo aver settato alcuni parametri e flag a discrezione dell'utente, occorre chiamare la funzione:
+\begin{lstlisting}
+foo->run();
+\end{lstlisting}
+che crea il sistema e lo risolve.
+\item infine, per stampare il prezzo del titolo finanziario,
+\begin{lstlisting}
+std::cout<<"The price of the option is "<<foo->get_price()<<std::endl;
+\end{lstlisting}
+\end{itemize}
 \chapter{Risultati}
 In questo capitolo riportiamo e commentiamo i risultati ottenuti tramite la nostra libreria. In particolare, analizzeremo nel dettaglio i vari output ottenuti dai programmi \textsf{test} contenuti a titolo esplicativo nel nostro codice. Tutti i risultati seguenti sono stati ottenuti su un computer con un processore \emph{intel i5} quad-core, con 4GB di memoria RAM e la versione 8.1.0 di \textsf{deal.ii}.
 \section{\textsf{test-1}}
@@ -1095,14 +1119,14 @@ Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensi
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 Ref/Coar & g.d.l di partenza & g.d.l di arrivo & Timesteps & Prezzo & Tempo \\ \hline
-0.03/0.15 & 4225 & 4779 & 100 & 24.1056\officialeuro & 840.652s \\ \hline
-0/0.1 & 4225 & 3526 & 100 & 24.0971\officialeuro & 594.241s \\ \hline
+0.03/0.15 & 4225 & 4779 & 100 & 24.1061\officialeuro & 244.446s \\ \hline
+0/0.1 & 4225 & 3526 & 100 & 24.097\officialeuro & 188.809s \\ \hline
 \end{tabular}
 \end{adjustbox}
 \caption{Prezzi di una Call 2d, Merton.}
 \label{test5-4}
 \end{table}
-Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-1}.\todo{Altro??}Come possiamo notare, qui i prezzi convergono al valore giusto, ma impiegano pi\`u tempo rispetto al caso senza \emph{mesh refinement}. Di seguito sono riportate le \emph{mesh} generate nei due casi: nel set con parametri 0.03/0.15 possiamo vedere come la griglia diventi pi\`u lasca nella parte in cui la soluzione \`e nulla e dove la soluzione cresce in modo costante, mentre si infittisce dove la soluzione si alza e vicino ai bordi, dove c'\`e una condizione al contorno $\mathcal{C}^0$. Nel set di griglie con parametri 0/0.1 notiamo invece come la soluzione diventi pi\`u lasca nella zona in cui la soluzione vale 0.
+Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-1}.\todo{Da mettere a posto..con i risultati corretti.}Come possiamo notare, qui i prezzi convergono al valore giusto, ma impiegano pi\`u tempo rispetto al caso senza \emph{mesh refinement}. Di seguito sono riportate le \emph{mesh} generate nei due casi: nel set con parametri 0.03/0.15 possiamo vedere come la griglia diventi pi\`u lasca nella parte in cui la soluzione \`e nulla e dove la soluzione cresce in modo costante, mentre si infittisce dove la soluzione si alza e vicino ai bordi, dove c'\`e una condizione al contorno $\mathcal{C}^0$. Nel set di griglie con parametri 0/0.1 notiamo invece come la soluzione diventi pi\`u lasca nella zona in cui la soluzione vale 0.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/meshes/Price1.eps}
