@@ -189,8 +189,8 @@ Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, 
 \end{definition}
 Per esempio, il \emph{payoff} delle opzioni call e put europee \`e:
 \begin{align*}
-\Phi(S_T)&=\max(S_T-K,0),\\
-\Phi(S_T)&=\max(K-S_T,0).
+\Phi_C(S_T)&=\max(S_T-K,0),\\
+\Phi_P(S_T)&=\max(K-S_T,0).
 \end{align*}
 La domanda che ci poniamo ora \`e la seguente: qual \`e il prezzo equo di un'opzione? Ovvero, quanto occorre pagare oggi per avere il diritto ma non l'obbligo di acquistare al tempo $T$ un'azione a un prezzo fissato $K$?
 
@@ -263,7 +263,7 @@ Consideriamo ora il comportamento della \emph{put} nella parte sinistra del graf
 P^{Am}(S,t)&>\max(K-S,0)\qquad S>S_f(t),\\
 P^{Am}(S,t)&=K-S\qquad\qquad\quad S<S_f(t).
 \end{align*}
-Quindi, $\forall t\in[0,T]$, dobbiamo determinare il punto $S_f(t)$, attraverso il quale passa la retta che separa l'area in cui $P^{Am}=$\emph{payoff} da qualla in cui $P^{Am}>$\emph{payoff}. Poich\'e a priori questa frontiera \`e ignota, questo problema \`e detto ``a frontiera libera".\\\\Per le \emph{call} americane la situazione \`e differente, poich\'e $C^{Eu}\geq \max(S_T-K,0)$\footnote{Questa relazione si calcola immediatamente sfruttando alcune semplici relazioni che legano $C$, $S$ e $K$. In particolare, nel qual caso: $C^{Am}\geq C^{Eu} \geq S-Ke^{-r(T-t)} > S-K$}. Perci\`o il prezzo di una \emph{call} americana \`e identico a quello di un'europea e in questo caso non si pone il problema con frontiera libera.\\\\Formalmente, l'equazione differenziale che occorre risolvere per trovare il prezzo di una \emph{put} americana \`e la seguente:
+Quindi, $\forall t\in[0,T]$, dobbiamo determinare il punto $S_f(t)$, attraverso il quale passa la retta che separa l'area in cui $P^{Am}=$\emph{payoff} da qualla in cui $P^{Am}>$\emph{payoff}. Poich\'e a priori questa frontiera \`e ignota, questo problema \`e detto ``a frontiera libera''.\\\\Per le \emph{call} americane la situazione \`e differente, poich\'e $C^{Eu}\geq \max(S_T-K,0)$\footnote{Questa relazione si calcola immediatamente sfruttando alcune semplici relazioni che legano $C$, $S$ e $K$. In particolare, nel qual caso: $C^{Am}\geq C^{Eu} \geq S-Ke^{-r(T-t)} > S-K$}. Perci\`o il prezzo di una \emph{call} americana \`e identico a quello di un'europea e in questo caso non si pone il problema con frontiera libera.\\\\Formalmente, l'equazione differenziale che occorre risolvere per trovare il prezzo di una \emph{put} americana \`e la seguente:
 \begin{equation}
 \begin{cases}
 \displaystyle
@@ -331,7 +331,7 @@ in cui $\lambda$ \`e l'intensit\`a del \emph{Poisson}.\\Nel modello di Kou invec
 \section{\emph{Pricing} con modelli Exponential L\'evy}
 Riportiamo ora un risultato che permette di individuare un'equazione differenziale che permetta di risolvere il problema di \emph{pricing} descritto nel capitolo precedente.
 \begin{theorem}
-Sia $S_t$ nella forma \ref{explevy} con l'ipotesi: $$\int_{|x|>1} e^{2x}\nu(dx)<\infty.$$ Sia $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_t,t)$ nella forma: $$C(S_t,t)=e^{-r(T-t)}\mathbb{E}(\Phi(S_t)),$$ dove $\Phi$ \`e un \emph{payoff Lipshitz} che dipende dall'unico sottostante $S_t$. Allora $C$ soddisfa l'equazione:
+Sia $S_t$ nella forma \ref{explevy} con l'ipotesi: $$\int_{|x|>1} e^{2x}\nu(dx)<\infty.$$ Sia $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_t,t)$ nella forma: $$C(S_t,t)=e^{-r(T-t)}\mathbb{E}(\Phi(S_t)),$$ dove $\Phi$ \`e un \emph{payoff Lipschitz} che dipende dall'unico sottostante $S_t$. Allora $C$ soddisfa l'equazione:
 \begin{multline}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)=0.
 \end{multline}
