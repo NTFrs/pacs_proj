@@ -9,8 +9,9 @@ class EuropeanLogPrice_Doubling: public EuropeanOptionLogPrice<dim> {
 	virtual void solve();
 	void solve_one_step(dealii::Function<dim> & bc);
 	void estimate_doubling(dealii::Vector< float >& errors);
-	double actual_time;
 	
+	//need this since refine grid has no time input,  but estimate doubling needs it
+	double actual_time;
 	
 	public:
 	 EuropeanLogPrice_Doubling()=delete;
@@ -23,11 +24,67 @@ class EuropeanLogPrice_Doubling: public EuropeanOptionLogPrice<dim> {
 	
 };
 
+
+//pretty much the same as solve of european,  except we strip its core and put it in solve_one_step. Also we updae actua_time
+template<unsigned dim>
+void EuropeanLogPrice_Doubling<dim>::solve() {
+	using namespace dealii;
+	using namespace std;
+
+	std::vector<double> S0(dim);
+	for (unsigned d=0; d<dim; ++d) {
+	 S0[d]=this->models[d]->get_spot();
+   }
+
+	VectorTools::interpolate (this->dof_handler,
+	 FinalConditionLogPrice<dim>(S0, this->K, this->type2),
+	 this->solution);
+
+	if (this->print) {
+	 this->print_solution_gnuplot("begin");
+	 this->print_solution_matlab("begin");
+   }
+
+	unsigned Step=this->time_step;
+
+	BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
+
+	if (dim==2 && this->print_grids) {
+	 this->print_grid(Step);
+   }
+
+	for (actual_time=this->T-this->dt; Step>0 ;actual_time-=this->dt, --Step) {
+
+	 if (this->verbose) {
+	  cout<< "Step "<<Step<<"\t at time "<<actual_time<<"\n";
+	}
+
+	 if (this->refine && Step%20==0 && Step!=this->time_step) {
+	  this->refine_grid();
+	  if (dim==2 && this->print_grids) {
+	   this->print_grid(Step);
+	 }
+	}
+	 //we put the rest in a solve_one_step
+	 solve_one_step(bc);
+	 
+   }
+
+	if (this->print) {
+	 this->print_solution_gnuplot("end");
+	 this->print_solution_matlab("end");
+   }
+
+  }
+
+//core of solve goes here now,  needs the bc and actual_time (which is a member of the class anyway)
 template<unsigned dim>
 void EuropeanLogPrice_Doubling<dim>::solve_one_step(dealii::Function<dim> & bc) {
 	using namespace dealii;
+
 	if (this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
 
+	
 	 Vector<double> *J_x;
 	 Vector<double> *J_y;
 	 Vector<double> temp;
@@ -96,110 +153,77 @@ void EuropeanLogPrice_Doubling<dim>::solve_one_step(dealii::Function<dim> & bc) 
 
 	this->solution=this->system_rhs;
 	this->constraints.distribute(this->solution);
-	
-}
-
-template<unsigned dim>
-void EuropeanLogPrice_Doubling<dim>::solve() {
-	using namespace dealii;
-	using namespace std;
-
-	std::vector<double> S0(dim);
-	for (unsigned d=0; d<dim; ++d) {
-	 S0[d]=this->models[d]->get_spot();
-   }
-
-	VectorTools::interpolate (this->dof_handler,
-	 FinalConditionLogPrice<dim>(S0, this->K, this->type2),
-	 this->solution);
-
-	if (this->print) {
-	 this->print_solution_gnuplot("begin");
-	 this->print_solution_matlab("begin");
-   }
-
-	unsigned Step=this->time_step;
-
-	BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
-
-	if (dim==2 && this->print_grids) {
-	 this->print_grid(Step);
-   }
-
-	for (actual_time=this->T-this->dt; Step>0 ;actual_time-=this->dt, --Step) {
-
-	 if (this->verbose) {
-	  cout<< "Step "<<Step<<"\t at time "<<actual_time<<"\n";
-	}
-
-	 if (this->refine && Step%20==0 && Step!=this->time_step) {
-	  this->refine_grid();
-	  if (dim==2 && this->print_grids) {
-	   this->print_grid(Step);
-	 }
-	}
-	 //we put the rest in a solve_one_step
-	 solve_one_step(bc);
-	 
-   }
-
-	if (this->print) {
-	 this->print_solution_gnuplot("end");
-	 this->print_solution_matlab("end");
-   }
 
   }
 
-
+//this is the real addon
+//Basically we save our old option status (triangulatio, dof_handler, fe and solution) and compute a new solution doubling the mesh. We project it on the old mesh and compute the error in each cell.
 template<unsigned dim>
 void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float >& errors)
 {
+	//same namespaces as always
 	using namespace dealii;
 	using namespace std;
 
+	
+	//we define some copies to the triangulation and all the dealii stuff
 	Triangulation<dim> old_tria;
+	//there is no copyconstructor to trangulation,  so we use this
 	old_tria.copy_triangulation(this->triangulation);
 	FE_Q<dim> old_fe(1);
 	DoFHandler<dim> old_dof(old_tria);
 	old_dof.distribute_dofs(old_fe);
 	Vector<double> old_solution=this->solution;
+	
 	{
+	 //we use a field describing our solution to interpolate a solution to the more refined mesh 
 	 Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
 
 	 this->triangulation.refine_global(1);
 	 this->setup_system();
 	 VectorTools::interpolate(this->dof_handler, moveSol, this->solution);
 	}
+	//and we set up a new system
 	this->assemble_system();
-	//we solve here only a time step
+	//we solve here only a time step without moving the time
 	{
+	 //yet to do it we need a BC
 	std::vector<double> S0(dim);
 	for (unsigned d=0; d<dim; ++d) {
 	 S0[d]=this->models[d]->get_spot();
     }
 	BoundaryConditionLogPrice<dim> bc(S0, this->K, this->T,  this->r, this->type2);
+	//here we solve
 	solve_one_step(bc);
 	}
+	//now we have a newly computed solution on the refined mesh,  we want to interpolate it to the old mesh and we do it in the same way as before
 	{
 	 Functions::FEFieldFunction<dim> moveSol(this->dof_handler, this->solution); 
 
 	 Vector<double> temp(old_dof.n_dofs());
 	 VectorTools::interpolate(old_dof, moveSol, temp);
+	 //now solution is the interpolation of the solution computed on a refined mesh
 	 this->solution=temp;
 	}
+	//and we re-establish the status of our old option (except for solution,  we still need that)
 	this->triangulation.clear();
 	this->triangulation.copy_triangulation(old_tria);
 	this->setup_system();
 	this->assemble_system();
 
+	//we can finally calculate the quadratic error on each cell
+	//for that we need a cell iterator
 	typename DoFHandler<dim>::active_cell_iterator cell=this->dof_handler.begin_active(),  endc=this->dof_handler.end();
 	vector<types::global_dof_index> local_dof_indices(this->fe.dofs_per_cell);
+	//the vector of errors
 	errors.reinit(old_tria.n_active_cells());
 	double err(0);
 	unsigned ind(0),  count(0);
+	
 	for (;cell !=endc;++cell) {
 	 err=0;
 	 cell->get_dof_indices(local_dof_indices);
+	 //on each cell,  we compute the error of every vertex of the cell
 	 for (unsigned i=0;i<this->fe.dofs_per_cell;++i) {
 	  ind=local_dof_indices[i];
 	  err+=(this->solution[ind]-old_solution[ind])*(this->solution[ind]-old_solution[ind]);
@@ -207,10 +231,11 @@ void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float >& 
 	 errors[count]=(err);
 	 count++;
    }
-
+	//and we finally re establish the satus of the solution
 	this->solution=old_solution;
 }
 
+//just substituted kelly with estimate_doubling,  rest is equal to the one in OptionBase
 template<unsigned dim>
 void EuropeanLogPrice_Doubling<dim>::refine_grid() {
 	using namespace dealii;
@@ -243,13 +268,20 @@ int main() {
 	using namespace dealii;
 	using namespace std;
 	
-	BlackScholesModel model(95., 0.120381);
+// 	BlackScholesModel model(95., 0.120381);
+	KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
 	
-	EuropeanLogPrice_Doubling<1> optie(OptionType::Put, model.get_pointer(), 0.0367, 1., 90., 10, 100);
-	optie.set_refine_status(true, 0.05, 0.);
+	MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
+	MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
+	
+	//this option is not on the factory,  so we declare it
+	EuropeanLogPrice_Doubling<2> optie(OptionType::Call, model1.get_pointer(), model2.get_pointer(), -0.2, 0.1, 1., 200., 6, 100);
+	optie.set_print_grid(true);
+	optie.set_refine_status(true, 0.0, 0.1);
 	optie.run();
 	
 	cout<< "And the price is "<< optie.get_price()<< endl;
-	
+	cout<< "my target price is ? \n";
+
 	return 0;
 }
