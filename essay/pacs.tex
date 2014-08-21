@@ -414,7 +414,7 @@ e notiamo subito che dovendo valutare la funzione $u$ nei punti $x+y$, questo \`
 &\int_{\Omega_h}\phi_i(x)\left( \int_{\mathbb{R}}\sum_{j=1}^N u_j^k \phi_j(x+y)\nu(y)dy \right)dx=\\ 
 &\sum_{j=1}^N  \int_{\Omega_h}\int_{\mathbb{R}} \phi_i(x)\phi_j(x+y)\nu(y)dxdy,
 \end{align*}
-che potremmo anche riscrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come: $$d_{ij}=\sum_{j=1}^N  \int_{\Omega_h} \int_{\mathbb{R}} \phi_i(x)\phi_j(z)\nu(z-x)dzdx.$$In tal caso, potremmo porre $\{D\}_{ij}=d_{ij}$ ottenendo:$$M_1u^n=M_2u^{n+1}+Du^{n+1}.$$Questo metodo permette di calcolare una sola volta la matrice piena $D$, e poi moltiplicarla ogni volta per la soluzione al passo precedente (cio\`e $n+1$). Nonostante questa idea possa portare a un calcolo pi\`u veloce della parte integrale $J=Du^{n+1}$, anche questo metodo costringerebbe a tenere in memoria una matrice piena, quindi non \`e praticabile.\\\\Siamo giunti quindi alla discretizzazione completa della PIDE 1d con la trasformazione \emph{log-price}. Nei prossimi paragrafi mostriamo la discretizzazione della PIDE 2d.
+che potremmo anche riscrivere, tramite un cambio di variabile prima della moltiplicazione per $\phi_i$ come: $$d_{ij}=\sum_{j=1}^N  \int_{\Omega_h} \int_{\mathbb{R}} \phi_i(x)\phi_j(z)\nu(z-x)dzdx.$$In tal caso, potremmo porre $\{D\}_{ij}=d_{ij}$ ottenendo:$$M_1u^n=M_2u^{n+1}+Du^{n+1}.$$Questo metodo permette di calcolare una sola volta la matrice piena $D$, e poi moltiplicarla ogni volta per la soluzione al passo precedente (cio\`e $n+1$). Nonostante questa idea possa portare a un calcolo pi\`u veloce della parte integrale $J=Du^{n+1}$, anche questo metodo costringerebbe a tenere in memoria una matrice piena, quindi abbiamo scelto di scartarlo.\\\\Siamo giunti quindi alla discretizzazione completa della PIDE 1d con la trasformazione \emph{log-price}. Nei prossimi paragrafi mostriamo la discretizzazione della PIDE 2d.
 \subsection{Discretizzazione della PIDE bidimensionale}
 Trattiamo ora la PIDE bidimensionale riportata in \ref{pide2d}. Tramite il cambio di variabile $x_1=log(\sfrac{S_1}{S_{1,0}})$, $x_2=log(\sfrac{S_2}{S_{2,0}})$, $u=u(t, x_1, x_2)$, otteniamo:
 \begin{multline}
@@ -450,7 +450,7 @@ nei diversi nodi $x^i$ della griglia bidimensionale. Siamo quindi pronti a scriv
 \begin{multline}
 \sum_{j=0}^{N}\iint_{\Omega_h}\frac{\partial}{\partial t}\left(\alpha_j(t)\phi_j(x,y)\phi_i(x,y)\right)d\Omega\\
 +\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\iint_{\Omega_h}\alpha_j(t)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
--\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
+-\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t)\nabla\phi_i(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_j(x,y)d\Omega\\
 -(r+\hat{\lambda_1}+\hat{\lambda_2})\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega\\
 +\sum_{j=0}^{N}J^j_1\iint_{\Omega_h}\alpha_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\iint_{\Omega_h}\alpha_j(t)\phi_j(x,y)\phi_i(x,y)d\Omega=0,
 \end{multline}
@@ -459,10 +459,19 @@ e la discretizzazione in tempo con uno schema di Eulero Implicito:
 \sum_{j=0}^{N}\iint_{\Omega_h}\frac{\alpha_j(t_{n+1})}{\Delta t}\phi_j(x,y)\phi_i(x,y)d\Omega\\
 +\sum_{j=0}^{N}J^j_1\iint_{\Omega_h}\alpha_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega+\sum_{j=0}^{N}J^j_2\iint_{\Omega_h}\alpha_j(t_{n+1})\phi_j(x,y)\phi_i(x,y)d\Omega=\\
 -\sum_{j=0}^{N}\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\iint_{\Omega_h}\alpha_j(t_n)\nabla\phi_j(x,y)\phi_i(x,y)d\Omega\\
-+\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t_n)\nabla\phi_j(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_i(x,y)d\Omega\\
++\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t_n)\nabla\phi_i(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_j(x,y)d\Omega\\
 +\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
 \end{multline}
-A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$\todo{Scrivere esplicitamente le matrici di sistema} dove $M_1$ e $M_2$ sono le matrici di sistema date dalla formulazione debole e $M$ \`e la matrice di massa.
+A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$\todo{Scrivere esplicitamente le matrici di sistema} dove $M_1$ e $M_2$ sono le matrici di sistema date dalla formulazione debole e $M$ \`e la matrice di massa cosi definite:
+\begin{equation*}
+ (M)_{ij}=\iint_{\Omega_h}\phi_i(x,y)\phi_j(x,y)d\Omega \qquad M_2=\frac{1}{\Delta t}M\\
+\end{equation*}
+\begin{multline*}
+  (M_1)_{ij}=\iint_{\Omega_h} \left[ \frac{1}{2}\nabla\phi_i(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_j(x,y)\right.\\
+  \left.-\phi_i(x,y)\binom{r-\sfrac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\sfrac{\sigma_2^2}{2}-\hat{\alpha_2}}\nabla\phi_j(x,y)
+  + \phi_i\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\phi_j \right] d\Omega
+\end{multline*}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%PRICES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
