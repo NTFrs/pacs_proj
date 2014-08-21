@@ -21,6 +21,7 @@
 \usepackage{lstautogobble}
 \usepackage{changepage}
 \usepackage{multicol}
+\usepackage{adjustbox}
 %\usepackage{easytable}
 %\usepackage{color}
 
@@ -282,7 +283,7 @@ Il modello di \emph{Black\&Scholes}, nonostante sia molto utilizzato in finanza,
 \item il valore di $S$ pu\`o essere discontinuo, ovvero \`e possibile che il sottostante presenti dei "salti";
 \item le code della distribuzione dei log-rendimenti dovrebbero essere normali, ma non lo sono: i valori delle code sono infatti pi\`u probabili di quanto ipotizzato dal modello, inoltre le code non sono simmetriche poich\'e presentano un'asimmetria verso i rendimenti negativi;
 \item i log-rendimenti inoltre non hanno distribuzioni indipendenti: nelle serie storiche si osservano infatti i cosiddetti \emph{cluster}, ovvero periodi in cui la volatilit\`a \`e alta e rimane alta alternati a periodi con una volatilit\`a che rimane ridotta per lungo tempo;
-\item in figura \ref{smile} \`e rappresentato il grafico volatilit\`a vs. \emph{moneyness}\footnote{La \emph{moneyness} di un'opzione \`e il rapporto fra prezzo del sottostante in $t=0$ e \emph{Strike}, ovvero $\sfrac{S_0}{K}$.}. In esso possiamo osservare che il valore della volatilit\`a non rimane costante al variare dei prezzi di esercizio, bens\`i presenta una forma convessa. Questo fenomeno \`e noto come \emph{smile} di volatilit\`a.\todo{Qui, 1. \`e da mettere il disegno? 2. Visto che merton e kou non risolvono questo problema, conviene parlare dello smile o lo saltiamo?}
+\item in figura \ref{smile} \`e rappresentato il grafico volatilit\`a vs. \emph{moneyness}\footnote{La \emph{moneyness} di un'opzione \`e il rapporto fra prezzo del sottostante in $t=0$ e \emph{Strike}, ovvero $\sfrac{S_0}{K}$.}. In esso possiamo osservare che il valore della volatilit\`a non rimane costante al variare dei prezzi di esercizio, bens\`i presenta una forma convessa. Questo fenomeno \`e noto come \emph{smile} di volatilit\`a.
 \end{itemize}
 \begin{figure}[htbp!]
 \begin{center}
@@ -658,7 +659,7 @@ dove $z_l$, $w_l$ sono nodi e pesi di quadratura.
 %Queste formule vengono poi implementate nel modo descritto nella sezione \ref{subsec:LevyIntegralPrice}.
 
 \section{Condizioni al contorno}
-Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per \emph{price} e \emph{log-price} per via della trasformazione. Osservando le equazioni che dobbiamo trattare, appare chiaro che nel caso monodimensionale le condizioni al bordo da applicare ai nostri problemi siano le seguenti: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-K,$$ per la \emph{Call} e: $$P_h(S_{min},t)=K-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Volendo essere pi\`u precisi, tuttavia, \todo{why? Cio\`e, come glielo spieghiamo?}imponiamo delle condizioni al bordo con lo \emph{Strike} $K$ scontato, ovvero: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-Ke^{-r(T-t)},$$ per la \emph{Call} e: $$P_h(S_{min},t)=Ke^{-r(T-t)}-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}.Questo sconto viene fatto per riportare la quantità monetaria K al tempo $t$ adattandola tramite il tasso d'interesse \emph{risk-free}, in modo da preservare i principi di non arbitraggio. Sarebbe infatti leggermente errato considerare costante nel tempo il valore di un oggetto monetario senza rischio, visto che anch'esso deve rispettare la logica del non arbitraggio.\\Nel caso bidimensionale occorre quindi imporre per ogni nodi di bordo $S_i$: $$C_h(S_i,t)=\max\left(S^1_{max}+S^2_{max}-Ke^{-r(T-t)},0\right)$$per la \emph{call} e: $$P_h(S_i,t)=\max\left(Ke^{-r(T-t)}-S^1_{min}-S^2_{min},0\right),$$ per la \emph{put}.\\
+Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per \emph{price} e \emph{log-price} per via della trasformazione. Osservando le equazioni che dobbiamo trattare, appare chiaro che nel caso monodimensionale le condizioni al bordo da applicare ai nostri problemi siano le seguenti: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-K,$$ per la \emph{Call} e: $$P_h(S_{min},t)=K-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Volendo essere pi\`u precisi, tuttavia, imponiamo delle condizioni al bordo con lo \emph{Strike} $K$ scontato, ovvero: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-Ke^{-r(T-t)},$$ per la \emph{Call} e: $$P_h(S_{min},t)=Ke^{-r(T-t)}-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}.Questo sconto viene fatto per riportare la quantità monetaria K al tempo $t$ adattandola tramite il tasso d'interesse \emph{risk-free}, in modo da preservare i principi di non arbitraggio. Sarebbe infatti leggermente errato considerare costante nel tempo il valore di un oggetto monetario senza rischio, visto che anch'esso deve rispettare la logica del non arbitraggio.\\Nel caso bidimensionale occorre quindi imporre per ogni nodi di bordo $S_i$: $$C_h(S_i,t)=\max\left(S^1_{max}+S^2_{max}-Ke^{-r(T-t)},0\right)$$per la \emph{call} e: $$P_h(S_i,t)=\max\left(Ke^{-r(T-t)}-S^1_{min}-S^2_{min},0\right),$$ per la \emph{put}.\\
 Chiaramente, quando si fa un cambio di variabili per passare al caso logprice, è necessario cambiare le condizioni al contorno scrivendole nella nuova variabile. Per esempio per una \emph{call}
 \begin{equation*}
  u_h(x_{min},t)=0 \qquad u_h(x_{max},t)=S_0 e^{x_{max}}-Ke^{-r(T-t)}
@@ -678,7 +679,7 @@ In questo programma abbiamo implementato anche una funzione che permette di adat
 \textsf{deal.ii} \`e una libreria scritta in c++ che permette di risolvere tramite metodi a elementi finiti per una grande variet\`a di problemi alle derivate parziali. Fra i suoi maggiori pregi, oltre alla presenza di elementi finiti di ogni ordine, troviamo la grande scalabilit\`a (\`e stato infatti provato che questa libreria riesce a scalare fino a 16.000 processori), la possibilit\`a di interfacciarsi con molte librerie come \textsf{PETSc}, \textsf{Trilinos}, \textsf{METIS}, \textsf{BLAS}, \textsf{LAPACK}, e la vastit\`a e la precisione della documentazione. Soffermandoci un attimo su questo ultimo punto, vorremmo proprio sottolineare la presenza di una documentazione (quasi) sempre precisa e ben organizzata. Oltre a questa, ci sono inoltre 51 tutorial che insegnano a utilizzare la libreria dalla semplice creazione di una \emph{mesh} bidimensionale fino alla risoluzione di problemi iperbolici di meccanica non lineare in 3d con \emph{mesh refinement}. Per scrivere il nostro codice abbiamo sfruttato molto la massiccia documentazione della libreria, e siamo stati quasi sempre in grado di trovare le funzioni che facevano al caso nostro. In una occasione tuttavia non siamo riusciti a trovare un metodo e abbiamo deciso di scrivere sul gruppo \url{https://groups.google.com/forum/#!forum/dealii}, ottenendo una risposta precisa in breve tempo.\\\\Altro?
 
 \section{\textsf{Cmake}}
-La libreria \textsf{deal.ii} utilizza \textsf{Cmake} per compilare i codici dei tutorial. Perci\`o anche noi abbiamo utilizzato questo \emph{tool}. In particolare, in un qualsiasi file \textsf{CMakeLists.txt} occorre aggiungere tutti i file sorgente, scrivere il nome dell'eseguibile desiderato e il \textsf{CMake} crea da solo il \textsf{Makefile} specificando dove si trovano gli \emph{header file} da includere e le librerie di \textsf{deal.ii} da linkare. Utilizzando due sistemi operativi diversi, il \textsf{CMake} \`e stato molto utile per poter lavorare sui codici senza avere problemi di portabilit\`a che pu\`o avere il semplice \textsf{Makefile}. \todo{questo da accorciare secondo me, basta dire che abbiamo aggiunto openMP e Doxygen}Inoltre, siccome abbiamo utilizzato nel nostro codice \textsf{OpenMP} e il \textsf{CMakeLists.txt} di \textsf{deal.ii} non lo prevede, abbiamo aggiunto:
+La libreria \textsf{deal.ii} utilizza \textsf{Cmake} per compilare i codici dei tutorial. Perci\`o anche noi abbiamo utilizzato questo \emph{tool}. In particolare, in un qualsiasi file \textsf{CMakeLists.txt} occorre aggiungere tutti i file sorgente, scrivere il nome dell'eseguibile desiderato e il \textsf{CMake} crea da solo il \textsf{Makefile} specificando dove si trovano gli \emph{header file} da includere e le librerie di \textsf{deal.ii} da linkare. Utilizzando due sistemi operativi diversi, il \textsf{CMake} \`e stato molto utile per poter lavorare sui codici senza avere problemi di portabilit\`a che pu\`o avere il semplice \textsf{Makefile}. Inoltre, siccome abbiamo utilizzato nel nostro codice \textsf{OpenMP} e il \textsf{CMakeLists.txt} di \textsf{deal.ii} non lo prevede, abbiamo aggiunto la ricerca del pacchetto \textsf{OpenMP} nel modo seguente:
 \begin{lstlisting}
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -1031,14 +1032,14 @@ Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i process
 \section{\textsf{test-5}}
 In quest'ultimo test abbiamo valutato le prestazioni della nostra libreria attivando il flag del \emph{mesh refinement}. In particolare, l'abbiamo provato con opzioni monodimensionali in entrambe le trasformazioni, e nel caso bidimensionale per il \emph{log-price}. I risultati ottenuti sono riportati nella tabella \ref{test5-1}.
 \begin{table}[htb!]
-\begin{center}
+\begin{adjustbox}{center}
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 Trasformazione & Celle di partenza & Celle di arrivo & Timesteps & Prezzo & Tempo \\ \hline
 \emph{price} & 256 & 520 & 100 & 12.4267\officialeuro & 3.31924s \\ \hline
 \emph{log-price} & 256 & 520 & 100 & 12.429\officialeuro & 6.89238s \\ \hline
 \end{tabular}
-\end{center}
+\end{adjustbox}
 \caption{Prezzi di una Call 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
 \label{test5-1}
 \end{table}
@@ -1070,14 +1071,14 @@ Tempo & 0.851332s	 & 5.55052es & 17.7176s\\ \hline
 
 Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensionali, con la trasformazione \emph{log-price} (ricordiamo infatti che poich\'e il \emph{price} richiede una griglia strutturata, non \`e possibile fare \emph{mesh adapting}). Abbiamo quindi testato il comportamento di una Call 2d al variare dei coefficienti di adattivit\`a, i cui sottostanti evolvono secondo modelli di Merton, ottenendo i risultati riportati in \ref{test5-4}.
 \begin{table}[htb!]
-\begin{center}
+\begin{adjustbox}{center}
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 Ref/Coar & g.d.l di partenza & g.d.l di arrivo & Timesteps & Prezzo & Tempo \\ \hline
 0.03/0.15 & 4225 & 4779 & 100 & 24.1056\officialeuro & 840.652s \\ \hline
 0/0.1 & 4225 & 3526 & 100 & 24.0971\officialeuro & 594.241s \\ \hline
 \end{tabular}
-\end{center}
+\end{adjustbox}
 \caption{Prezzi di una Call 2d, Merton.}
 \label{test5-4}
 \end{table}
