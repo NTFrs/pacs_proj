@@ -15,7 +15,7 @@
 #include <string>
 #include <memory>
 #include <exception>
-#include <ctime>
+#include <sys/time.h>
 #include <iomanip>
 
 #include "dealii.hpp"
@@ -454,7 +454,7 @@ print_grids(false)
         // if this is the first option instantiated, create the folders "gnuplot", "matlab" and "plot"
         if (id==1) {
                 if (system( NULL ))
-                        system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
+                        auto dummy=system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
                 else
                         std::exit(-1);
         }
@@ -539,7 +539,7 @@ print_grids(false)
         // if this is the first option instantiated, create the folders "gnuplot", "matlab" and "plot"
         if (id==1) {
                 if (system( NULL ))
-                        system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
+                        auto dummy=system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
                 else
                         std::exit(-1);
         }
