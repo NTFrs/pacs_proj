@@ -8,9 +8,9 @@
  * This class evaluates the price of American Option, of type Put and Basket Put
  */
 template <unsigned dim>
-class AmericanOptionPrice final: public OptionBasePrice<dim>
+class AmericanOptionPrice: public OptionBasePrice<dim>
 {
-private:
+protected:
         ExerciseType us;
         
         virtual void solve();
