@@ -20,7 +20,7 @@ int main(){
         
         // Serial
         {
-                omp_set_num_threads(1);
+                omp_set_num_threads(2);
                 
                 auto foo=Factory::instance()->create(ExerciseType::EU,
                                                      OptionType::Call,
@@ -29,6 +29,7 @@ int main(){
                                                      0.0367, 1., 90., 1, 100);
                 
                 foo->set_verbose(false);
+                foo->set_integral_adaptivity_params(false, 16);
                 
                 for (unsigned i=0; i<refinement.size(); ++i) {
                         foo->reset();
@@ -54,6 +55,7 @@ int main(){
                                                        0.0367, 1., 90., 1, 100);
                 
                 goofy->set_verbose(false);
+                goofy->set_integral_adaptivity_params(false, 16);
                 
                 for (unsigned i=0; i<refinement.size(); ++i) {
                         goofy->reset();
@@ -89,7 +91,7 @@ int main(){
         }
         
         cout<<"*** Do you want to perform also a 2d test? (y/n) ";
-        string s;
+        string s="n";
         cin>>s;
         
         if (s=="y") {

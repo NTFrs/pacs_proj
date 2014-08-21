@@ -453,10 +453,12 @@ print_grids(false)
         
         // if this is the first option instantiated, create the folders "gnuplot", "matlab" and "plot"
         if (id==1) {
-                if (system( NULL ))
-                        auto dummy=system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
-                else
+                if (system(NULL)) {
+                        if(system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab"));
+                }
+                else {
                         std::exit(-1);
+                }
         }
         
         models.push_back(model);
@@ -538,10 +540,12 @@ print_grids(false)
         
         // if this is the first option instantiated, create the folders "gnuplot", "matlab" and "plot"
         if (id==1) {
-                if (system( NULL ))
-                        auto dummy=system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab");
-                else
+                if (system(NULL)) {
+                        if(system("mkdir -p plot && mkdir -p gnuplot && mkdir -p matlab"));
+                }
+                else {
                         std::exit(-1);
+                }
         }
         
         models.push_back(model1);
