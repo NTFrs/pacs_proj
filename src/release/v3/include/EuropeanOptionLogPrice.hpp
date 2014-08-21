@@ -8,8 +8,8 @@
  * This class evaluates the price of European Option, of type Put, Call, Basket Put and Basket Call.
  */
 template <unsigned dim>
-class EuropeanOptionLogPrice final: public OptionBaseLogPrice<dim> {
-private:
+class EuropeanOptionLogPrice: public OptionBaseLogPrice<dim> {
+protected:
         OptionType type2;
         ExerciseType eu;
         
