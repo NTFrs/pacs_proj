@@ -23,6 +23,9 @@ public:
         :
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::EU, model, r_, T_, K_, refs_, time_step_)
         {
+                if (H_<model->get_spot()) {
+                        throw(std::logic_error("The Barrier is lower than the Spot Price."));
+                }
                 h.push_back(H_);
         };
         
@@ -39,6 +42,9 @@ public:
         :
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_)
         {
+                if (H1_<model1->get_spot() || H2_<model2->get_spot()) {
+                        throw(std::logic_error("The Barrier is lower than the Spot Price."));
+                }
                 h.push_back(H1_);
                 h.push_back(H2_);
         };
@@ -185,7 +191,7 @@ void EuropeanCallUpOut<dim>::solve ()
 }
 
 int main() {
-        /*
+        
         {
                 BlackScholesModel model(95., 0.120381);
                 
@@ -209,26 +215,19 @@ int main() {
                 
                 std::cout<<"The price of the option is "<<x.get_price()<<"\n";
         }
-        */
+        
         {
                 MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
                 MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
                 
                 EuropeanCallUpOut<2> x(model1.get_pointer(),
                                        model2.get_pointer(),
-                                       110., 110.,
-                                       -0.2, 0.1, 1., 200., 6, 10);
+                                       110., 130.,
+                                       -0.2, 0.1, 1., 200., 6, 100);
                 
                 x.set_print(true);
-                x.set_timing(true);
                 
                 x.run();
-                
-                std::cout<<"finita la run\n";
-                
-                double prezz=x.get_price();
-                
-                std::cout<<"Ho preso il prezzo\n";
                 
                 std::cout<<"The price of the option is "<<x.get_price()<<"\n";
                 
