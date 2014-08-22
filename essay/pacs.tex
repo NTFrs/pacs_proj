@@ -1019,27 +1019,32 @@ Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come
 \end{figure}
 \newpage
 \section{\textsf{test-4}}
-Il \textsf{test-4} permette di confrontare le prestazioni e in particolare lo \emph{speed-up} del calcolo dell'integrale in \emph{log-price} sfruttando il calcolo parallelo. Il programma permette di confrontare la velocit\`a del calcolo effettuato con uno e con il numero di processori disponibili sul computer. Oltre a questo, abbiamo anche osservato il comportamento del programma con pi\`u \emph{threads} rispetto ai processori disponibili. Nelle tabelle \ref{speedtest1d} e \ref{speedtest2d} sono riportati i risultati che riassumono l'andamento dell'accelerazione permessa dal \emph{multi-threading}.
+Il \textsf{test-4} permette di confrontare le prestazioni e in particolare lo \emph{speed-up} del calcolo dell'integrale in \emph{log-price} sfruttando il calcolo parallelo. Il programma permette di confrontare la velocit\`a del calcolo effettuato con uno e con il numero di processori disponibili sul computer. Oltre a questo, per analizzare nel dettaglio il comportamento del nostro programma, lo abbiamo anche testato con pi\`u \emph{threads} rispetto ai processori disponibili. Nelle tabelle \ref{speedtest1d} e \ref{speedtest2d} sono riportati i risultati che riassumono l'andamento dell'accelerazione permessa dal \emph{multi-threading}.
 \begin{table}[htp!]
 \begin{center}
 \begin{tabular}{| l | l | l | l |}
 \hline
 Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
-\multicolumn{4}{| l |} {1 core:} \\ \hline
-256	& 12.4289		& 7.69022		& \\ \hline
-512	& 12.4264		& 18.4018		& \\ \hline
-1024	& 12.4264		& 48.7283		& \\ \hline
-2048	& 12.4264		& 145.728		&  \\ \hline
-\multicolumn{4}{| l |} {4 cores:} \\ \hline
-256	& 12.4289		& 3.63051		& 2.11822x \\ \hline
-512	& 12.4264		& 7.72159		& 2.38316x \\ \hline
-1024	& 12.4264		& 18.1312		& 2.68754x \\ \hline
-2048	& 12.4264		& 51.4363		& 2.83317x \\ \hline
-\multicolumn{4}{| l |} {8 cores:} \\ \hline
-256	& 12.4289		& 4.19548		& 1.83298x \\ \hline
-512	& 12.4264		& 9.01837		& 2.04048x \\ \hline
-1024	& 12.4264		& 21.2442		& 2.29372x \\ \hline
-2048	& 12.4264		& 57.4038		& 2.53865x \\ \hline
+\multicolumn{4}{| l |} {1 \emph{thread}:} \\ \hline
+256	& 12.4289\officialeuro		& 7.69022s		& \\ \hline
+512	& 12.4264\officialeuro		& 18.4018s		& \\ \hline
+1024	& 12.4264\officialeuro		& 48.7283s		& \\ \hline
+2048	& 12.4264\officialeuro		& 145.728s		&  \\ \hline
+\multicolumn{4}{| l |} {2 \emph{threads}:} \\ \hline
+256	& 12.4289\officialeuro		& 4.84786s		& 1.5863x\\ \hline
+512	& 12.4264\officialeuro		& 11.6194s		& 1.5837x\\ \hline
+1024	& 12.4264\officialeuro		& 28.5346s		& 1.7077x\\ \hline
+2048	& 12.4264\officialeuro		& 82.5946s		& 1.7644x\\ \hline
+\multicolumn{4}{| l |} {4 \emph{threads}:} \\ \hline
+256	& 12.4289\officialeuro		& 3.63051s		& 2.11822x \\ \hline
+512	& 12.4264\officialeuro		& 7.72159s		& 2.38316x \\ \hline
+1024	& 12.4264\officialeuro		& 18.1312s		& 2.68754x \\ \hline
+2048	& 12.4264	\officialeuro	& 51.4363s		& 2.83317x \\ \hline
+\multicolumn{4}{| l |} {8 \emph{threads}:} \\ \hline
+256	& 12.4289\officialeuro		& 4.19548s		& 1.83298x \\ \hline
+512	& 12.4264\officialeuro		& 9.01837s		& 2.04048x \\ \hline
+1024	& 12.4264\officialeuro		& 21.2442s		& 2.29372x \\ \hline
+2048	& 12.4264\officialeuro		& 57.4038s		& 2.53865x \\ \hline
 \end{tabular}
 \end{center}
 \caption{\emph{Speed test} 1d}
@@ -1051,27 +1056,40 @@ Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
 \begin{tabular}{| l | l | l | l |}
 \hline
 Griglia & Prezzo & Tempo & \emph{speed-up} \\ \hline
-\multicolumn{4}{| l |} {1 core:} \\ \hline
-256		& 19.3597		& 23.7028		& \\ \hline
-1024		& 17.6553		& 143.614		& \\ \hline
-4096		& 17.3574		& 1396.02		& \\ \hline
-16384	& 17.2676		& 18532.9		& \\ \hline
-\multicolumn{4}{| l |} {4 cores:} \\ \hline
-256		& 19.3597		& 10.2234		& 2.31849x \\ \hline
-1024		& 17.6553		& 53.7631		& 2.67124x \\ \hline
-4096		& 17.3574		& 467.613		& 2.98541x \\ \hline
-16384	& 17.2676		& 6058.25		& 3.05912x \\ \hline
-\multicolumn{4}{| l |} {8 cores:} \\ \hline
-256		& 19.3597		& 12.6293		& 1.87681x \\ \hline
-1024		& 17.6553		& 64.1341		& 2.23928x \\ \hline
-4096		& 17.3574		& 501.632		& 2.78296x \\ \hline
-16384	& 17.2676		& 6053.36		& 3.06159x \\ \hline
+\multicolumn{4}{| l |} {1 \emph{thread}:} \\ \hline
+256		& 19.3305\officialeuro		& 19.6544	s	& \\ \hline
+1024		& 17.6665\officialeuro		& 112.993s		& \\ \hline
+4096		& 17.3574\officialeuro		& 1029.37s		& \\ \hline
+16384	& 17.2674\officialeuro		& 12921s		& \\ \hline
+\multicolumn{4}{| l |} {2 \emph{threads}:} \\ \hline
+256		& 19.3305\officialeuro		& 11.1107s		& 1.7690x \\ \hline
+1024		& 17.6665	\officialeuro		& 60.4006s		& 1.8707x \\ \hline
+4096		& 17.3595\officialeuro		& 560.834s		& 1.8354x \\ \hline
+16384	& 17.2674\officialeuro		& 6773.54s		& 1.9076x \\ \hline
+\multicolumn{4}{| l |} {4 \emph{threads}:} \\ \hline
+256		& 19.3305\officialeuro		& 7.2931s			& 2.6949x \\ \hline
+1024		& 17.6665\officialeuro		& 39.4015s		& 2.8677x \\ \hline
+4096		& 17.3595\officialeuro		& 348.897s		& 2.9504x \\ \hline
+16384	& 17.2674\officialeuro		& 4229.25s		& 3.0552x \\ \hline
+\multicolumn{4}{| l |} {8 \emph{threads}:} \\ \hline
+256		& 19.3305\officialeuro		& 10.4722s		& 1.87681x \\ \hline
+1024		& 17.6665\officialeuro		& 50.4595s		& 2.23928x \\ \hline
+4096		& 17.3595\officialeuro		& 369.883s		& 2.78296x \\ \hline
+16384	& 17.2674\officialeuro		& 42204s			& 3.06159x \\ \hline
 \end{tabular}
 \end{center}
 \caption{\emph{Speed test} 2d}
 \label{speedtest2d}
 \end{table}
-Come possiamo osservare, i tempi di calcolo sfruttando tutti e quattro i processori sono decisamente migliori rispetto al calcolo seriale. Non riusciamo tuttavia a raggiungere uno \emph{speed-up} vicino ai 4x, probabilmente perch\'e la funzione che calcola l'integrale sfrutta alcune funzioni della libreria \textsf{deal.ii} che ricercano i punti nella griglia, ed \`e possibile che queste funzioni non lavorino in parallelo\todo{Possibile?? Altre spiegazioni pi\`u o meno valide??}. Notiamo infine che lanciare il programma con 8 \emph{threads} su 4 processori non porta ad alcun miglioramento tangibile, anzi in alcuni casi le prestazioni calano.
+Volendo ora applicare la Legge di Amdahl, possiamo calcolare lo \emph{speed-up} teorico massimo possibile e confrontarlo con quello da noi ottenuto. In particolare, la Legge di Amdhal afferma che l'accelerazione massima possibile sfruttando il calcolo parallelo \`e data dalla seguente equazione: $$A_{max}=\frac{1}{(1-P)+\frac{P}{S}},$$in cui $A_{max}$ indica l'accelerazione massima, $S$ il numero di \emph{threads} e $P$\todo{Mettere a posto!} la frazione di tempo che impiega la parte seriale a girare. Nel nostro caso, come possiamo osservare in figura \ref{fig:callgraph}, il calcolo dell'integrale effettuato tramite la funzione \textsf{get\_one\_J()} impiega il $99.59\%$, quindi dobbiamo porre $P=0.9959$. L'accelerazione massima teorica \`e quindi $1.9918$x per 2 \emph{cores} e $3.9514$x per 4 \emph{cores}.
+\begin{figure}[htp!]
+\begin{center}
+\includegraphics[width=12cm]{img/test4-speedup.eps}
+\caption{Plot degli \emph{speed-up} su un processore quad-core.}
+\label{test4:speedup}
+\end{center}
+\end{figure}
+Come possiamo osservare in figura \ref{test4:speedup}, non riusciamo a raggiungere lo \emph{speed-up} teorico prossimo ai 4x stimato dalla legge di Amdahl, probabilmente perch\'e il computer su cui abbiamo testato il programma non \`e molto adatto al calcolo parallelo: le prestazioni con due \emph{threads} infatti sono vicine al limite teorico 1.99x, mentre 4 \emph{threads} su 4 \emph{cores} non riescono a sfruttare il 100\% delle prestazioni del processore. Riteniamo che il motivo per cui questo accade \`e che alcune risorse vengano assorbite dal sistema operativo e dalla gestione dei vari processi. Questa conclusione a cui siamo giunti \`e avvalorata dal fatto che anche con 8 \emph{threads} le prestazioni sono uguali o addirittura peggiorano nell'1d, poich\'e proprio il computer fatica a gestire molti \emph{threads} computazionalmente onerosi.\\In conclusione, non possiamo non notare che i tempi di calcolo sfruttando tutti e quattro i \emph{cores} sono decisamente migliori rispetto al calcolo seriale, permettendo cos\`i alla trasformazione \emph{log-price} di competere da un punto di vista di velocit\`a di calcolo con la trasformazione \emph{price} nell'1d.
 \newpage
 \section{\textsf{test-5}}
 In quest'ultimo test abbiamo valutato le prestazioni della nostra libreria attivando il flag del \emph{mesh refinement}. In particolare, l'abbiamo provato con opzioni monodimensionali in entrambe le trasformazioni, e nel caso bidimensionale per il \emph{log-price}. I risultati ottenuti sono riportati nella tabella \ref{test5-1}.
