@@ -24,7 +24,7 @@ public:
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::EU, model, r_, T_, K_, refs_, time_step_)
         {
                 if (H_<model->get_spot()) {
-                        throw(std::logic_error("The Barrier is lower than the Spot Price."));
+                        throw(std::logic_error("The Barrier is lower than the Spot Price. The price is obviuosly 0."));
                 }
                 h.push_back(H_);
         };
@@ -43,7 +43,7 @@ public:
         OptionBasePrice<dim>::OptionBasePrice(ExerciseType::EU, model1, model2, rho_, r_, T_, K_, refs_, time_step_)
         {
                 if (H1_<model1->get_spot() || H2_<model2->get_spot()) {
-                        throw(std::logic_error("The Barrier is lower than the Spot Price."));
+                        throw(std::logic_error("The Barrier is lower than the Spot Price. The price is obviuosly 0."));
                 }
                 h.push_back(H1_);
                 h.push_back(H2_);
