@@ -92,14 +92,14 @@ void OptionBasePrice<dim>::setup_integral(){
         
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
                 this->levy=std::unique_ptr<LevyIntegralBase<dim> >
-                (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models, this->integral_adapt));
+                (new LevyIntegralPriceKou<dim>(this->Smin, this->Smax, this->models, this->integral_adapt, this->order));
                 if (this->integral_adapt) {
                         this->levy->set_adaptivity_params(round(this->order_max/2), this->alpha_toll);
                 }
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
                 this->levy=std::unique_ptr<LevyIntegralBase<dim> >
-                (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models, this->integral_adapt));
+                (new LevyIntegralPriceMerton<dim>(this->Smin, this->Smax,this->models, this->integral_adapt, this->order));
                 if (this->integral_adapt) {
                         this->levy->set_adaptivity_params(this->order_max, this->alpha_toll);
                 }

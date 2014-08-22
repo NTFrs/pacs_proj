@@ -25,10 +25,11 @@ public:
          */
 	LevyIntegralPrice(dealii::Point<dim> lower_limit_,
                           dealii::Point<dim> upper_limit_,
-                          std::vector<Model *> & Models_)
+                          std::vector<Model *> & Models_,
+                          unsigned order_)
         :
         LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, Models_),
-        order(4),
+        order(order_),
         order_max(64),
         alpha_toll(constants::light_toll)
         {};

@@ -38,14 +38,16 @@ public:
 	LevyIntegralPriceKou(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
                              std::vector<Model *> & Models_,
+                             unsigned order_,
                              bool apt=true)
         :
         LevyIntegralPrice<dim>::LevyIntegralPrice(lower_limit_,
                                                   upper_limit_,
-                                                  Models_),
+                                                  Models_,
+                                                  order_),
         adapting(apt) {
                 if (!adapting)
-			this->setup_quadratures(16);
+			this->setup_quadratures(order_);
                 else
 			this->setup_quadratures(2);   
 	}

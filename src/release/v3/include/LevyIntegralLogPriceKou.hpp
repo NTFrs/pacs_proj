@@ -43,15 +43,17 @@ public:
                                 dealii::Point<dim> upper_limit_,
                                 std::vector<Model *> & Models_,
                                 std::unique_ptr<dealii::Function<dim> > BC_,
+                                unsigned order_,
                                 bool apt=true)
         :
         LevyIntegralLogPrice<dim>::LevyIntegralLogPrice(lower_limit_,
                                                         upper_limit_,
                                                         Models_,
-                                                        std::move(BC_), apt)
+                                                        std::move(BC_),
+                                                        order_, apt)
         {
                 if (!this->adapting)
-                        this->setup_quadratures(32);
+                        this->setup_quadratures(order_);
                 else
                         this->setup_quadratures(2);
 	}

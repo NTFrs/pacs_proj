@@ -47,13 +47,14 @@ public:
                              dealii::Point<dim> upper_limit_,
                              std::vector<Model *> & models_,
                              std::unique_ptr<dealii::Function<dim> > BC_,
+                             unsigned order_,
                              bool apt=true)
         :
         LevyIntegralBase<dim>::LevyIntegralBase(lower_limit_, upper_limit_, models_), 
         boundary(std::move(BC_)),
         adapting(apt),
         adapted(false),
-        order(4),
+        order(order_),
         order_max(64),
         alpha_toll(constants::light_toll),
         J_toll(constants::light_toll)

@@ -102,6 +102,7 @@ protected:
         // Integral Part
         std::unique_ptr< LevyIntegralBase<dim> > levy;
         bool                    integral_adapt;
+        unsigned                order;
         unsigned                order_max;
         double                  alpha_toll;
         double                  J_toll;
@@ -226,6 +227,7 @@ public:
         //!
         /*! This function allows to set some adaptivity parameters
          * \param integral_adapt_       true for adapting, false for not adapting. True is default.
+         * \param order_                If integral_adapt_ is true, this is the starting order of the integral formula. If integral_adapt_ is false, this is the order of the integral formula.
          * \param order_max_            Max number of integration nodes
          * \param alpha_toll_           Tollerance for alpha
          * \param J_toll_               Tollerance for J
@@ -233,6 +235,7 @@ public:
          * \note For the LogPrice trasformations, a high number for order_max or a small tollerance for J will slow down the integral calculations.
          */
         virtual void set_integral_adaptivity_params(bool integral_adapt_,
+                                                    unsigned order=16,
                                                     unsigned order_max_=32,
                                                     double alpha_toll_=constants::light_toll,
                                                     double J_toll_=constants::light_toll)
@@ -438,6 +441,7 @@ tollerance(constants::high_toll),
 maxiter(1000),
 omega(1.),
 integral_adapt(true),
+order(16),
 order_max(32),
 alpha_toll(constants::light_toll),
 J_toll(constants::light_toll),
@@ -525,6 +529,7 @@ tollerance(constants::high_toll),
 maxiter(1000),
 omega(1.),
 integral_adapt(true),
+order(16),
 order_max(32),
 alpha_toll(constants::light_toll),
 J_toll(constants::light_toll),

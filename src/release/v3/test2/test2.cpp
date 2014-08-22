@@ -176,7 +176,7 @@ int main(){
                         cout<<"Evaluating option with "<<max_order[i]<<"...\n";
                         
                         foo->reset();
-                        foo->set_integral_adaptivity_params(true, max_order[i]);
+                        foo->set_integral_adaptivity_params(true, 4, max_order[i]);
                         
                         foo->run();
                         
