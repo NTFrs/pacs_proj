@@ -185,14 +185,53 @@ void EuropeanCallUpOut<dim>::solve ()
 }
 
 int main() {
+        /*
+        {
+                BlackScholesModel model(95., 0.120381);
+                
+                EuropeanCallUpOut<1> x(model.get_pointer(), 110., 0.0367, 1., 90., 12, 250);
+                
+                x.set_print(true);
+                
+                x.run();
+                
+                std::cout<<"The price of the option is "<<x.get_price()<<"\n";
+        }
         
-        BlackScholesModel model(95., 0.120381);
-        
-        EuropeanCallUpOut<1> x(model.get_pointer(), 110., 0.0367, 1., 90., 12, 250);
-        
-        x.run();
-        
-        std::cout<<"The price of the option is "<<x.get_price()<<"\n";
-        
+        {
+                KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
+                
+                EuropeanCallUpOut<1> x(model.get_pointer(), 110., 0.0367, 1., 90., 10, 100);
+                
+                x.set_print(true);
+                
+                x.run();
+                
+                std::cout<<"The price of the option is "<<x.get_price()<<"\n";
+        }
+        */
+        {
+                MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
+                MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
+                
+                EuropeanCallUpOut<2> x(model1.get_pointer(),
+                                       model2.get_pointer(),
+                                       110., 110.,
+                                       -0.2, 0.1, 1., 200., 6, 10);
+                
+                x.set_print(true);
+                x.set_timing(true);
+                
+                x.run();
+                
+                std::cout<<"finita la run\n";
+                
+                double prezz=x.get_price();
+                
+                std::cout<<"Ho preso il prezzo\n";
+                
+                std::cout<<"The price of the option is "<<x.get_price()<<"\n";
+                
+        }
         return 0;
 }
