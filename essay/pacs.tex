@@ -670,10 +670,10 @@ dove $z_l$, $w_l$ sono nodi e pesi di quadratura.
 %Queste formule vengono poi implementate nel modo descritto nella sezione \ref{subsec:LevyIntegralPrice}.
 
 \section{Condizioni al contorno}
-Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per \emph{price} e \emph{log-price} per via della trasformazione. Osservando le equazioni che dobbiamo trattare, appare chiaro che nel caso monodimensionale le condizioni al bordo da applicare ai nostri problemi siano le seguenti: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-K,$$ per la \emph{Call} e: $$P_h(S_{min},t)=K-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Volendo essere pi\`u precisi, tuttavia, imponiamo delle condizioni al bordo con lo \emph{Strike} $K$ scontato, ovvero: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-Ke^{-r(T-t)},$$ per la \emph{Call} e: $$P_h(S_{min},t)=Ke^{-r(T-t)}-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}.Questo sconto viene fatto per riportare la quantità monetaria K al tempo $t$ adattandola tramite il tasso d'interesse \emph{risk-free}, in modo da preservare i principi di non arbitraggio. Sarebbe infatti leggermente errato considerare costante nel tempo il valore di un oggetto monetario senza rischio, visto che anch'esso deve rispettare la logica del non arbitraggio.\\Nel caso bidimensionale occorre quindi imporre per ogni nodi di bordo $S_i$: $$C_h(S_i,t)=\max\left(S^1_{max}+S^2_{max}-Ke^{-r(T-t)},0\right)$$per la \emph{call} e: $$P_h(S_i,t)=\max\left(Ke^{-r(T-t)}-S^1_{min}-S^2_{min},0\right),$$ per la \emph{put}.\\
-Chiaramente, quando si fa un cambio di variabili per passare al caso logprice, è necessario cambiare le condizioni al contorno scrivendole nella nuova variabile. Per esempio per una \emph{call}
+Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per \emph{price} e \emph{log-price} per via della trasformazione. Osservando le equazioni che dobbiamo trattare, appare chiaro che nel caso monodimensionale le condizioni al bordo da applicare ai nostri problemi siano le seguenti: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-K,$$ per la \emph{Call} e: $$P_h(S_{min},t)=K-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Volendo essere pi\`u precisi, tuttavia, imponiamo delle condizioni al bordo con lo \emph{Strike} $K$ scontato, ovvero: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-Ke^{-r(T-t)},$$ per la \emph{Call} e: $$P_h(S_{min},t)=Ke^{-r(T-t)}-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Questo sconto viene fatto per riportare la quantità monetaria K al tempo $t$ adattandola tramite il tasso d'interesse \emph{risk-free}, in modo da preservare i principi di non arbitraggio. Sarebbe infatti leggermente errato considerare costante nel tempo il valore di un oggetto monetario senza rischio, visto che anch'esso deve rispettare la logica del non arbitraggio.\\Nel caso bidimensionale occorre quindi imporre per ogni nodi di bordo $S_i$: $$C_h(S_i,t)=\max\left(S^1_{max}+S^2_{max}-Ke^{-r(T-t)},0\right)$$per la \emph{call} e: $$P_h(S_i,t)=\max\left(Ke^{-r(T-t)}-S^1_{min}-S^2_{min},0\right),$$ per la \emph{put}.\\
+Chiaramente, quando si fa un cambio di variabili per passare al caso \emph{log-price}, è necessario cambiare le condizioni al contorno scrivendole nella nuova variabile. Per esempio per una \emph{call}:
 \begin{equation*}
- u_h(x_{min},t)=0 \qquad u_h(x_{max},t)=S_0 e^{x_{max}}-Ke^{-r(T-t)}
+ u_h(x_{min},t)=0, \qquad u_h(x_{max},t)=S_0 e^{x_{max}}-Ke^{-r(T-t)}
 \end{equation*}
 
 Analogamente si definiscono le condizioni al bordo per \emph{Put} e per il caso bidimensionale.
@@ -732,10 +732,10 @@ Durante lo sviluppo di questo progetto, abbiamo sempre utilizzato il sistema di 
 \end{figure}
 \section{Profilers e Memory Checkers: \textsf{gprof} e \textsf{valgrind}}
 Durante la scrittura dei codici finali, abbiamo notato che alcune parti del programma erano più lente rispetto a implementazioni fatte precedentemente. L'utilizzo del \emph{profiler} \textsf{gprof} ci ha permesso di analizzare e ristrutturare quelle parti ottenendo uno \emph{speedup} considerevole, anche rispetto ai codici antecedenti. In particolare, uno dei problemi risiedeva nel calcolo dell'integrale con la trasformazione \emph{price}, e tramite il \emph{profiler} abbiamo scoperto che una delle funzioni di \textsf{deal.ii} di accesso agli elementi della griglia era particolarmente lenta. Abbiamo quindi cercato di ridurre quanto possibile il numero di chiamate ad essa.\\
-Abbiamo anche analizzato il codice con l'uso di \textsf{valgrind} e usando le seguenti tool:
+Abbiamo anche analizzato il codice con l'uso di \textsf{valgrind} e usando i seguenti \emph{tool}:
 \begin{itemize}
- \item \textsf{callgrind} nel caso \emph{log-price}, eravamo interessati a sapere quanto la parte \textsf{compute\_J()} incidesse sul programma per valutare l'effetto della parallelizzazione. Purtroppo, \textsf{gprof} non è riesce a riconoscere bene la successione di chiamate di funzioni (in particolare alcune interne a deal.ii) e quindi abbiamo utilizzazo la tool \textsf{callgrind} di \textsf{callgrind} insieme al visualizzatore \textsf{KCacheGrind} (o \textsf{QCacheGrind}), ottenendo un analisi migliore. La figura \ref{fig:callgraph} riporta la parte del call graph che ci interessava;
- \item \textsf{memcheck} abbiamo inoltre analizzato i nostri programmi alla ricerca di \emph{memory leaks}, notando un comportamento un po' strano di \textsf{valgrind}: l'output del programma afferma che non ci sono problemi di memoria, ma \`e possibile che ci sia un \emph{leak} di 792 byte. Questo valore rimane costante in ogni programma testato, anche allocando due o pi\`u oggetti Opzione, e la lista di chiamate a funzione stampata da \textsf{valgrind} indica che il problema si trova all'interno della funzione che esegue il prodotto matrice-vettore di \textsf{deal.ii}. Per questo motivo riteniamo che \textsf{valgrind} non capisca cosa succeda in quella funzione e ritenga che ci possa essere un \emph{memory leak}. A scanso di equivoci, abbiamo anche analizzato i programmi con un \emph{tool} di Xcode che analizza l'uso della memoria, e quest'ultimo non ha evidenziato alcun problema.
+ \item \textsf{callgrind}: nel caso \emph{log-price}, eravamo interessati a sapere quanto la parte \textsf{compute\_J()} incidesse sul programma per valutare l'effetto della parallelizzazione. Purtroppo, \textsf{gprof} non riesce a riconoscere bene la successione di chiamate di funzioni (in particolare alcune interne a \textsf{deal.ii}) e quindi abbiamo utilizzato il tool \textsf{callgrind} di \textsf{valgrind} insieme al visualizzatore \textsf{KCacheGrind} (o \textsf{QCacheGrind}), ottenendo un'analisi migliore. La figura \ref{fig:callgraph} riporta la parte del \emph{call graph} a cui eravamo interessati;
+ \item \textsf{memcheck}: abbiamo inoltre analizzato i nostri programmi alla ricerca di \emph{memory leaks}, notando un comportamento un po' strano di \textsf{valgrind}: l'output del programma afferma che non ci sono problemi di memoria, ma \`e possibile che ci sia un \emph{leak} di 792 byte. Questo valore rimane costante in ogni programma testato, anche allocando due o pi\`u oggetti Opzione, e la lista di chiamate a funzione stampata da \textsf{valgrind} indica che il problema si trova all'interno della funzione che esegue il prodotto matrice-vettore di \textsf{deal.ii}. Per questo motivo riteniamo che \textsf{valgrind} non capisca cosa succeda in quella funzione e ritenga che ci possa essere un \emph{memory leak}. A scanso di equivoci, abbiamo anche analizzato i programmi con un \emph{tool} di Xcode che controlla l'uso della memoria, e quest'ultimo non ha evidenziato alcun problema.
 \end{itemize}
 \begin{figure}[!htb]
  \makebox[\textwidth][c]{\includegraphics[width=1.4\textwidth]{img/callgraph.eps}}
@@ -743,7 +743,7 @@ Abbiamo anche analizzato il codice con l'uso di \textsf{valgrind} e usando le se
 \label{fig:callgraph}
  \end{figure}
 \section{\textsf{Doxygen}}
-Infine, tutto il codice \`e commentato con il \emph{lexical-scanner} \textsf{Doxygen}, molto semplice da utilizzare. 
+Tutto il codice \`e commentato con il \emph{lexical-scanner} \textsf{Doxygen}, molto semplice da utilizzare. 
 \section{Quadrature Rules}
 Per il calcolo degli integrali con nodi di Gauss-Laguerre e Gauss-Hermite, abbiamo utilizzato una piccola libreria di funzioni utilizzata durante uno dei laboratori del corso, disponibile sul sito \url{http://people.sc.fsu.edu/~jburkardt/cpp_src/laguerre_rule/laguerre_rule.cpp} e distribuita sotto la licenza GNU LGPL. Si tratta di un insieme di funzioni scritte in C che permettono di calcolare nodi di integrazione di diverso tipo: oltre a quelli di nostro interesse, Chebyshev, Jacobi, esponenziali, razionali e altri.
 \section{\textsf{astyle}}
@@ -949,9 +949,9 @@ In questo secondo programma di esempio calcoliamo i prezzi di opzioni i cui sott
 \begin{tabular}{| l | l | l | l | l | l |}
 \hline
 Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
-1 & \emph{price} & 1024 & 100 & 12.4258\officialeuro & 19.3725s \\ \hline
-1 & \emph{log-price} & 1024 & 100 & 12.4279\officialeuro & 21.5571ss \\ \hline
-2 & \emph{price} & 4096 & 100 & 23.9055\officialeuro & 15.811s \\ \hline
+1 & \emph{price} & 1024 & 100 & 12.4258\officialeuro & 17.3725s \\ \hline
+1 & \emph{log-price} & 1024 & 100 & 12.427\officialeuro & 14.3955ss \\ \hline
+2 & \emph{price} & 4096 & 100 & 23.9055\officialeuro & 14.6684s \\ \hline
 2 & \emph{log-price} & 4096 & 100 & 24.0966\officialeuro & 305.049s \\ \hline
 \end{tabular}
 \end{center}
@@ -965,7 +965,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \label{fig:test2-call1d-kou}
 \end{center}
 \end{figure}
-La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di almeno un ordine di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e quasi veloce quanto la trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`u pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} ha prestazioni comparabili.\\In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}. Questo è dovuto al fatto in due dimensioni la ricerca delle celle in cui si trovano i punti in cui deve essere valutata la soluzione diventa molto più onerosa, trattandosi di una griglia bidimensionale.\\\\
+La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. \todo{Mettere a posto price vs logprice}Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di almeno un ordine di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e quasi veloce quanto la trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`u pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} ha prestazioni comparabili.\\In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}. Questo è dovuto al fatto in due dimensioni la ricerca delle celle in cui si trovano i punti in cui deve essere valutata la soluzione diventa molto più onerosa, trattandosi di una griglia bidimensionale.\\\\
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test2-scalefactor.eps}
@@ -979,8 +979,8 @@ Un altro test effettuato in questo programma \`e il calcolo del prezzo al variar
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 $\#$ di nodi & 4 & 8 & 16 & 32 & 64 & 128 \\ \hline
-Prezzi & 12.4443\officialeuro & 12.4443\officialeuro & 12.4279\officialeuro & 12.4279\officialeuro & 12.427\officialeuro & 12.4264\officialeuro \\ \hline
-Tempi & 9.11581s & 9.02705s & 9.23609s & 22.285s & 44.6299s & 68.0055s \\ \hline
+Prezzi & 12.095\officialeuro & 12.4534\officialeuro & 12.4279\officialeuro & 12.427\officialeuro & 12.4264\officialeuro & 12.4264\officialeuro \\ \hline
+Tempi & 4.08526s	&	6.47795s	&	9.47712s	&	14.4233s	&	20.2579s & 28.1988s \\ \hline
 \end{tabular}
 \end{adjustbox}
 \caption{Prezzi e tempi di calcolo del prezzo di Call 1d al variare dei nodi di quadratura.}
@@ -996,7 +996,7 @@ In questo programma abbiamo mostrato come risolvere il problema con l'ostacolo, 
 Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 1 & \emph{price} & 1024 & 100 & 1.54933\officialeuro & 0.885832s \\ \hline
 1 & \emph{log-price} & 1024 & 100 & 1.54931\officialeuro & 1.08148s \\ \hline
-2 & \emph{price} & 16384 & 100 & 4.4392\officialeuro & 1.2148s \\ \hline
+2 & \emph{price} & 16384 & 100 & 4.43963\officialeuro & 1.2148s \\ \hline
 2 & \emph{log-price} & 16384 & 100 & 4.41147\officialeuro & 0.990322s \\ \hline
 \end{tabular}
 \end{center}
@@ -1009,8 +1009,8 @@ Il nostro \emph{solver}, che \`e in grado di lavorare anche in parallelo, sembra
 \begin{tabular}{| l | l | l |}
 \hline
 Trasformazione & Prezzo & Tempo \\ \hline
-\emph{price} & 4.23452\officialeuro & 22.9670s \\ \hline
-\emph{log-price} & 4.23452\officialeuro & 22.9427s \\ \hline
+\emph{price} & 4.42933\officialeuro & 22.9670s \\ \hline
+\emph{log-price} & 4.41217\officialeuro & 22.9427s \\ \hline
 \end{tabular}
 \end{center}
 \caption{Prezzi di una Put americana, Kou.}
@@ -1106,7 +1106,7 @@ In quest'ultimo test abbiamo valutato le prestazioni della nostra libreria attiv
 \hline
 Trasformazione & Celle di partenza & Celle di arrivo & Timesteps & Prezzo & Tempo \\ \hline
 \emph{price} & 256 & 520 & 100 & 12.4267\officialeuro & 2.74439s \\ \hline
-\emph{log-price} & 256 & 520 & 100 & 12.429\officialeuro & 6.54432s \\ \hline
+\emph{log-price} & 256 & 520 & 100 & 12.4281\officialeuro & 4.23711s \\ \hline
 \end{tabular}
 \end{adjustbox}
 \caption{Prezzi di una Call 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
@@ -1144,8 +1144,8 @@ Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensi
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 Ref/Coar & g.d.l di partenza & g.d.l di arrivo & Timesteps & Prezzo & Tempo \\ \hline
-0.03/0.15 & 4225 & 4779 & 100 & 24.1053\officialeuro & 374.334s \\ \hline
-0/0.1 & 4225 & 3526 & 100 & 24.0967\officialeuro & 285.173s \\ \hline
+0.03/0.15 & 4225 & 4780 & 100 & 24.1053\officialeuro & 357.969s \\ \hline
+0/0.1 & 4225 & 3526 & 100 & 24.097\officialeuro & 275.006s \\ \hline
 \end{tabular}
 \end{adjustbox}
 \caption{Prezzi di una Call 2d, Merton.}
