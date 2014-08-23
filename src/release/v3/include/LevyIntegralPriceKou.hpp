@@ -125,7 +125,7 @@ void LevyIntegralPriceKou<dim>::compute_alpha(){
                         
                 }
                 while (err>this->alpha_toll &&
-                       rightQuads[0].get_order()<=this->order_max);
+                       rightQuads[0].get_order()<this->order_max);
         }
         
         this->order=rightQuads[0].get_order();

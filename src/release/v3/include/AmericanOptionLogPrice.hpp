@@ -85,15 +85,21 @@ void AmericanOptionLogPrice<dim>::setup_integral(){
         (new BoundaryConditionLogPrice<dim> (S0, this->K, this->T,  this->r, OptionType::Put));
         
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
-                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models, std::move(bc), this->integral_adapt));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> >
+                (new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models,
+                                                  std::move(bc), this->order, this->integral_adapt));
                 if (this->integral_adapt) {
-                        this->levy->set_adaptivity_params(round(this->order_max/2), this->alpha_toll, this->J_toll);
+                        this->levy->set_adaptivity_params(round(this->order_max/2),
+                                                          this->alpha_toll, this->J_toll);
                 }
         }
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
-                this->levy=std::unique_ptr<LevyIntegralBase<dim> > (new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models, std::move(bc), this->integral_adapt));
+                this->levy=std::unique_ptr<LevyIntegralBase<dim> >
+                (new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models,
+                                                     std::move(bc),this->order, this->integral_adapt));
                 if (this->integral_adapt) {
-                        this->levy->set_adaptivity_params(this->order_max, this->alpha_toll, this->J_toll);
+                        this->levy->set_adaptivity_params(this->order_max,
+                                                          this->alpha_toll, this->J_toll);
                 }
         }
 }

@@ -235,12 +235,13 @@ public:
          * \note For the LogPrice trasformations, a high number for order_max or a small tollerance for J will slow down the integral calculations.
          */
         virtual void set_integral_adaptivity_params(bool integral_adapt_,
-                                                    unsigned order=16,
+                                                    unsigned order_=16,
                                                     unsigned order_max_=32,
                                                     double alpha_toll_=constants::light_toll,
                                                     double J_toll_=constants::light_toll)
         {
                 this->integral_adapt=integral_adapt_;
+                this->order=order_;
                 this->order_max=order_max_;
                 this->alpha_toll=alpha_toll_;
                 this->J_toll=J_toll_;
@@ -642,6 +643,9 @@ void OptionBase<dim>::refine_grid()
         
 	this->triangulation.execute_coarsening_and_refinement();
 	this->setup_system ();
+        
+        this->levy.reset();
+        this->setup_integral();
         
 	solution_trans.interpolate(previous_solution, this->solution);
 	this->assemble_system();

@@ -7,7 +7,7 @@ int main(){
         using namespace std;
         
         // We test here a 1d PIDE in both transformation.
-        
+        /*
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
         {
@@ -106,10 +106,10 @@ int main(){
         //cin.get();
         
         // We test here a 2d call with Merton model
-        
+        */
         MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
         MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
-        
+        /*
         {
                 auto minnie=Factory::instance()->create(ExerciseType::EU,
                                                         OptionType::Call,
@@ -131,17 +131,20 @@ int main(){
         
         cout<<"Press return to continue...\n";
         //cin.get();
-        
+        */
         {
                 auto daisy=Factory::instance()->create(ExerciseType::EU,
                                                        OptionType::Call,
                                                        Transformation::LogPrice,
                                                        model1.get_pointer(),
                                                        model2.get_pointer(),
-                                                       -0.2, 0.1, 1., 200., 6, 100);
+                                                       -0.2, 0.1, 1., 200., 6, 10);
                 daisy->set_print_grid(true);
                 daisy->set_print(true);
                 daisy->set_timing(true);
+                
+                daisy->set_integral_adaptivity_params(true, 7, 25);
+                
                 daisy->run();
                 
                 auto times=daisy->get_times();
@@ -149,7 +152,7 @@ int main(){
                 cout<<"The price of the option is "<<daisy->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
                 
         }
-        
+        /*
         cout<<"Press return to continue...\n";
         //cin.get();
         
@@ -202,6 +205,6 @@ int main(){
         else if (s!="n") {
                 throw(logic_error("Something went wrong..."));
         }
-        
+        */
         return 0;
 }

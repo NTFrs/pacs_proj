@@ -73,6 +73,7 @@ public:
                 order_max=order_max_;
                 alpha_toll=alpha_toll_;
                 J_toll=J_toll_;
+                std::cout<<order<<" "<<order_max<<"\n";
         }
         
 	//! Computes the J part of the integral for a logprice transformation
@@ -183,7 +184,7 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
         }
         //adapting case
         else {
-                order=4;
+                //order=4;
                 
                 dealii::Vector<double> j1_old;
                 double err;
@@ -221,6 +222,8 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
 	j1.reinit(N);
 	j2.reinit(N);
         
+        std::cout<<"order: "<<order<<"\n";
+        
         //the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
 	tools::Solution_Trimmer<2> func1(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
 	tools::Solution_Trimmer<2> func2(1,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
@@ -234,7 +237,7 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
                 }
         }
         else {
-                order=4;
+                //order=4;
                 
                 dealii::Vector<double> j1_old;
                 dealii::Vector<double> j2_old;

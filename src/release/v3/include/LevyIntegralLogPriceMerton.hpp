@@ -51,8 +51,10 @@ public:
                                                         order_,
                                                         apt) 
         {
-                if (!this->adapting)
+                if (!this->adapting) {
+                        std::cout<<this->order<<"\n";
                         this->setup_quadratures(order_);
+                }
                 else
                         this->setup_quadratures(2);
         }
@@ -76,7 +78,6 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
 {
 	this->alpha=std::vector<double>(dim, 0.);
         
-        
 	if (!this->adapting) {
 		//for each dimension it computes alpha
                 for (unsigned d=0;d<dim;++d) {
@@ -90,8 +91,6 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
         }
         
 	else {
-                unsigned order_max=64;
-                
                 std::vector<double> alpha_old;
                 double err;
 		// same as above but adaptive
@@ -117,7 +116,7 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
                         
                 }
                 while (err>this->alpha_toll &&
-                       quadratures[0].get_order()<order_max);
+                       quadratures[0].get_order()<this->order_max);
         }
         this->order=quadratures[0].get_order();
         
