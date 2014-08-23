@@ -49,7 +49,7 @@ int main(){
         //cin.get();
         
         // We test here the convergence of the price modifing the width of the grid.
-        /*
+        
         {
                 std::array<double, 4>      f={0., 0.33, 0.66, 0.99};       // scale factor
                 std::array<double, 4>      p={0., 0., 0., 0.};             // prices from price transformation
@@ -101,7 +101,7 @@ int main(){
                 cout<<"\n";
                 
         }
-        */
+        
         cout<<"Press return to continue...\n";
         //cin.get();
         
@@ -116,7 +116,7 @@ int main(){
                                                         Transformation::Price,
                                                         model1.get_pointer(),
                                                         model2.get_pointer(),
-                                                        -0.2, 0.1, 1., 200., 5, 100);
+                                                        -0.2, 0.1, 1., 200., 6, 100);
                 
                 minnie->set_print_grid(true);
                 minnie->set_print(true);
@@ -138,7 +138,7 @@ int main(){
                                                        Transformation::LogPrice,
                                                        model1.get_pointer(),
                                                        model2.get_pointer(),
-                                                       -0.2, 0.1, 1., 200., 5, 100);
+                                                       -0.2, 0.1, 1., 200., 6, 100);
                 daisy->set_print_grid(true);
                 daisy->set_print(true);
                 daisy->set_timing(true);
@@ -154,7 +154,7 @@ int main(){
         //cin.get();
         
         cout<<"*** Do you want to perform some convergence tests for the integral part? (y/n) ";
-        string s="n";
+        string s="y";
         //cin>>s;
         
         if (s=="y") {
