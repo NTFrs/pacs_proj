@@ -44,11 +44,9 @@ public:
                                                   upper_limit_,
                                                   Models_,
                                                   order_),
-        adapting(apt) {
-                if (!adapting)
-                        this->setup_quadratures(order_);
-                else
-                        this->setup_quadratures(2);   
+        adapting(apt)
+        {
+                this->setup_quadratures(order_);
         }
         
         LevyIntegralPriceMerton& operator=(const LevyIntegralPriceMerton &)=delete;
@@ -100,19 +98,20 @@ void LevyIntegralPriceMerton<dim>::compute_alpha(){
                                 
                         }
                         
-                        setup_quadratures(2*quadratures[0].get_order());
-                        
-                        
                         err=0.;
-                        for (unsigned d=0;d<dim;++d)
+                        for (unsigned d=0;d<dim;++d) {
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
+                        }
+                        
+                        if (err>this->alpha_toll && 2*this->order<=this->order_max) {
+                                this->order=2*this->order;
+                                setup_quadratures(this->order);
+                        }
                         
                 }
                 while (err>this->alpha_toll &&
-                       quadratures[0].get_order()<this->order_max);
+                       2*this->order<this->order_max);
         }
-        
-        this->order=quadratures[0].get_order();
         
 }
 

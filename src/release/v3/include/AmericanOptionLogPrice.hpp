@@ -87,7 +87,8 @@ void AmericanOptionLogPrice<dim>::setup_integral(){
         if (this->model_type==OptionBase<dim>::ModelType::Kou) {
                 this->levy=std::unique_ptr<LevyIntegralBase<dim> >
                 (new LevyIntegralLogPriceKou<dim>(this->Smin, this->Smax, this->models,
-                                                  std::move(bc), this->order, this->integral_adapt));
+                                                  std::move(bc), round(this->order/2),
+                                                  this->integral_adapt));
                 if (this->integral_adapt) {
                         this->levy->set_adaptivity_params(round(this->order_max/2),
                                                           this->alpha_toll, this->J_toll);
@@ -96,7 +97,8 @@ void AmericanOptionLogPrice<dim>::setup_integral(){
         else if (this->model_type==OptionBase<dim>::ModelType::Merton) {
                 this->levy=std::unique_ptr<LevyIntegralBase<dim> >
                 (new LevyIntegralLogPriceMerton<dim>(this->Smin, this->Smax,this->models,
-                                                     std::move(bc),this->order, this->integral_adapt));
+                                                     std::move(bc), this->order,
+                                                     this->integral_adapt));
                 if (this->integral_adapt) {
                         this->levy->set_adaptivity_params(this->order_max,
                                                           this->alpha_toll, this->J_toll);

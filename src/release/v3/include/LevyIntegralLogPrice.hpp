@@ -73,7 +73,6 @@ public:
                 order_max=order_max_;
                 alpha_toll=alpha_toll_;
                 J_toll=J_toll_;
-                std::cout<<order<<" "<<order_max<<"\n";
         }
         
 	//! Computes the J part of the integral for a logprice transformation
@@ -91,7 +90,10 @@ public:
         };
 	
 	//! Used to set the time for the boundary condition (if it depends on time)
-	virtual inline void set_time(double tm) {boundary->set_time(tm);};
+	virtual inline void set_time(double tm)
+        {
+                boundary->set_time(tm);
+        };
 	
 };
 
@@ -184,8 +186,6 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
         }
         //adapting case
         else {
-                //order=4;
-                
                 dealii::Vector<double> j1_old;
                 double err;
                 
@@ -198,14 +198,16 @@ void LevyIntegralLogPrice<1>::compute_J(dealii::Vector< double >& sol,
                                 this->j1(it)=this->get_one_J(vertices[it], func, 0);
                         }
                         
-                        order=2*order;
-                        setup_quadratures(order);
-                        
                         auto temp=j1;
                         temp.add(-1, j1_old);
                         err=temp.linfty_norm();
+                        
+                        if (err>J_toll && 2*order<=order_max) {
+                                order=2*order;
+                                setup_quadratures(order);
+                        }
                 }
-                while (err>J_toll && order<order_max);
+                while (err>J_toll && 2*order<=this->order_max);
                 
         }
         
@@ -222,8 +224,6 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
 	j1.reinit(N);
 	j2.reinit(N);
         
-        std::cout<<"order: "<<order<<"\n";
-        
         //the next class is used to return the value of the solution on the specified point,  if the point is inside the domain. Otherwise returns the boundary condition.
 	tools::Solution_Trimmer<2> func1(0,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
 	tools::Solution_Trimmer<2> func2(1,*this->boundary, dof_handler, sol, this->lower_limit, this->upper_limit);
@@ -237,8 +237,6 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
                 }
         }
         else {
-                //order=4;
-                
                 dealii::Vector<double> j1_old;
                 dealii::Vector<double> j2_old;
                 double err1;
@@ -257,9 +255,6 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
                                 this->j2(it)=this->get_one_J(vertices[it], func2, 1);
                         }
                         
-                        order=2*order;
-                        setup_quadratures(order);
-                        
                         auto temp1=j1;
                         temp1.add(-1, j1_old);
                         
@@ -269,8 +264,13 @@ void LevyIntegralLogPrice<2>::compute_J(dealii::Vector< double >& sol, dealii::D
                         err1=temp1.linfty_norm();
                         err2=temp2.linfty_norm();
                         
+                        if ((err1>J_toll || err2>J_toll) && 2*order<=order_max) {
+                                order=2*order;
+                                setup_quadratures(order);
+                        }
+                        
                 }
-                while ((err1>J_toll || err2>J_toll) && order<order_max);
+                while ((err1>J_toll || err2>J_toll) && 2*order<=order_max);
                 
                 adapted=true;
                 

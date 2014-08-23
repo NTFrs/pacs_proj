@@ -51,12 +51,7 @@ public:
                                                         order_,
                                                         apt) 
         {
-                if (!this->adapting) {
-                        std::cout<<this->order<<"\n";
-                        this->setup_quadratures(order_);
-                }
-                else
-                        this->setup_quadratures(2);
+                this->setup_quadratures(order_);
         }
         
         LevyIntegralLogPriceMerton& operator=(const LevyIntegralLogPriceMerton &)=delete;
@@ -64,7 +59,7 @@ public:
 };
 
 template<unsigned dim>
-void LevyIntegralLogPriceMerton<dim>::setup_quadratures(unsigned int n)
+void LevyIntegralLogPriceMerton<dim>::setup_quadratures(unsigned n)
 {
 	quadratures.clear();
 	using namespace std;
@@ -107,18 +102,20 @@ void LevyIntegralLogPriceMerton<dim>::compute_alpha()
                                 
                         }
                         
-                        setup_quadratures(2*quadratures[0].get_order());
-                        
-                        
                         err=0.;
-                        for (unsigned d=0;d<dim;++d)
+                        for (unsigned d=0;d<dim;++d) {
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
+                        }
+                        
+                        if (err>this->alpha_toll && 2*this->order<=this->order_max) {
+                                this->order=2*this->order;
+                                setup_quadratures(this->order);
+                        }
                         
                 }
                 while (err>this->alpha_toll &&
-                       quadratures[0].get_order()<this->order_max);
+                       2*this->order<=this->order_max);
         }
-        this->order=quadratures[0].get_order();
         
 }
 

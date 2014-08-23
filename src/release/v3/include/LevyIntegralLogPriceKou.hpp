@@ -52,10 +52,7 @@ public:
                                                         std::move(BC_),
                                                         order_, apt)
         {
-                if (!this->adapting)
-                        this->setup_quadratures(order_);
-                else
-                        this->setup_quadratures(2);
+                this->setup_quadratures(order_);
 	}
         
         LevyIntegralLogPriceKou& operator=(const LevyIntegralLogPriceKou &)=delete;
@@ -63,7 +60,7 @@ public:
 };
 
 template<unsigned dim>
-void LevyIntegralLogPriceKou<dim>::setup_quadratures(unsigned int n)
+void LevyIntegralLogPriceKou<dim>::setup_quadratures(unsigned n)
 {
 	leftQuads.clear();
         rightQuads.clear();
@@ -120,17 +117,19 @@ void LevyIntegralLogPriceKou<dim>::compute_alpha() {
                                 }
                         }
                         
-                        setup_quadratures(2*leftQuads[0].get_order());
-                        
                         err=0.;
                         for (unsigned d=0;d<dim;++d)
                                 err+=fabs(alpha_old[d]-(this->alpha[d]));
                         
+                        if (err>this->alpha_toll && 2*this->order<=this->order_max) {
+                                this->order=2*this->order;
+                                setup_quadratures(this->order);
+                        }
+                        
                 }
                 while (err>this->alpha_toll &&
-                       rightQuads[0].get_order()<this->order_max);
+                       2*this->order<=this->order_max);
         }
-        this->order=rightQuads[0].get_order();
         
 }
 

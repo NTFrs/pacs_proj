@@ -7,7 +7,7 @@ int main(){
         using namespace std;
         
         // We test here a 1d PIDE in both transformation.
-        /*
+        
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
         {
@@ -49,7 +49,7 @@ int main(){
         //cin.get();
         
         // We test here the convergence of the price modifing the width of the grid.
-        
+        /*
         {
                 std::array<double, 4>      f={0., 0.33, 0.66, 0.99};       // scale factor
                 std::array<double, 4>      p={0., 0., 0., 0.};             // prices from price transformation
@@ -101,22 +101,22 @@ int main(){
                 cout<<"\n";
                 
         }
-        
+        */
         cout<<"Press return to continue...\n";
         //cin.get();
         
         // We test here a 2d call with Merton model
-        */
+        
         MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
         MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
-        /*
+        
         {
                 auto minnie=Factory::instance()->create(ExerciseType::EU,
                                                         OptionType::Call,
                                                         Transformation::Price,
                                                         model1.get_pointer(),
                                                         model2.get_pointer(),
-                                                        -0.2, 0.1, 1., 200., 6, 100);
+                                                        -0.2, 0.1, 1., 200., 5, 100);
                 
                 minnie->set_print_grid(true);
                 minnie->set_print(true);
@@ -131,20 +131,17 @@ int main(){
         
         cout<<"Press return to continue...\n";
         //cin.get();
-        */
+        
         {
                 auto daisy=Factory::instance()->create(ExerciseType::EU,
                                                        OptionType::Call,
                                                        Transformation::LogPrice,
                                                        model1.get_pointer(),
                                                        model2.get_pointer(),
-                                                       -0.2, 0.1, 1., 200., 6, 10);
+                                                       -0.2, 0.1, 1., 200., 5, 100);
                 daisy->set_print_grid(true);
                 daisy->set_print(true);
                 daisy->set_timing(true);
-                
-                daisy->set_integral_adaptivity_params(true, 7, 25);
-                
                 daisy->run();
                 
                 auto times=daisy->get_times();
@@ -152,12 +149,12 @@ int main(){
                 cout<<"The price of the option is "<<daisy->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
                 
         }
-        /*
+        
         cout<<"Press return to continue...\n";
         //cin.get();
         
         cout<<"*** Do you want to perform some convergence tests for the integral part? (y/n) ";
-        string s="y";
+        string s="n";
         //cin>>s;
         
         if (s=="y") {
@@ -205,6 +202,6 @@ int main(){
         else if (s!="n") {
                 throw(logic_error("Something went wrong..."));
         }
-        */
+        
         return 0;
 }
