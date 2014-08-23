@@ -883,6 +883,13 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \end{figure}
 \begin{figure}[htp!]
 \begin{center}
+\includegraphics[width=10cm]{img/test1-derivatives.eps}
+\caption{Derivata prima e seconda della Put Europea, con trasformazione \emph{price}}
+\label{fig:test1-derivative}
+\end{center}
+\end{figure}
+\begin{figure}[htp!]
+\begin{center}
 \includegraphics[width=10cm]{img/test1-put1dlogprice.eps}
 \caption{Put Europea, con trasformazione \emph{log-price}}
 \label{fig:test1-put1d-logprice}
@@ -907,7 +914,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \end{center}
 \end{figure}
 Come possiamo notare i tempi di calcolo sono davvero rapidissimi in tutti i casi, mentre i prezzi dell'opzione monodimensionale sono identici per entrambe le trasformazioni, mentre per il 2d c'\`e una differenza apprezzabile, e aumentando il numero di elementi nella \emph{mesh} questa differenza scompare.
-Nelle figure \ref{fig:test1-put1d-price}, \ref{fig:test1-put1d-logprice}, \ref{fig:test1-call1d-fc} e \ref{fig:test1-call1d-sol} sono riportati, a titolo di esempio i grafici della soluzione e della condizione finale.\\Oltre a questi semplici calcoli, abbiamo deciso di testare la convergenza del prezzo al variare della griglia, ottenendo i seguenti risultati nelle tabelle \ref{step1-2} e \ref{step1-3}. Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo corretto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
+Nelle figure \ref{fig:test1-put1d-price}, \ref{fig:test1-put1d-logprice}, \ref{fig:test1-call1d-fc} e \ref{fig:test1-call1d-sol} sono riportati, a titolo di esempio i grafici della soluzione e della condizione finale. In figura \ref{fig:test1-derivative} abbiamo plottato la derivata prima e seconda della put europea calcolata tramite la trasformazione \emph{price}. Come possiamo vedere, \todo{aggiungere qualche cosa.} queste due funzioni sono molto lisce e prive di passaggi bruschi.\\Oltre a questi semplici calcoli, abbiamo deciso di testare la convergenza del prezzo al variare della griglia, ottenendo i seguenti risultati nelle tabelle \ref{step1-2} e \ref{step1-3}. Notiamo quindi che in 1d entrambe le trasformazioni, anche con una griglia lasca e pochissimi istanti temporali, danno un risultato molto vicino al prezzo corretto, e poi convergono velocemente al prezzo esatto 9.66. In due dimensioni vediamo invece come il nostro \emph{solver} abbia bisogno di parecchi step temporali e una griglia molto fitta per dare il risultato corretto.
 
 \begin{table}[htp!]
 \begin{adjustbox}{center}
@@ -958,7 +965,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \label{fig:test2-call1d-kou}
 \end{center}
 \end{figure}
-La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di almeno un ordine di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e quasi pi\`u veloce rispetto alla trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`u pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} ha prestazioni comparabili.\\In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}. Questo è dovuto al fatto in due dimensioni la ricerca delle celle in cui si trovano i punti in cui deve essere valutata la soluzione diventa molto più onerosa, trattandosi di una griglia bidimensionale.\\\\
+La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al semplice modello di \emph{Black\&Scholes}, osserviamo che i tempi impiegati per individuare il prezzo dell'opzioni sono molto maggiori. Nonostante qui le griglie siano pi\`u piccole, i tempi di calcolo per la soluzione della PIDE sono pi\`u grandi rispetto a quelli della PDE di almeno un ordine di grandezza.\\La seconda osservazione riguarda invece il confronto fra le due trasformazioni: notiamo infatti che in 1d, la trasformazione \emph{log-price} \`e quasi veloce quanto la trasformazione \emph{price}. Ci\`o \`e dovuto al fatto che l'implementazione della parte integrale in \emph{log-price}, pur essendo pi\`u pesante rispetto all'altra, poich\'e occorre ogni volta calcolare dei valori della soluzione in punti non noti a priori della griglia, permette un'immediata parallelizzazione, mentre la trasformazione \emph{price}, in teoria pi\`u rapida, non \`e facilmente parallelizzabile. Quindi, la risoluzione del problema con la trasformazione \emph{price} \`e s\`i pi\`u veloce da un punto di vista algoritmico, ma in questo particolare caso, con a disposizione 4 processori, la trasformazione \emph{log-price} ha prestazioni comparabili.\\In due dimensioni, invece, le prestazioni della trasformazione \emph{log-price} non reggono il paragone rispetto a \emph{price}. Questo è dovuto al fatto in due dimensioni la ricerca delle celle in cui si trovano i punti in cui deve essere valutata la soluzione diventa molto più onerosa, trattandosi di una griglia bidimensionale.\\\\
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test2-scalefactor.eps}
@@ -1009,7 +1016,7 @@ Trasformazione & Prezzo & Tempo \\ \hline
 \caption{Prezzi di una Put americana, Kou.}
 \label{test3-2}
 \end{table}
-Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una put europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: possiamo vedere come esse siano molto ``liscie'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
+Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una put europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: a differenza di quanto accade nella figura \ref{fig:test1-derivative}, qui possiamo vedere come esse siano molto ``lisce'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=\textwidth]{img/test2-putamkou.eps}
@@ -1098,8 +1105,8 @@ In quest'ultimo test abbiamo valutato le prestazioni della nostra libreria attiv
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 Trasformazione & Celle di partenza & Celle di arrivo & Timesteps & Prezzo & Tempo \\ \hline
-\emph{price} & 256 & 520 & 100 & 12.4267\officialeuro & 3.31924s \\ \hline
-\emph{log-price} & 256 & 520 & 100 & 12.429\officialeuro & 6.89238s \\ \hline
+\emph{price} & 256 & 520 & 100 & 12.4267\officialeuro & 2.74439s \\ \hline
+\emph{log-price} & 256 & 520 & 100 & 12.429\officialeuro & 6.54432s \\ \hline
 \end{tabular}
 \end{adjustbox}
 \caption{Prezzi di una Call 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
@@ -1137,14 +1144,14 @@ Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensi
 \begin{tabular}{| l | l | l | l | l | l | l |}
 \hline
 Ref/Coar & g.d.l di partenza & g.d.l di arrivo & Timesteps & Prezzo & Tempo \\ \hline
-0.03/0.15 & 4225 & 4779 & 100 & 24.1061\officialeuro & 244.446s \\ \hline
-0/0.1 & 4225 & 3526 & 100 & 24.097\officialeuro & 188.809s \\ \hline
+0.03/0.15 & 4225 & 4779 & 100 & 24.1053\officialeuro & 374.334s \\ \hline
+0/0.1 & 4225 & 3526 & 100 & 24.0967\officialeuro & 285.173s \\ \hline
 \end{tabular}
 \end{adjustbox}
 \caption{Prezzi di una Call 2d, Merton.}
 \label{test5-4}
 \end{table}
-Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-1}.\todo{Da mettere a posto..con i risultati corretti.}Come possiamo notare, qui i prezzi convergono al valore giusto, ma impiegano pi\`u tempo rispetto al caso senza \emph{mesh refinement}. Di seguito sono riportate le \emph{mesh} generate nei due casi: nel set con parametri 0.03/0.15 possiamo vedere come la griglia diventi pi\`u lasca nella parte in cui la soluzione \`e nulla e dove la soluzione cresce in modo costante, mentre si infittisce dove la soluzione si alza e vicino ai bordi, dove c'\`e una condizione al contorno $\mathcal{C}^0$. Nel set di griglie con parametri 0/0.1 notiamo invece come la soluzione diventi pi\`u lasca nella zona in cui la soluzione vale 0.
+Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-1}. Come possiamo notare, qui i prezzi convergono al valore giusto, con tempi di calcolo coerenti rispetto alle prestazioni del caso senza raffinamento di griglia: nel primo caso infatti, all'aumentare dei nodi, il programma impiega pi\`u tempo a girare, rispetto a quanto indicato in \ref{step2-1}, mentre nel secondo caso, i nodi della griglia diminuiscono, permettendo all'algoritmo di calcolare il prezzo in modo pi\`u rapido. L'accelerazione nel secondo caso tuttavia non \`e molto evidente, ci\`o \`e dovuto sia al fatto che i nodi non diminuiscono cos\`i tanto e poi con il \emph{mesh refinement}, il programma ogni 20 iterazioni temporali deve ricostruire il sistema, impiegando un tempo non trascurabile.\\Di seguito sono riportate le \emph{mesh} generate nei due casi: nel set con parametri 0.03/0.15 possiamo vedere come la griglia diventi pi\`u lasca nella parte in cui la soluzione \`e nulla e dove la soluzione cresce in modo costante, mentre si infittisce dove la soluzione si alza e vicino ai bordi, dove c'\`e una condizione al contorno $\mathcal{C}^0$. Nel set di griglie con parametri 0/0.1 notiamo invece come la soluzione diventi pi\`u lasca nella zona in cui la soluzione vale 0.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/meshes/Price1.eps}

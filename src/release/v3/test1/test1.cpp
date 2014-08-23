@@ -26,6 +26,51 @@ int main(){
                 
                 auto times=foo->get_times();
                 
+                
+                // We evaluate here the fisrt and the second derivatives of the solution
+                vector< dealii::Point<1> >      grid;
+                vector<double>                  solution;
+                
+                foo->get_mesh(grid);
+                foo->get_solution(solution);
+                
+                vector<double> first_d(grid.size()-2);
+                vector<double> second_d(grid.size()-2);
+                
+                double dx=grid[2][0]-grid[1][0];
+                
+                for (unsigned i=0; i<grid.size()-2; ++i) {
+                        first_d[i]=(solution[i+2]-solution[i])/(2*dx);
+                        second_d[i]=(solution[i+2]+solution[i]-2*solution[i+1])/(dx*dx);
+                }
+                
+                ofstream stream;
+                stream.open("derivatives.m");
+                
+                if (stream.is_open()) {
+                        stream<<"mesh=[ ";
+                        for (unsigned i=0; i<grid.size()-3; ++i) {
+                                stream<<grid[i+1][0]<<"; ";
+                        }
+                        stream<<grid[grid.size()-2]<<" ];\n";
+                        stream<<"first_der=[ ";
+                        for (unsigned i=0; i<grid.size()-3; ++i) {
+                                stream<<first_d[i]<<"; ";
+                        }
+                        stream<<first_d[grid.size()-2]<<" ];\n";
+                        stream<<"second_der=[ ";
+                        for (unsigned i=0; i<grid.size()-3; ++i) {
+                                stream<<second_d[i]<<"; ";
+                        }
+                        stream<<second_d[grid.size()-2]<<" ];\n";
+                }
+                else {
+                        throw(ios_base::failure("Unable to open the file."));
+                }
+                
+                stream.close();
+                //
+                
                 cout<<"The price of the option is "<<foo->get_price()<<", evaluated in "<<times.second/1.e6<<".\n";
         }
         
@@ -188,48 +233,48 @@ int main(){
                         
                         array<double, dim>        p, l, times_p, times_l;
                         
-                        auto minnie=Factory::instance()->create(ExerciseType::EU,
+                        auto clarabell=Factory::instance()->create(ExerciseType::EU,
                                                                 OptionType::Put,
                                                                 Transformation::Price,
                                                                 model1.get_pointer(),
                                                                 model2.get_pointer(),
                                                                 -0.2, 0.1, 1., 200., 1, 25);
                         
-                        auto daisy=Factory::instance()->create(ExerciseType::EU,
+                        auto amelia=Factory::instance()->create(ExerciseType::EU,
                                                                OptionType::Put,
                                                                Transformation::LogPrice,
                                                                model1.get_pointer(),
                                                                model2.get_pointer(),
                                                                -0.2, 0.1, 1., 200., 1, 25);
                         
-                        minnie->set_verbose(false);
-                        minnie->set_timing(true);
+                        clarabell->set_verbose(false);
+                        clarabell->set_timing(true);
                         
-                        daisy->set_verbose(false);
-                        daisy->set_timing(true);
+                        amelia->set_verbose(false);
+                        amelia->set_timing(true);
                         
                         for (unsigned i=0; i<dim; ++i) {
                                 
-                                minnie->reset();
-                                daisy->reset();
+                                clarabell->reset();
+                                amelia->reset();
                                 
-                                minnie->set_refs(ref[i]);
-                                daisy->set_refs(ref[i]);
+                                clarabell->set_refs(ref[i]);
+                                amelia->set_refs(ref[i]);
                                 
-                                minnie->set_timestep(steps[i]);
-                                daisy->set_timestep(steps[i]);
+                                clarabell->set_timestep(steps[i]);
+                                amelia->set_timestep(steps[i]);
                                 
-                                cout<<"Evaluating options with grid size="<<minnie->get_number_of_cells()
-                                <<" and timesteps="<<minnie->get_number_of_timesteps()<<"\n";
+                                cout<<"Evaluating options with grid size="<<clarabell->get_number_of_cells()
+                                <<" and timesteps="<<clarabell->get_number_of_timesteps()<<"\n";
                                 
-                                minnie->run();
-                                daisy->run();
+                                clarabell->run();
+                                amelia->run();
                                 
-                                p[i]=minnie->get_price();
-                                l[i]=daisy->get_price();
+                                p[i]=clarabell->get_price();
+                                l[i]=amelia->get_price();
                                 
-                                auto time_p=minnie->get_times();
-                                auto time_l=daisy->get_times();
+                                auto time_p=clarabell->get_times();
+                                auto time_l=amelia->get_times();
                                 
                                 times_p[i]=time_p.second;
                                 times_l[i]=time_l.second;
