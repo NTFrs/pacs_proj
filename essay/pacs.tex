@@ -140,9 +140,11 @@
 
 \chapter*{Introduzione}
 
-Lo scopo del progetto è di creare una piccola tool in \textsf{c++} che possa risolvere il problema di trovare il prezzo per derivati finanziari, ottenibile come soluzione di un'equazione integro-differenziale. Abbiamo quindi sviluppato la base di una libreria (base ma completamente funzionale) per il calcolo del prezzo di opzioni finanziarie usando il metodo degli elementi finiti. Il tutto è basato sulla libreria ad elementi finiti \textsf{deal.ii}, che fornisce tutto il necessario per la base di un programma che usi il metodo degli elementi finiti sui quadrilateri. Cosi come la libreria \textsf{deal.ii}, il progetto si tconfigura come una libreria template nel senso che quasi tutti gli oggetti utilizzati sono templatizzati sulla dimensione. Combinando l'uso di \textsf{deal.ii} per trattare la parte differenziale, e le nostre aggiunte per trattare la parte integrale, abbiamo ottenuto una libreria che permette di ottenere il prezzo degli oggetti base (Opzioni \emph{Call} e \emph{Put}) in una e due dimensioni, ma che al tempo stesso da la fornisce il macchinario per risolvere altri problemi simili con l'aggiunta di pochissimo codice, attraverso meccanismi di ereditarietà. Oltre al problema classico (in gergo finanziario chiamato \emph{Opzione Europea}) con condizioni di Dirichlet, abbiamo anche aggiunto la risoluzione di un problema di tipo \emph{Opzione Americana} dove la soluzione deve stare sopra un limite, ossia un problema con ostacolo.\\ 
+Lo scopo di questo progetto è creare un piccolo \emph{tool} scritta in c++ che possa risolvere il problema di \emph{pricing} per alcuni derivati finanziari, tramite la soluzione di un'equazione integro-differenziale. Abbiamo quindi sviluppato la base di una libreria (molto semplice ma completamente funzionale) per il calcolo del prezzo di opzioni usando il metodo degli elementi finiti. Il tutto è basato sulla libreria ad elementi finiti esterna \textsf{deal.ii}, che fornisce pi\`u del necessario per la base di un programma che sfrutti il metodo degli elementi finiti sui quadrilateri. Cos\`i come la libreria \textsf{deal.ii}, il progetto \`e una libreria \emph{template}, nel senso che quasi tutti gli oggetti utilizzati sono \emph{templatizzati} sulla dimensione. Combinando l'uso di \textsf{deal.ii} per trattare la parte differenziale, e le nostre aggiunte per trattare la parte integrale, abbiamo creato una libreria che permette di calcolare il prezzo degli oggetti base (opzioni \emph{call} e \emph{put}) in una e due dimensioni, ma che al tempo stesso da la fornisce il macchinario per risolvere altri problemi simili con l'aggiunta di pochissimo codice, attraverso meccanismi di ereditarietà. Oltre al problema classico (in gergo finanziario chiamato opzione europea) con condizioni di \emph{Dirichlet}, abbiamo anche aggiunto la risoluzione di un problema di tipo opzione americana, in cui la soluzione deve stare sopra un dato limite, ossia un problema con ostacolo.\\
 
-Una delle motivazioni dietro questo progetto è che è molto difficile trovare codici ad elementi finiti che risolvano questo problema in più di una dimensione. Questo si spiega con il fatto che, essendo i domini quasi sempre dei rettangoli, i metodi basati sulle differenze finite sono molto più diffusi. Da un punto di vista di prestazioni, le differenze finite non presentano particolari vantaggi sugli elementi finiti. Gli elementi finiti invece, seppur più difficili da usare, possono in alcuni casi essere più convenienti, sopratutto per i problemi in più dimensioni. Un esempio è l'adattività locale di griglia, come vedremo in seguito.
+Una delle motivazioni che ci ha spinti a intraprendere questo progetto è la totale assenza di codici che risolvano questi problemi ad elementi finiti in più di una dimensione. Questo si spiega con il fatto che, essendo i domini quasi sempre dei rettangoli, i metodi basati sulle differenze finite, comunque pi\`u semplici da trattare, sono molto più diffusi. Da un punto di vista di prestazioni, le differenze finite non presentano particolari vantaggi sugli elementi finiti. Gli elementi finiti invece, seppur più difficili da usare, possono in alcuni casi essere più convenienti e pi\`u precisi, sopratutto per i problemi in più dimensioni. Un esempio è l'adattività locale di griglia, come vedremo in seguito.\\
+
+Nei Capitolo 1 e 2 introdurremo da un punto di vista finanziario il problema, ricavando le equazioni di nostro interesse ed esplicitando le condizioni al bordo e la condizione finale. Nel Capitolo 3 invece descriveremo da un punto di vista numerico gli algoritmi e le discretizzazioni usate per risolvere i nostri problemi differenziali nei due cambi di variabile che abbiamo sfruttato. Il Capitolo 4 descrive poi gli strumenti utilizzati per la stesura del codice, quali \textsf{deal.ii}, \textsf{CMake}, GitHub. Nel capitolo 5 esporremo la struttura del nostro codice e in particolare parleremo delle classi principali che abbiamo scritto, oltre a fornire una piccola guida per un primo utilizzo della nostra libreria. Nel Capitolo 6 poi analizzeremo tramite alcuni programmi test i risultati ottenuti dai nostri codici. Nel Capitolo 7 parleremo di possibili estensioni al nostro codice, con due esempi. Infine nel Capitolo 8 giungeremo a delle conclusioni sul lavoro fatto e in particolare sull'utilizzo del metodo a elementi finiti rispetto alle differenze finite.
 
 \chapter{Modello di Black \& Scholes}
 
@@ -189,7 +191,7 @@ Osserviamo quindi che il valore a scadenza, cio\`e il \emph{payoff}, dell'opzion
 \begin{definition}
 Sia $S$ il processo stocastico che descrive l'andamento di un titolo azionario, allora il \emph{payoff} di un'opzione scritta su $S$ con scadenza $T$ e \emph{strike} $K$ \`e una variabile aleatoria $\mathcal{X}\in\mathcal{F}_T$, e: $$\mathcal{X}=\Phi(S_T).$$
 \end{definition}
-Per esempio, il \emph{payoff} delle opzioni call e put europee \`e:
+Per esempio, il \emph{payoff} delle opzioni \emph{call} e \emph{put} europee \`e:
 \begin{align*}
 \Phi_C(S_T)&=\max(S_T-K,0),\\
 \Phi_P(S_T)&=\max(K-S_T,0).
@@ -374,14 +376,14 @@ Come \`e facile osservare $x\in(-\infty,\infty)$, perci\`o \`e necessario adotta
 S_{min}&=(1-f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T-6\sigma\sqrt{T}\right),\\
 S_{max}&=(1+f)S_0exp\left( \left(r-\frac{\sigma^2}{2}\right)T+6\sigma\sqrt{T}\right), \nonumber
 \end{align}
-dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$x_{min}=log(\sfrac{S_{min}}{S_0}), \qquad x_{max}=log(\sfrac{S_{max}}{S_0}).$$
+dove $0\leq f\leq1$ \`e un parametro da scegliersi a piacere (nel codice \`e settato a 0.5 ma \`e possibile modificarlo con un apposito metodo). Questo troncamento \`e utilizzato poich\'e in un \emph{framework Black\&Scholes} il sottostante $S$ ha probabilit\`a $10^{-8}$ di superare quei limiti (quando $f=0$). Poniamo quindi: $$x_{min}=log(\sfrac{S_{min}}{S_0}), \qquad x_{max}=log(\sfrac{S_{max}}{S_0}).$$
 \subsection{Discretizzazione della PDE}
 Concentriamoci ora solo sull'equazione senza parte integrale, consideriamo cio\`e la sola PDE del modello di \emph{Black\&Scholes}. Siano quindi $\Omega_h$ una triangolazione con $N+1$ nodi di $\Omega=[x_{min},x_{max}]$ e $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ una griglia temporale. Cerchiamo una soluzione del tipo: $$u_h(x,t_n)=\sum_{j=0}^{N}\alpha_j(t_n)\phi_j(x),$$ dove $\alpha_j$ sono i valori della soluzione all'istante $t_n$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\Passiamo ora alla formulazione debole del problema \ref{callbs1d}:
 \begin{multline}
 \sum_{j=0}^{N}\int_{\Omega_h}\left(\frac{\partial}{\partial t}(\alpha_j(t)\phi_j(x))\phi_i(x)\right)dx+\sum_{j=0}^{N}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}\alpha_j(t)\phi_j'(x)\phi_i(x)dx\\
 +\sum_{j=0}^{N}\frac{\sigma^2}{2}\int_{\Omega_h}\alpha_j(t)\phi_j''(x)\phi_i(x)dx=\sum_{j=0}^{N}r\int_{\Omega_h}\alpha_j(t)\phi_j(x)\phi_i(x)dx,
 \end{multline}
-$\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Applicando ora uno schema di Eulero Implicito per la derivata prima in tempo, giungiamo a:
+$\forall t\in\mathcal{T}$ e $\forall i\in\{0,...,N\}$. Applicando poi uno schema di Eulero Implicito per la derivata prima in tempo, giungiamo a:
 \begin{multline}
 \sum_{j=0}^{N}\int_{\Omega_h}\frac{\alpha_j(t_{n+1})\phi_j(x)}{\Delta t}\phi_i(x)dx-\sum_{j=0}^{N}\int_{\Omega_h}\frac{\alpha_j(t_n)\phi_j(x)}{\Delta t}\phi_i(x)dx\\
 +\sum_{j=0}^{N}\left(r-\frac{\sigma^2}{2}\right)\int_{\Omega_h}\alpha_j(t_n)\phi_j'(x)\phi_i(x)dx+\sum_{j=0}^{N}\frac{\sigma^2}{2}\int_{\Omega_h}\alpha_j(t_n)\phi_j''(x)\phi_i(x)dx\\
@@ -436,7 +438,7 @@ Ponendo come sopra:$$\hat{\lambda_i}=\int_\mathbb{R}\nu_i(y)dy \qquad \hat{\alph
 \int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0.
 \label{pide2dcostcoeff2}
 \end{multline}
-Di nuovo, applichiamo un troncamento al dominio calcolando $\{x_{min}^1, x_{max}^1\}$ e $\{x_{min}^2, x_{max}^2\}$ come in \ref{cut} e definiamo una triangolazione $\Omega_h$ sull'insieme sul rettangolo di vertici $(x_{min}^1, x_{min}^2)$, $(x_{max}^1, x_{max}^2)$, la griglia temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ e uno spazio $\mathbb{P}_h^1$ in cui cerchiamo una soluzione del tipo: $$u_h=\sum_{i=0}^{N}\alpha_i(t) \phi_i(x,y),$$con $\alpha_i(t)$ valori della soluzione nel nodo $i$-esimo della griglia e $\phi_i$ funzioni base.
+Di nuovo, applichiamo un troncamento al dominio calcolando $\{x_{min}^1, x_{max}^1\}$ e $\{x_{min}^2, x_{max}^2\}$ come in \ref{cut} e definiamo una triangolazione $\Omega_h$ sul rettangolo di vertici $(x_{min}^1, x_{min}^2)$, $(x_{max}^1, x_{max}^2)$, la griglia temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ e uno spazio $\mathbb{P}_h^1$ in cui cerchiamo una soluzione del tipo: $$u_h=\sum_{i=0}^{N}\alpha_i(t) \phi_i(x,y),$$con $\alpha_i(t)$ valori della soluzione nel nodo $i$-esimo della griglia e $\phi_i$ funzioni base.
 Prima di passare alla formulazione debole, osserviamo che l'equazione pu\`o essere scritta nel seguente modo:
 \begin{multline}
 \der{u}{t}+\binom{r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}}\nabla u+\frac{1}{2}div\left(\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla u\right)-(r+\hat{\lambda_1}+\hat{\lambda_2})u\\
@@ -464,7 +466,7 @@ e la discretizzazione in tempo con uno schema di Eulero Implicito:
 +\frac{1}{2}\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t_n)\nabla\phi_i(x,y)^t\left(\begin{matrix}\sigma_1^2 & \rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{matrix}\right)\nabla\phi_j(x,y)d\Omega\\
 +\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\sum_{j=0}^{N}\iint_{\Omega_h}\alpha_j(t_n)\phi_j(x,y)\phi_i(x,y)d\Omega.
 \end{multline}
-A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$\todo{Scrivere esplicitamente le matrici di sistema} dove $M_1$ e $M_2$ sono le matrici di sistema date dalla formulazione debole e $M$ \`e la matrice di massa cosi definite:
+A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u^{n+1}+MJ_1^{n+1}+MJ_2^{n+1},$$dove $M_1$ e $M_2$ sono le matrici di sistema date dalla formulazione debole e $M$ \`e la matrice di massa cos\`i definite:
 \begin{equation*}
  (M)_{ij}=\iint_{\Omega_h}\phi_i(x,y)\phi_j(x,y)d\Omega \qquad M_2=\frac{1}{\Delta t}M\\
 \end{equation*}
@@ -473,13 +475,13 @@ A questo punto, possiamo scrivere l'equazione in forma matriciale: $$M_1u^n=M_2u
   \left.-\phi_i(x,y)\binom{r-\sfrac{\sigma_1^2}{2}-\hat{\alpha_1}}{r-\sfrac{\sigma_2^2}{2}-\hat{\alpha_2}}\nabla\phi_j(x,y)
   + \phi_i\left(\frac{1}{\Delta t}+r+\hat{\lambda_1}+\hat{\lambda_2}\right)\phi_j \right] d\Omega
 \end{multline*}
-
+Abbiamo dunque terminato la trattazione della trasformazione \emph{log-price}. Nella prossima sezione vedremo il cambio di variabili \emph{price}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%PRICES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{La trasformazione \emph{Price}}
 \label{sec:Price}
-Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello \emph{shift} dei nodi.
+Consideriamo ora il secondo cambio di variabile, un cambio solo sull'integrale. Come già anticipato, questo cambio di variabile permette di utilizzare la stessa griglia sia per l'equazione che per la quadratura dell'integrale, eliminando il problema di valutare la funzione fuori dal dominio. Inoltre risolve parzialmente il problema dello \emph{shift} dei nodi.
 \subsection{Equazione 1d}
 Per semplicità, illustriamo il cambio di variabile e la relativa discretizzazione nel caso di un'equazione su un solo sottostante, per poi estenderlo al caso bidimensionale. Riportiamo l'equazione in questione:
 
@@ -497,7 +499,7 @@ l'equazione diventa:
 \begin{equation*}
 \der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_\mathbb{R}C(t,Se^y)\nu(y)dy=0.
 \end{equation*}
-Come nel caso logprice, $\hat{\lambda}=\lambda$, mentre $\hat{\alpha}$ viene calcolato tramite una qualche formula di quadratura, esattamente come nel caso \emph{log-price}. A questo punto introduciamo nell'integrale il cambio di variabile:
+Esattamente come nel caso \emph{log-price}, $\hat{\lambda}=\lambda$ e $\hat{\alpha}$ viene calcolato tramite una qualche formula di quadratura. A questo punto introduciamo nell'integrale il cambio di variabile:
 \begin{equation*}
  z=Se^y
 \end{equation*}
@@ -513,29 +515,29 @@ Notiamo che il dominio della funzione e dell'integrale coincidono, ossia sono en
 Scegliamo il troncamento del dominio in modo analogo al caso \emph{log-price}, ossia definiamo $S_{min}$ e $S_{max}$ come in \eqref{cut}. Allo stesso modo, definiamo il dominio per l'integrale come $[S_{min},S_{max}]$. In questo modo è possibile utilizzare la stessa griglia per il calcolo dell'integrale.
 
 \subsection{Discretizzazione della PDE}
-Concentriamoci prima sulla parte differenziale. Come nel caso della logprice, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\
-Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e inserendo $C_h$ al posto di $C$ otteniamo la formulazione debole del problema \eqref{eq:pide1dlog}:
+Concentriamoci prima sulla parte differenziale. Come nel caso \emph{log-price}, consideriamo una triangolazione $\Omega_h$ con $N+1$ nodi di $[S_{min},S_{max}]$. Cerchiamo una soluzione del tipo: $$C_h(S,t_n)=\sum_{j=0}^{N}\gamma_j(t)\phi_j(S),$$ dove $\gamma_j$ sono i valori della soluzione all'istante $t$ nel nodo $j$ della griglia, mentre $\phi_j(x)$ sono le funzioni base dello spazio $\mathbb{P}_h^1=\left\{f\in\mathbb{C}^0\right.$ \emph{lineari su ogni cella della triangolazione} $\Omega_h\left.\right\}$.\\
+Moltiplicando l'equazione per una funzione test $\phi_i$, integrando sul dominio e sostituendo la funzione approssimata $C_h$ a $C$ otteniamo la formulazione debole del problema \eqref{eq:pide1dlog}:
 
 \begin{multline*}
-\sum_{j=1}^{N-1}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS+(r-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
-+\frac{\sigma^2}{2} \sum_{j=1}^{N-1} \gamma_j(t)\int_{\Omega_h} S^2 \phi_j''(S)\phi_i(S)dS -(r+\lambda) \sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
+\sum_{j=0}^{N}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS+(r-\hat{\alpha})\sum_{j=0}^{N}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
++\frac{\sigma^2}{2} \sum_{j=0}^{N} \gamma_j(t)\int_{\Omega_h} S^2 \phi_j''(S)\phi_i(S)dS -(r+\lambda) \sum_{j=0}^{N}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0,
 \end{multline*}
 e integrando per parti il termine con la derivata seconda, ricordando che i termini di bordo si annullano, otteniamo:
 
 \begin{multline*}
-\sum_{j=1}^{N-1}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
-+(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
--\frac{\sigma^2}{2}\sum_{j=1}^{N-1} \gamma_j(t)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
--(r+\lambda)\sum_{j=1}^{N-1}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0
+\sum_{j=0}^{N}\frac{\partial}{\partial t}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS
++(r-\sigma^2-\hat{\alpha})\sum_{j=0}^{N}\gamma_j(t)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
+-\frac{\sigma^2}{2}\sum_{j=0}^{N} \gamma_j(t)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
+-(r+\lambda)\sum_{j=0}^{N}\gamma_j(t)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=0.
 \end{multline*}
 
 Questa equazione deve valere per ogni $i$, ossia per ogni elemento della base.
 Introduciamo ora una griglia temporale $\mathcal{T}=\left\{0= t_0\leq t_1\leq ... \leq t_N=T\right\}$ dell'intervallo $[0,T]$. Se consideriamo uno schema temporale del tipo Eulero Implicito, con la discretizzazione nel tempo, l'equazione sopra diventa:
 
 \begin{multline}
-\label{eq:discretizedPDEprice}\frac{\sigma^2}{2}\sum_{j=1}^{N-1} \gamma_j(t_n)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
--(r-\sigma^2-\hat{\alpha})\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
-+\left(r+\lambda+\frac{1}{dt}\right)\sum_{j=1}^{N-1}\gamma_j(t_n)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=\sum_{j=1}^{N-1}\frac{\gamma_j(t_{n+1})}{dt}\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \\ \forall i \in \left\lbrace 1,\dots,N-1 \right\rbrace, \qquad \forall n \in \lbrace0,\dots,T-1\rbrace
+\label{eq:discretizedPDEprice}\frac{\sigma^2}{2}\sum_{j=0}^{N} \gamma_j(t_n)\int_{\Omega_h} S^2\phi_j'(S)\phi_i'(S)dS
+-(r-\sigma^2-\hat{\alpha})\sum_{j=0}^{N}\gamma_j(t_n)\int_{\Omega_h}S\phi_j'(S)\phi_i(S)dS\\
++\left(r+\lambda+\frac{1}{dt}\right)\sum_{j=0}^{N}\gamma_j(t_n)\int_{\Omega_h}\phi_j(S)\phi_i(S)dS=\sum_{j=0}^{N}\frac{\gamma_j(t_{n+1})}{dt}\int_{\Omega_h}\phi_j(S)\phi_i(S)dS \\ \forall i \in \left\lbrace 0,\dots,N \right\rbrace, \qquad \forall n \in \lbrace0,\dots,T-1\rbrace
 \end{multline}
 
 Definendo il vettore  ${\gamma}^k$ come il vettore dei valori $\gamma_j(t_k)$ e le matrici seguenti
@@ -556,7 +558,7 @@ Il sistema d'equazioni si può dunque scrivere in forma matriciale come:
 \end{equation}
 
 \subsection{La parte integrale}
-Al sistema \eqref{eq:PDEpriceMatrixes} va aggiunta la parte integrale. Anche in questo caso viene trattata esplicitamente e aggiunta all'\emph{rhs}. Dobbiamo dunque calcolare il seguente integrale:
+Al sistema \eqref{eq:PDEpriceMatrixes} va aggiunta la parte integrale. Anche in questo caso viene trattata esplicitamente e aggiunta al \emph{right hand side}. Dobbiamo dunque calcolare il seguente integrale:
 
 \begin{equation*}
  J(S)=\int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right) \right)dz
@@ -643,7 +645,7 @@ possiamo scrivere il sistema in forma matriciale:
 
 \begin{equation}
  \label{eq:PDEpriceMatrixes-2d}
- M_1 \bm{\gamma}^n=M_2\bm{\gamma}^{n+1} \qquad \text{ per } n=T-1,\dots,0
+ M_1 \gamma^n=M_2\gamma^{n+1} \qquad \text{ per } n=T-1,\dots,0
 \end{equation}
 
 Concentriamoci ora sulla parte integrale. Al sistema \eqref{eq:PDEpriceMatrixes-2d} vanno infatti aggiunte nell'\emph{rhs} le parti integrali $J_1$ e $J_2$. Analogamente al caso monodimensionale, otteniamo:
@@ -667,34 +669,34 @@ In sostanza, se definiamo per ogni nodo $(S_1,S_2)_j$ l'insieme $\mathcal{F}^1_j
  (J_2^{k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^2_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,S_1,z_l)}{z_l}\nu_2\left(\log\left(\frac{z_l}{S_{2,j}}\right)\right)w_l,
 \end{align*}
 dove $z_l$, $w_l$ sono nodi e pesi di quadratura.
-%Queste formule vengono poi implementate nel modo descritto nella sezione \ref{subsec:LevyIntegralPrice}.
 
 \section{Condizioni al contorno}
-Fin'ora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per \emph{price} e \emph{log-price} per via della trasformazione. Osservando le equazioni che dobbiamo trattare, appare chiaro che nel caso monodimensionale le condizioni al bordo da applicare ai nostri problemi siano le seguenti: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-K,$$ per la \emph{Call} e: $$P_h(S_{min},t)=K-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Volendo essere pi\`u precisi, tuttavia, imponiamo delle condizioni al bordo con lo \emph{Strike} $K$ scontato, ovvero: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-Ke^{-r(T-t)},$$ per la \emph{Call} e: $$P_h(S_{min},t)=Ke^{-r(T-t)}-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Questo sconto viene fatto per riportare la quantità monetaria K al tempo $t$ adattandola tramite il tasso d'interesse \emph{risk-free}, in modo da preservare i principi di non arbitraggio. Sarebbe infatti leggermente errato considerare costante nel tempo il valore di un oggetto monetario senza rischio, visto che anch'esso deve rispettare la logica del non arbitraggio.\\Nel caso bidimensionale occorre quindi imporre per ogni nodi di bordo $S_i$: $$C_h(S_i,t)=\max\left(S^1_{max}+S^2_{max}-Ke^{-r(T-t)},0\right)$$per la \emph{call} e: $$P_h(S_i,t)=\max\left(Ke^{-r(T-t)}-S^1_{min}-S^2_{min},0\right),$$ per la \emph{put}.\\
+Finora non abbiamo menzionato le condizioni al contorno. Trattandosi sempre di condizioni di tipo \emph{dirichlet}, esse vengono imposte una volta assemblato il sistema tramite tecnica di penalizzazione. Esse differiscono leggermente per \emph{price} e \emph{log-price} per via della trasformazione. Osservando le equazioni che dobbiamo trattare, appare chiaro che nel caso monodimensionale le condizioni al bordo da applicare ai nostri problemi siano le seguenti: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-K,$$ per la \emph{call} e:
+\begin{equation}
+\label{putam_cc}
+P_h(S_{min},t)=K-S_{min}, \qquad P_h(S_{max},t)=0,
+\end{equation}
+per la \emph{put}. Volendo essere pi\`u precisi, tuttavia, imponiamo delle condizioni al bordo con lo \emph{Strike} $K$ scontato, ovvero: $$C_h(S_{min},t)=0, \qquad C_h(S_{max},t)=S_{max}-Ke^{-r(T-t)},$$ per la \emph{call} e: $$P_h(S_{min},t)=Ke^{-r(T-t)}-S_{min}, \qquad P_h(S_{max},t)=0,$$ per la \emph{put}. Questo sconto viene fatto per riportare la quantità monetaria K al tempo $t$ adattandola tramite il tasso d'interesse \emph{risk-free}, in modo da preservare i principi di non arbitraggio. Sarebbe infatti leggermente errato considerare costante nel tempo il valore di un oggetto monetario senza rischio, visto che anch'esso deve rispettare la logica del non arbitraggio.\\Nel caso bidimensionale occorre quindi imporre per ogni nodi di bordo $S_i$: $$C_h(S_i,t)=\max\left(S^1_{max}+S^2_{max}-Ke^{-r(T-t)},0\right)$$per la \emph{call} e: $$P_h(S_i,t)=\max\left(Ke^{-r(T-t)}-S^1_{min}-S^2_{min},0\right),$$ per la \emph{put}.\\
 Chiaramente, quando si fa un cambio di variabili per passare al caso \emph{log-price}, è necessario cambiare le condizioni al contorno scrivendole nella nuova variabile. Per esempio per una \emph{call}:
 \begin{equation*}
  u_h(x_{min},t)=0, \qquad u_h(x_{max},t)=S_0 e^{x_{max}}-Ke^{-r(T-t)}
 \end{equation*}
 
-Analogamente si definiscono le condizioni al bordo per \emph{Put} e per il caso bidimensionale.
+Analogamente si definiscono le condizioni al bordo per \emph{put} e per il caso bidimensionale.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Il problema con l'ostacolo: il SOR proiettato}
 Il metodo pi\`u utilizzato in finanza per risolvere problemi del tipo \eqref{putam1d}  \`e il cosiddetto SOR proiettato, un metodo di risoluzione del sistema lineare iterativo che permette ad ogni iterazione e per ogni punto della griglia di imporre che la soluzione stia sopra all'ostacolo. L'algoritmo, molto semplice da implementare, \`e una variazione del noto metodo SOR, \emph{successive over-relaxation}, derivato dal metodo di \emph{Gauss-Seidel}. Posto quindi: $$z=\frac{1}{a_{ii}}\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}\right),$$dove $b$ \`e il termine noto, $a$ \`e la matrice e $x^{(k)}$ e $x^{(k+1)}$ sono le soluzione al passo precedente e successivo, al posto della classica iterata $(k+1)$-esima data da: $$x_i^{(k+1)}=x_i^{(k)}+\omega(z-x_i^{(k)}),$$con $0<\omega<2$ fissato, nel SOR proiettato imponiamo: $$x_i^{(k+1)}=\max\left(K-S_i,\quad x_i^{(k)}+\omega(z-x_i^{(k)})\right),$$dove $S_i$ \`e il nodo $i$-esimo della griglia. In questo modo, qualora la soluzione scenda sotto al \emph{payoff}, imponiamo che essa valga esattamente il \emph{payoff} rispettando il vincolo \eqref{putbound}.\\
-Particolare considerazione bisogna dare alle condizioni al contorno in questo caso. Sebbene la forma sia la stessa, ossia simile al \emph{payoff}, in questo caso non si deve scontare la quantità $K$. Infatti, proprio perché l'opzione può essere esercitata al tempo $t$, il guadagno che si otterrebbe esercitandola in quell'istante è di $K-S_t$, calcolato usando lo strike intero $K$.
+In questo problema, occorre prestare particolare attenzione alle condizioni al bordo: sebbene la forma sia la stessa, in questo caso non dobbiamo scontare la quantità $K$. Infatti, proprio perché l'opzione può essere esercitata a ogni istante temporale $t\in[0, T]$, il guadagno che si ottiene è pari a $K-S_t$, calcolato usando direttamente lo \emph{strike} $K$. Perci\`o in questo caso la condizione al bordo da imporre \`e nella forma \ref{putam_cc}, ovvero con il prezzo di esercizio non scontato.
 
 \section{\emph{Mesh refinement}}
-In questo programma abbiamo implementato anche una funzione che permette di adattare la griglia al problema, in particolare di raffinare o de-raffinare la \emph{mesh} dove ce ne sia bisogno. Per capire in quali punti adattare la griglia abbiamo utilizzato lo stimatore di Kelly, implementato direttamente nella libreria \textsf{deal.ii}. Esso stima l'errore soltanto per l'equazione generalizzata di Poisson: $$-\nabla\left(a(x)\nabla u\right)=f,$$tuttavia \`e uno stimatore utilizzato spesso perch\'e permette di stimare la differenza fra i gradienti della soluzione in due celle vicine. Qualora questa differenza sia troppa grande, ovvero la soluzione cambi molto inclinazione fra celle vicine, allora \`e necessario raffinare la griglia. Se invece la differenza fra i gradienti \`e nulla o molto piccola, allora \`e possibile de-raffinare la \emph{mesh}.\\
-Per come funziona i metodi di calcolo delle parti integrali, il mesh refinement non è compatibile con la trasformazione \emph{price} nel caso bidiminesionale. Infatti, se per esempio una cella venisse raffinata, si verrebbe a creare un nodo che appartiene a un segmento lungo l'asse $x$ (e a uno lungo l'asse $y$) ma che esiste solo all'interno della cella raffinata, e non su tutto il dominio. In tal caso, a quel nodo si sommerebbero i contributi solo di quella cella e non di tutto $[S_{min},S_{max}]$, il che sarebbe un errore concettuale.\\
-Nella trasformazione \emph{logprice} non vi sono invece problemi, visto che il metodo funziona su una griglia qualunque.
+In questo programma abbiamo implementato anche una funzione che permette di adattare la griglia al problema, in particolare di raffinare o de-raffinare la \emph{mesh} dove ce ne sia bisogno. Per capire in quali punti adattare la griglia abbiamo utilizzato lo stimatore di Kelly, implementato direttamente nella libreria \textsf{deal.ii}. Esso stima l'errore soltanto per l'equazione generalizzata di Poisson: $$-\nabla\left(a(x)\nabla u\right)=f,$$tuttavia \`e uno stimatore utilizzato spesso perch\'e permette di stimare la differenza fra i gradienti della soluzione in due celle vicine. Qualora questa differenza sia troppo grande, ovvero la soluzione cambi molto inclinazione fra celle vicine, allora \`e necessario raffinare la griglia. Se invece la differenza fra i gradienti \`e nulla o molto piccola, allora \`e possibile de-raffinare la \emph{mesh}.\\
+A causa dell'algoritmo usato per il calcolo delle parti integrali, il \emph{mesh refinement} non è compatibile con la trasformazione \emph{price} nel caso bidiminesionale. Infatti, se per esempio una cella venisse raffinata, si verrebbe a creare un nodo che appartiene a un segmento lungo l'asse $x$ (e a uno lungo l'asse $y$) ma che esiste solo all'interno della cella raffinata, e non su tutto il dominio. In tal caso, a quel nodo si sommerebbero i contributi solo di quella cella e non di tutto $[S_{min},S_{max}]$, il che porterebbe a un errore concettuale. Nella trasformazione \emph{log-price} non vi sono invece problemi, dato che il metodo implementato funziona su una griglia qualunque.
 
 \chapter{Pacchetti usati}
 \section{\textsf{deal.ii}}
-\textsf{deal.ii} \`e una libreria scritta in c++ che permette di risolvere tramite metodi a elementi finiti per una grande variet\`a di problemi alle derivate parziali. Fra i suoi maggiori pregi, oltre alla presenza di elementi finiti di ogni ordine, troviamo la grande scalabilit\`a (\`e stato infatti provato che questa libreria riesce a scalare fino a 16.000 processori), la possibilit\`a di interfacciarsi con molte librerie come \textsf{PETSc}, \textsf{Trilinos}, \textsf{METIS}, \textsf{BLAS}, \textsf{LAPACK}, e la vastit\`a e la precisione della documentazione. Soffermandoci un attimo su questo ultimo punto, vorremmo proprio sottolineare la presenza di una documentazione (quasi) sempre precisa e ben organizzata. Oltre a questa, ci sono inoltre 51 tutorial che insegnano a utilizzare la libreria dalla semplice creazione di una \emph{mesh} bidimensionale fino alla risoluzione di problemi iperbolici di meccanica non lineare in 3d con \emph{mesh refinement}. Per scrivere il nostro codice abbiamo sfruttato molto la massiccia documentazione della libreria, e siamo stati quasi sempre in grado di trovare le funzioni che facevano al caso nostro. In una occasione tuttavia non siamo riusciti a trovare un metodo e abbiamo deciso di scrivere sul gruppo \url{https://groups.google.com/forum/#!forum/dealii}, ottenendo una risposta precisa in breve tempo.\\
-Per risolvere i sistemi lineari, abbiamo sfruttato l'integrazione di \textsf{deal.ii} con la libreria di solutori diretti per matrici sparse asimmetriche UMFPACK, come consigliato in alcuni dei tutorial.\\
-In generale, un problema a elementi finiti viene affrontato in \textsf{deal.ii} creando una triangolazione (\textsf{Triangulation}), un \emph{handler} dei gradi di libert\'a (\textsf{DoF\_Handler}) e un oggetto elementi finiti (\textsf{FE\_Q} per esempio). Si costruiscono le varie matrici del sistema e si usano i \emph{solver} integrati per risolvere il sistema.
-\\\\
-In definitva, la libreria deal.ii si presenta come un prodotto solido e con una curva di apprendimento molto morbida all'inizio, ma che necessita un po' pi\'u di sforzo se si vogliono utilizzare \emph{features} meno comuni.
+\textsf{deal.ii} \`e una libreria scritta in c++ che permette di risolvere tramite metodi a elementi finiti per una grande variet\`a di problemi alle derivate parziali. Fra i suoi maggiori pregi, oltre alla presenza di elementi finiti di ogni ordine, troviamo la grande scalabilit\`a (\`e stato infatti provato che questa libreria riesce a scalare fino a 16.000 processori), la possibilit\`a di interfacciarsi con molte librerie come \textsf{PETSc}, \textsf{Trilinos}, \textsf{METIS}, \textsf{BLAS}, \textsf{LAPACK}, e la vastit\`a e la precisione della documentazione. Soffermandoci un attimo su questo ultimo punto, vorremmo proprio sottolineare la presenza di una documentazione (quasi) sempre precisa e ben organizzata. Oltre a questa, ci sono inoltre 51 tutorial che insegnano a utilizzare la libreria dalla semplice creazione di una \emph{mesh} bidimensionale fino alla risoluzione di problemi iperbolici di meccanica non lineare in 3d con \emph{mesh refinement}. Per scrivere il nostro codice abbiamo sfruttato molto la massiccia documentazione della libreria, e siamo stati quasi sempre in grado di trovare le funzioni che facevano al caso nostro. In una occasione tuttavia non siamo riusciti a trovare un metodo e abbiamo deciso di scrivere sul gruppo \url{https://groups.google.com/forum/#!forum/dealii}, ottenendo una risposta precisa in breve tempo.\\%Tornando alla parte implementativa, per risolvere i sistemi lineari, abbiamo sfruttato l'integrazione di \textsf{deal.ii} con la libreria di solutori diretti per matrici sparse asimmetriche UMFPACK, come consigliato in alcuni dei tutorial.\\
+%In generale, un problema a elementi finiti viene affrontato in \textsf{deal.ii} creando una triangolazione (\textsf{Triangulation}), un \emph{handler} dei gradi di libert\'a (\textsf{DoF\_Handler}) e un oggetto elementi finiti (\textsf{FE\_Q} per esempio). Si costruiscono le varie matrici del sistema e si usano i \emph{solver} integrati per risolvere il sistema.
+In definitiva, la libreria \textsf{deal.ii} si presenta come un prodotto solido e con una curva di apprendimento molto morbida all'inizio, ma che necessita un po' pi\'u di sforzo se si vogliono utilizzare funzionalit\`a meno comuni.
 
 \section{\textsf{Cmake}}
 La libreria \textsf{deal.ii} utilizza \textsf{Cmake} per compilare i codici dei tutorial. Perci\`o anche noi abbiamo utilizzato questo \emph{tool}. In particolare, in un qualsiasi file \textsf{CMakeLists.txt} come quelli forniti da \textsf{deal.ii} occorre aggiungere tutti i file sorgente, scrivere il nome dell'eseguibile desiderato e il \textsf{CMake} crea da solo il \textsf{Makefile} specificando dove si trovano gli \emph{header file} da includere e le librerie di \textsf{deal.ii} da linkare. Utilizzando due sistemi operativi diversi, il \textsf{CMake} \`e stato molto utile per poter lavorare sui codici senza avere problemi di portabilit\`a che pu\`o avere il semplice \textsf{Makefile}. Inoltre, siccome abbiamo utilizzato nel nostro codice \textsf{OpenMP} e il \textsf{CMakeLists.txt} di \textsf{deal.ii} non lo prevede, abbiamo aggiunto la ricerca del pacchetto \textsf{OpenMP} nel modo seguente:
@@ -763,7 +765,7 @@ Il primo blocco di classi scritto nel nostro codice permette di gestire i vari m
 \section{Classi per Opzioni}
 Le classi per Opzioni sono la componente centrale del programma e permettono di istanziare e gestire il problema di differenziale. Sono state scritte secondo le linee guida della libreria \textsf{deal.ii}. Le loro caratteristiche principali sono dunque le seguenti:
 \begin{itemize}
-\item {come tutte le classi presentate nei \emph{tutorial} di \textsf{deal.ii}, anche le nostre hanno la dimensione (nel nostro caso 1 o 2) come parametro \textsf{template}}
+\item {come tutte le classi presentate nei \emph{tutorial} di \textsf{deal.ii}, anche le nostre hanno la dimensione (nel nostro caso 1 o 2) come parametro \emph{template}}
 \item {i pi\`u importanti metodi privati (o protetti) e pubblici dell'oggetto Opzione sono i seguenti:}
 \begin{enumerate}
 \item \textsf{virtual void setup\_system()};
@@ -794,7 +796,7 @@ in modo che il compilatore capisca che deve utilizzare i metodi \textsf{reinit} 
 \subsection{\textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$}}
 Le classi \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$}, anch'esse astratte, ereditano da \textsf{OptionBase$<$dim$>$} e definisco parte dei metodi descritti nell'introduzione. Le due classi implementano la funzione \textsf{void make\_grid()} che crea la \emph{mesh} nei casi \emph{price} e \emph{logprice}, ovvero con le opportune trasformazioni, il metodo \textsf{void assemble\_system()} che integra gli elementi finiti e costruisce le matrici di sistema in 1d e 2d e il metodo \textsf{double get\_price()}, che valuta la soluzione nel punto $x=(0,0)$ per il \emph{logprice} e $\underline{S}=(S_0^1, S_0^2)$ per il \emph{price}, ovvero che restituisce il prezzo dell'opzione. Infine, la classe \textsf{OptionBasePrice$<$dim$>$} implementa qui il metodo \textsf{void setup\_integral()} che istanzia dinamicamente un oggetto di tipo \textsf{LevyIntegral}, che si occupa di calcolare la parte integrale. \textsf{OptionBaseLogPrice$<$dim$>$} invece non lo istanzia qui ma nel "livello" di ereditarier\`a successivo poich\'e con questa trasformazione occorre conoscere le condizioni al bordo per poter calcolare l'integrale.
 \subsection{\textsf{AmericanOption$<$dim$>$} e \textsf{EuropeanOption$<$dim$>$}}
-Queste quattro classi alla base della piramide sono gli oggetti utilizzati per risolvere i vari problemi. Essi implementano le varie funzioni \textsf{void solve()} che risolvono il sistema lineare. In primo luogo quindi viene proiettata sulla \emph{mesh} la condizione finale (ovviamente diversa fra Put e Call, \emph{price} e \emph{logprice}) e successivamente parte il ciclo temporale che applica le condizioni al bordo, calcola il vettore integral $J$ se il modello non \`e \emph{Black\&Scholes} e risolve il sistema. Per quanto riguarda quest'ultimo passaggio, per l'europea abbiamo utilizzato un \emph{solver} usato da \textsf{deal.ii}, ovvero \textsf{SparseDirectUMFPACK}, mentre per l'americana usiamo i \emph{solver} scritti all'interno del decoratore di \textsf{dealii::SparseMatrix$<$double$>$}.
+Queste quattro classi alla base della piramide sono gli oggetti utilizzati per risolvere i vari problemi. Essi implementano le varie funzioni \textsf{void solve()} che risolvono il sistema lineare. In primo luogo quindi viene proiettata sulla \emph{mesh} la condizione finale (ovviamente diversa fra \emph{put} e \emph{call}, \emph{price} e \emph{logprice}) e successivamente parte il ciclo temporale che applica le condizioni al bordo, calcola il vettore integral $J$ se il modello non \`e \emph{Black\&Scholes} e risolve il sistema. Per quanto riguarda quest'ultimo passaggio, per l'europea abbiamo utilizzato un \emph{solver} usato da \textsf{deal.ii}, ovvero \textsf{SparseDirectUMFPACK}, mentre per l'americana usiamo i \emph{solver} scritti all'interno del decoratore di \textsf{dealii::SparseMatrix$<$double$>$}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Classi per il calcolo degli integrali}
@@ -828,7 +830,7 @@ static Factory * instance()
                 return &instance;
         }
 \end{lstlisting}
-Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{Factory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, put o call, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
+Questa funzione permette di istanziare uno e un solo oggetto della classe \textsf{Factory}, che \`e quindi un \emph{singleton}. Oltre a questo metodo, abbiamo due funzioni \textsf{std::unique\_ptr$<$OptionBase$<$dim$>$ $>$ create(...)} con il parametro \textsf{dim} specializzato su una e due dimensioni che prendono come argomenti il tipo di opzione, europea o americana, \emph{put} o \emph{call}, il tipo di trasformazione, i modelli dei sottostanti e i vari parametri dell'opzione.
 \section{Come utilizzare la libreria}
 Sfruttando la \emph{factory} di cui abbiamo appena parlato, utilizzare questa libreria \`e molto semplice:
 \begin{itemize}
@@ -836,7 +838,7 @@ Sfruttando la \emph{factory} di cui abbiamo appena parlato, utilizzare questa li
 \begin{lstlisting}
 BlackScholesModel model(95., 0.120381);
 \end{lstlisting}
-\item dopodich\'e, utilizzando la \emph{factory}, si stabilisce che tipo di opzione istanziare, europea o americana, put o call, con trasformazione \emph{price} o \emph{log-price}, e si passano i parametri del contratto e di mercato, quali tasso di interesse, scadenza del contratto, prezzo di esercizio, e i parametri di discretizzazione,
+\item dopodich\'e, utilizzando la \emph{factory}, si stabilisce che tipo di opzione istanziare, europea o americana, \emph{put} o \emph{call}, con trasformazione \emph{price} o \emph{log-price}, e si passano i parametri del contratto e di mercato, quali tasso di interesse, scadenza del contratto, prezzo di esercizio, e i parametri di discretizzazione,
 \begin{lstlisting}
 auto foo=
 Factory::instance()->create(ExerciseType::EU,
@@ -870,28 +872,27 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 2 & \emph{log-price} & 16384 & 100 & 21.5476\officialeuro & 10.0676s \\ \hline
 \end{tabular}
 \end{center}
-\caption{Prezzi di una Put 1d e di una Call 2d.}
-%\caption{Prezzi di una Put 1d, con $S_0=95$\officialeuro, $\sigma=0.120381$, $r=3.67\%$, $T=1$, $K=90$\officialeuro $ $ e prezzi di una Call 2d, con $S_{0,1}=80$\officialeuro, $\sigma_1=0.1256$, $S_{0,2}=120$\officialeuro, $\sigma_2=0.2$}
+\caption{Prezzi di una \emph{put} 1d e di una \emph{call} 2d.}
 \label{test1-1}
 \end{table}
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-put1dprice.eps}
-\caption{Put Europea, con trasformazione \emph{price}}
+\caption{\emph{Put} europea, con trasformazione \emph{price}}
 \label{fig:test1-put1d-price}
 \end{center}
 \end{figure}
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-derivatives.eps}
-\caption{Derivata prima e seconda della Put Europea, con trasformazione \emph{price}}
+\caption{Derivata prima e seconda della \emph{put} europea, con trasformazione \emph{price}}
 \label{fig:test1-derivative}
 \end{center}
 \end{figure}
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=10cm]{img/test1-put1dlogprice.eps}
-\caption{Put Europea, con trasformazione \emph{log-price}}
+\caption{\emph{Put} europea, con trasformazione \emph{log-price}}
 \label{fig:test1-put1d-logprice}
 \end{center}
 \end{figure}
@@ -900,7 +901,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \makebox[\textwidth][c]{
 \includegraphics[width=15cm]{img/test1-call2dpriceFinalC.eps}
 }
-\caption{Call Europea, con trasformazione \emph{price}, condizione finale}
+\caption{\emph{Call} europea, con trasformazione \emph{price}, condizione finale}
 \label{fig:test1-call1d-fc}
 \end{center}
 \end{figure}
@@ -909,7 +910,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 \makebox[\textwidth][c]{
 \includegraphics[width=15cm]{img/test1-call2dpriceSolution.eps}
 }
-\caption{Call Europea, con trasformazione \emph{price}, soluzione}
+\caption{\emph{Call} europea, con trasformazione \emph{price}, soluzione}
 \label{fig:test1-call1d-sol}
 \end{center}
 \end{figure}
@@ -938,7 +939,7 @@ Griglia/Timesptes& 256/25 & 1024/50 & 4096/100 & 16384/250 & 65536/500 \\ \hline
 \emph{log-price} & 3.42608\officialeuro & 2.79298\officialeuro & 2.54516\officialeuro & 2.51124\officialeuro & 2.49826\officialeuro \\ \hline
 \end{tabular}
 \end{adjustbox}
-\caption{Test di convergenza per una Put 2d.}
+\caption{Test di convergenza per una \emph{put} 2d.}
 \label{step1-3}
 \end{table}
 \newpage
@@ -955,13 +956,13 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 2 & \emph{log-price} & 4096 & 100 & 24.0966\officialeuro & 305.049s \\ \hline
 \end{tabular}
 \end{center}
-\caption{Prezzi di una Call 1d e 2d.}
+\caption{Prezzi di una \emph{call} 1d e 2d.}
 \label{step2-1}
 \end{table}
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test2-call1dkou.eps}
-\caption{Call Europea, con modello di Kou}
+\caption{\emph{Call} europea, con modello di Kou}
 \label{fig:test2-call1d-kou}
 \end{center}
 \end{figure}
@@ -969,7 +970,7 @@ La prima considerazione da effettuare riguarda i tempi di calcolo: rispetto al s
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=12cm]{img/test2-scalefactor.eps}
-\caption{Prezzi di una Put con modello di Kou, al variare di $f$.}
+\caption{Prezzi di una \emph{put} con modello di Kou, al variare di $f$.}
 \label{fig:test2-scalefactor}
 \end{center}
 \end{figure}
@@ -983,7 +984,7 @@ Prezzi & 12.095\officialeuro & 12.4534\officialeuro & 12.4279\officialeuro & 12.
 Tempi & 4.08526s	&	6.47795s	&	9.47712s	&	14.4233s	&	20.2579s & 28.1988s \\ \hline
 \end{tabular}
 \end{adjustbox}
-\caption{Prezzi e tempi di calcolo del prezzo di Call 1d al variare dei nodi di quadratura.}
+\caption{Prezzi e tempi di calcolo del prezzo di \emph{call} 1d al variare dei nodi di quadratura.}
 \label{step2-2}
 \end{table}
 Come possiamo notare, la differenza di prezzo all'aumentare dei nodi di quadratura \`e davvero irrisoria. Ci\`o \`e probabilmente dovuto al fatto che nonostante l'errore sul vettore $J$ possa essere grande, esso viene moltiplicato per la matrice di massa, che generalmente ha numeri molto piccoli. Per questo un errore pur grande su $J$ si manifesta in misura molto attenuata nel prezzo finale. Inoltre, all'aumentare dei nodi di quadratura il tempo di calcolo aumenta considerevolmente. Per questo motivo abbiamo deciso di settare come numero massimo di nodi 32 (ovviamente modificabile con un apposito metodo), in quanto ci sembra l'equilibrio giusto fra precisione e velocit\`a di calcolo.
@@ -1000,7 +1001,7 @@ Dimensione & Trasformazione & Griglia & Timesteps & Prezzo & Tempo \\ \hline
 2 & \emph{log-price} & 16384 & 100 & 4.41147\officialeuro & 0.990322s \\ \hline
 \end{tabular}
 \end{center}
-\caption{Prezzi di Put americane 1d e 2d, \emph{Black\&Scholes}.}
+\caption{Prezzi di \emph{put} americane 1d e 2d, \emph{Black\&Scholes}.}
 \label{test3-1}
 \end{table}
 Il nostro \emph{solver}, che \`e in grado di lavorare anche in parallelo, sembra comportarsi molto bene, sia per quanto riguarda la velocit\`a di calcolo che la precisione raggiunta: la tolleranza per bloccare il \emph{solver} iterativo \`e infatti impostata a $10^{-10}$ e le iterazioni massime sono 1000. Qualora il \emph{solver} non dovesse convergere alla tolleranza in 1000 iterazioni, il programma stampa un \emph{warning}, avvisando l'utente di aver raggiunto il numero massimo di iterazioni e riportando l'errore attuale. Calcolando i prezzi precedenti con una griglia pi\`u fitta il \emph{solver} stampa il \emph{warning}, ma arriva comunque a un errore minore di $10^{-9}$, un valore decisamente accettabile.\\\\Oltre al modello di \emph{Black\&Scholes}, abbiamo anche utilizzato un modello di Kou, per calcolare il prezzo di un'opzione americana monodimensionale. Con una griglia di 1024 celle e 100 iterazioni temporali otteniamo i seguenti prezzi riportati in \ref{test3-2}.
@@ -1013,14 +1014,14 @@ Trasformazione & Prezzo & Tempo \\ \hline
 \emph{log-price} & 4.41217\officialeuro & 22.9427s \\ \hline
 \end{tabular}
 \end{center}
-\caption{Prezzi di una Put americana, Kou.}
+\caption{Prezzi di una \emph{put} americana, Kou.}
 \label{test3-2}
 \end{table}
-Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una put europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: a differenza di quanto accade nella figura \ref{fig:test1-derivative}, qui possiamo vedere come esse siano molto ``lisce'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
+Come possiamo notare i prezzi sono identici per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una \emph{put} europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: a differenza di quanto accade nella figura \ref{fig:test1-derivative}, qui possiamo vedere come esse siano molto ``lisce'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=\textwidth]{img/test2-putamkou.eps}
-\caption{Put americana, con trasformazione \emph{price}.}
+\caption{\emph{Put} americana, con trasformazione \emph{price}.}
 \label{fig:test2-putamkou}
 \end{center}
 \end{figure}
@@ -1109,7 +1110,7 @@ Trasformazione & Celle di partenza & Celle di arrivo & Timesteps & Prezzo & Temp
 \emph{log-price} & 256 & 520 & 100 & 12.4281\officialeuro & 4.23711s \\ \hline
 \end{tabular}
 \end{adjustbox}
-\caption{Prezzi di una Call 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
+\caption{Prezzi di una \emph{call} 1d, Kou, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
 \label{test5-1}
 \end{table}
 Questi risultati sono stati ottenuti con il medesimo modello utilizzato per il caso monodimensionale di \ref{step2-1}, e come possiamo notare, non solo i prezzi ottenuti sono praticamente gli stessi, ma sono calcolati molto pi\`u velocemente, in particolare per la trasformazione \emph{price}.\\Oltre alle opzioni europee, abbiamo testato il \emph{mesh refinement} anche sulle opzioni americane, con risultati non pienamente soddisfacenti. Come gi\`a detto infatti, i prezzi di queste opzioni viene calcolato mediante un \emph{solver} iterativo, che con l'adattivit\`a di griglia fatica a convergere. Abbiamo quindi calcolato i prezzi di una semplice opzione americana con il modello di \emph{Black\&Scholes} al variare delle iterazioni massime del \emph{solver}, ottenendo i risultati illustrati nelle tabelle \ref{test5-2} e \ref{test5-3}. I prezzi target sono quelli monodimensionali riportati in \ref{test3-1}, e come possiamo vedere i prezzi faticano a convergere, anche con 1000 iterazioni massime (ovvero il parametro di default). Ipotizziamo il motivo sia che, a causa del riordinamento dei nodi e aggiunta di altri, la matrice diventi mal condizionata e per questo motivo il \emph{solver} faccia fatica a convergere.
@@ -1122,7 +1123,7 @@ Prezzo & 1.09713\officialeuro & 1.46016\officialeuro	& 1.54845\officialeuro \\ \
 Tempo & 0.54812s	& 3.79223s & 18.0422s\\ \hline
 \end{tabular}
 \end{center}
-\caption{Prezzi di una Put Americana in \emph{price}, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
+\caption{Prezzi di una \emph{put} americana in \emph{price}, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
 \label{test5-2}
 \end{table}
 \begin{table}[htb!]
@@ -1134,11 +1135,11 @@ Prezzo & 1.26063\officialeuro &	1.50763\officialeuro & 1.52639\officialeuro \\ \
 Tempo & 0.851332s	 & 5.55052es & 17.7176s\\ \hline
 \end{tabular}
 \end{center}
-\caption{Prezzi di una Put Americana in \emph{log-price}, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
+\caption{Prezzi di una \emph{put} americana in \emph{log-price}, con parametri 0.2 di \emph{refinement} e 0.03 di \emph{coarsening}.}
 \label{test5-3}
 \end{table}
 
-Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensionali, con la trasformazione \emph{log-price} (ricordiamo infatti che poich\'e il \emph{price} richiede una griglia strutturata, non \`e corretto fare \emph{mesh adapting}). Abbiamo quindi testato il comportamento di una Call 2d al variare dei coefficienti di adattivit\`a, i cui sottostanti evolvono secondo modelli di Merton, ottenendo i risultati riportati in \ref{test5-4}.
+Ci siamo infine concentrati sull'adattivit\`a di griglia nelle opzioni bidimensionali, con la trasformazione \emph{log-price} (ricordiamo infatti che poich\'e il \emph{price} richiede una griglia strutturata, non \`e corretto fare \emph{mesh adapting}). Abbiamo quindi testato il comportamento di una \emph{call} 2d al variare dei coefficienti di adattivit\`a, i cui sottostanti evolvono secondo modelli di Merton, ottenendo i risultati riportati in \ref{test5-4}.
 \begin{table}[htb!]
 \begin{adjustbox}{center}
 \begin{tabular}{| l | l | l | l | l | l | l |}
@@ -1148,7 +1149,7 @@ Ref/Coar & g.d.l di partenza & g.d.l di arrivo & Timesteps & Prezzo & Tempo \\ \
 0/0.1 & 4225 & 3526 & 100 & 24.097\officialeuro & 275.006s \\ \hline
 \end{tabular}
 \end{adjustbox}
-\caption{Prezzi di una Call 2d, Merton.}
+\caption{Prezzi di una \emph{call} 2d, Merton.}
 \label{test5-4}
 \end{table}
 Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-1}. Come possiamo notare, qui i prezzi convergono al valore giusto, con tempi di calcolo coerenti rispetto alle prestazioni del caso senza raffinamento di griglia: nel primo caso infatti, all'aumentare dei nodi, il programma impiega pi\`u tempo a girare, rispetto a quanto indicato in \ref{step2-1}, mentre nel secondo caso, i nodi della griglia diminuiscono, permettendo all'algoritmo di calcolare il prezzo in modo pi\`u rapido. L'accelerazione nel secondo caso tuttavia non \`e molto evidente, ci\`o \`e dovuto sia al fatto che i nodi non diminuiscono cos\`i tanto e poi con il \emph{mesh refinement}, il programma ogni 20 iterazioni temporali deve ricostruire il sistema, impiegando un tempo non trascurabile.\\Di seguito sono riportate le \emph{mesh} generate nei due casi: nel set con parametri 0.03/0.15 possiamo vedere come la griglia diventi pi\`u lasca nella parte in cui la soluzione \`e nulla e dove la soluzione cresce in modo costante, mentre si infittisce dove la soluzione si alza e vicino ai bordi, dove c'\`e una condizione al contorno $\mathcal{C}^0$. Nel set di griglie con parametri 0/0.1 notiamo invece come la soluzione diventi pi\`u lasca nella zona in cui la soluzione vale 0.
@@ -1179,7 +1180,7 @@ Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-
 \makebox[\textwidth][c]{
 \includegraphics[width=15cm]{img/test5-1.eps}
 }
-\caption{Valore della soluzione di una Call 2d \emph{log-price}, con parametri 0.03 di \emph{refinement} e 0.15 di \emph{coarsening}.}
+\caption{Valore della soluzione di una \emph{call} 2d \emph{log-price}, con parametri 0.03 di \emph{refinement} e 0.15 di \emph{coarsening}.}
 \label{fig:test5-1}
 \end{center}
 \end{figure}
@@ -1205,14 +1206,27 @@ Questi valori sono da confrontare con quelli riportati nella tabella \ref{step2-
 \makebox[\textwidth][c]{
 \includegraphics[width=15cm]{img/test5-2.eps}
 }
-\caption{Valore della soluzione di una Call 2d \emph{log-price}, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
+\caption{Valore della soluzione di una \emph{call} 2d \emph{log-price}, con parametri 0 di \emph{refinement} e 0.1 di \emph{coarsening}.}
 \label{fig:test5-2}
 \end{center}
 \end{figure}
 
 \chapter{Estensioni}
-Il programma che abbiamo scritto si presta molto a possibili estensioni, su molti livelli. In particolare, a partire dalle classi base \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$} \`e possibile scrivere dei \emph{solver} che prezzino tutte le opzioni barriera, ovvero opzioni caratterizzate da condizioni al bordo di \emph{Dirichlet} nulle in alcune parti o su tutto il bordo dominio, che riflettono il fatto che se il sottostante tocca tali barriere l'opzione ah valore nullo.\\\`E inoltre possibile estendere la libreria in modo che prezzi opzioni con altri modelli, per esempio ad attivit\`a infinita, caratterizzati cio\`e da misure di L\'evy non limitate (come, ad esempio, il \emph{Normal Inverse Gaussian} e il \emph{Variance Gamma}). Per fare ci\`o occorre modificare le classi integrale, in modo che calcolino il parametro $\lambda$, che per questi modelli \`e incognito e calcolare all'interno della classe opzione la diffusione che approssima i piccoli salti (che in questo caso, sono infiniti).\\Un'altra estensione possibile, ma abbastanza delicata, \`e estendere il programma al calcolo di opzioni con tre sottostanti, ovvero risolvere un PIDE 3d. Teoricamente l'equazione sarebbe formalmente la stessa, con l'aggiunta di un terzo integrale su $\mathbb{R}$. Occorrerebbe tuttavia prestare attenzione a dove integrare i vari integrali: in 2d, infatti, nella trasformazione \emph{price} abbiamo calcolato gli integrali sui lati dei quadrilateri che costituiscono la \emph{mesh}, in 3d si dovrebbe invece integrare sui lati delle facce dei parallelepipedi. Teoricamente, cosò come \textsf{deal.ii} offre la possibilità di lavorare sulle facce di celle bidimensionali, offre anche la possibilità di lavorare su facce e spigoli nel caso tridimensionale. \\Si potrebbe provare poi a utilizzare le funzioni offerte dalla libreria \textsf{deal.ii} per la soluzione del problema con memoria distribuita. Per quanto riguarda la parte PDE si pu\`o sfruttare quanto implementato nella libreria, mentre per il calcolo dell'integrale in \emph{price} occorrerebbe spedire tutta la soluzione a tutti i processi (perch\'e il termine \`e non locale), in \emph{log-price} invece tutti i processi devono conoscere tutta la griglia, per poter valutare la funzione nei punti $y+x$ (\ref{intnonlocal}).\\\\
-%Aggiungere altri modelli (NIG, VG), provare altre opzioni, farlo in 3d, Heston?, memoria distribuita.
+Il programma che abbiamo scritto si presta molto a possibili estensioni, su molti livelli. In particolare, a partire dalle classi base \textsf{OptionBasePrice$<$dim$>$} e \textsf{OptionBaseLogPrice$<$dim$>$} \`e possibile scrivere dei \emph{solver} che prezzino tutte le opzioni barriera, ovvero opzioni caratterizzate da condizioni al bordo di \emph{Dirichlet} nulle in alcune parti o su tutto il bordo dominio, che riflettono il fatto che se il sottostante tocca tali barriere l'opzione ah valore nullo.\\\`E inoltre possibile estendere la libreria in modo che prezzi opzioni con altri modelli, per esempio ad attivit\`a infinita, caratterizzati cio\`e da misure di L\'evy non limitate (come, ad esempio, il \emph{Normal Inverse Gaussian} e il \emph{Variance Gamma}). Per fare ci\`o occorre modificare le classi integrale, in modo che calcolino il parametro $\lambda$, che per questi modelli \`e incognito e calcolare all'interno della classe opzione la diffusione che approssima i piccoli salti (che in questo caso, sono infiniti).\\Un'altra estensione possibile, ma abbastanza delicata, \`e estendere il programma al calcolo di opzioni con tre sottostanti, ovvero risolvere un PIDE 3d. Teoricamente l'equazione sarebbe formalmente la stessa, con l'aggiunta di un terzo integrale su $\mathbb{R}$. Occorrerebbe tuttavia prestare attenzione a dove integrare i vari integrali: in 2d, infatti, nella trasformazione \emph{price} abbiamo calcolato gli integrali sui lati dei quadrilateri che costituiscono la \emph{mesh}, in 3d si dovrebbe invece integrare sui lati delle facce dei parallelepipedi. Teoricamente, cosò come \textsf{deal.ii} offre la possibilità di lavorare sulle facce di celle bidimensionali, offre anche la possibilità di lavorare su facce e spigoli nel caso tridimensionale. \\Si potrebbe provare poi a utilizzare le funzioni offerte dalla libreria \textsf{deal.ii} per la soluzione del problema con memoria distribuita. Per quanto riguarda la parte PDE si pu\`o sfruttare quanto implementato nella libreria, mentre per il calcolo dell'integrale in \emph{price} occorrerebbe spedire tutta la soluzione a tutti i processi (perch\'e il termine \`e non locale), in \emph{log-price} invece tutti i processi devono conoscere tutta la griglia, per poter valutare la funzione nei punti $y+x$ (\ref{intnonlocal}).
+
+\chapter{Conclusioni}
+Siamo dunque giunti al termine di questo elaborato, ed \`e ora di trarre delle conclusioni.\\
+
+Il primo punto su cui vorremmo soffermarci \`e il confronto fra le trasformazioni \emph{price} e \emph{log-price}: come abbiamo potuto vedere nel Capitolo 6, analizzando i risultati, la trasformazione \emph{price} si \`e dimostrata sorprendentemente veloce nella risoluzione del problema, mentre nel caso monodimensionale occorre fare delle considerazioni pi\`u delicate. Nonostante infatti il calcolo dell'integrale con \emph{price} sia algoritmicamente pi\`u veloce rispetto alla trasformazione \emph{log-price}, quest'ultima, complici la facile parallelizzazione e la veloce convergenza dell'integrale garantita dai nodi di Hermite e di Laguerre, risulta pi\`u veloce su un computer di media potenza, cio\`e con a disposizione 4 \emph{cores}.\\
+
+Un altro punto su cui vorremmo spendere qualche parola riguarda il \emph{solver} iterativo che abbiamo scritto per il \emph{pricing} di opzioni americane. Anche in questo caso abbiamo \emph{mixed feelings}\todo{Mettere a posto.}: per quanto riguarda il caso \emph{Black\&Scholes} senza \emph{mesh refinement} infatti le prestazioni sono ottime, anche migliori del \emph{solver} UMFPACK di \textsf{deal.ii} come dimostra il confronto fra i risultati nelle tabelle \ref{test1-1} e \ref{test3-1}, mentre quando introduciamo il \emph{mesh refinement} le prestazioni peggiorano molto, tanto che nel \emph{log-price} il \emph{solver} fatica addirittura a convergere al risultato corretto. Riteniamo che queste condizioni contrastanti siano legate al condizionamento del problema: il nostro \emph{solver} infatti \`e molto semplice e non fa alcun test sulla matrice di sistema, e questo si traduce in prestazioni ottime quando la matrice \`e ben condizionata e prestazioni non buone quando \`e mal condizionata. Il \emph{solver} di \textsf{deal.ii} invece immaginiamo che faccia test sulla matrice, impiegando anche del tempo aggiuntivo per risolvere il sistema, ma applichi in ogni occasione il metodo migliore\footnote{Nella descrizione di UMFPACK infatti \`e scritto che questo \emph{tool} \`e un set di \emph{routine} per risolvere sistemi lineari asimmetrici, quindi non \`e semplicemente un \emph{solver}.}. Probabilmente, applicando dei condizionatori adatti, le prestazioni del nostro \emph{solver} iterativo potrebbero beneficiarne.\\
+
+Infine dedichiamo qualche riga al confronto fra metodi alle differenze finite e metodi agli elementi finiti...to be continued.
+FEM vs DF
+La soluzione \`e calcolata ovunque
+I FEM hanno l'adattivit\`a di griglia
+I FEM possono facilmente gestire curvature molto alte, DF meno.
+il drawback \`e che le DF sono immediate da implementare, anche in 2d, mentre per gli elementi finiti \`e quasi d'obbligo utilizzare una libreria esterna nel caso multidimensionale.
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliografia}
 %stile della bibliografia
