@@ -275,14 +275,13 @@ int main() {
 	MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
 	
 	//this option is not on the factory,  so we declare it
-	EuropeanLogPrice_Doubling<2> optie(OptionType::Call, model1.get_pointer(), model2.get_pointer(), -0.2, 0.1, 1., 200., 6, 100);
-	optie.set_print_grid(true);
+	EuropeanLogPrice_Doubling<1> optie(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
 	optie.set_refine_status(true, 0.03, 0.1);
 	optie.set_integral_adaptivity_params(false,16);
 	optie.run();
 	
 	cout<< "And the price is "<< optie.get_price()<< endl;
-	cout<< "my target price is ? \n";
+	cout<< "my target price is 12.427 \n";
 
 	return 0;
 }
