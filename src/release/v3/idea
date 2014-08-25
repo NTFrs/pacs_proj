@@ -1,5 +1,0 @@
-1) B&S Price, LogPrice, 1d, 2d
-2) Kou, Merton, Price, LogPrice, 1d, 2d
-3) Americane, B&S, Kou, 1d, 2d
-4) SpeedTest LogPrice Kou, serial vs parallel (1d, 2d)
-5) MeshRefinement
