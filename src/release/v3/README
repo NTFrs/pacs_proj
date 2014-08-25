@@ -1,1 +1,13 @@
 The present project is a small library that can be used to price financial derivatives on Levy Assets in both one and two dimensions. It provides the functions to price the basic financial objects, as well as the base structure to easily create new financial objects with few lines of code. As for instructions on how use it, see the file INSTALL.
+
+The following example programs can be found in this folder:
+1) test1: B&S framework (only PDE) options are tested in 1 and 2 dimensions, using both transformations price and logprice.
+2) test2: Kou, Merton models (PIDE equations) on both Price and LogPrice transformations are tested. 1d and 2d.
+3) test3: American options are tested, both in 1d and 2d. B&S and Kou models
+4) test4: SpeedTest for the LogPrice transofrmation with Kou model, serial vs parallel (1d, 2d)
+5) test5: Mesh refinement, on both 1 (price and logprice transformations) and 2 (only logprice) dimensions, is tested
+
+In addition, this folder includes
+1) profiled: a small test program designed to be used with a profiling tool. CMakeLists can be easily edited (just decomment) to add the '-pg' flag to compiler and linker
+2)doubling_extension: a small extension of the library using a different error estimation for mesh refinement
+3)barrier: a small extension that implements a different type of financiel option
