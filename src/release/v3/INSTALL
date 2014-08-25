@@ -1,15 +1,21 @@
 In order to use this library, it is only needed to have the deal.ii library and CMake installed. Since it's mostly templates, it is practically a collection of header files, and thus it does not require an installation. It all comes down to using the provided CMakeLists and setting it as necessary. If file locations are kept the same, there is no need to do anyting besides:
--) Get in the folder of interest (for example test1)
--) Run the following commands
-	-)cmake .
-	-)make ( preferably "make release") to compile the executable
-	-)make run to run the executable
+
+1. get in the folder of interest (for example test1),
+2. run the following command:
+	cmake .
+   or
+	cmake -DDEAL_II_DIR=/path/to/deal.ii .
+   if the deal.ii library is not in /usr/local.
+3. Then:
+	make release
+4. And to run the program:
+	make run
 
 ----Building the documentation----
 
-If you have doxygen installed, you can compile the documentation with
+If you have doxygen installed, you can compile the documentation typing:
 
--)doxygen doxy-config
+	doxygen doxy-config
 
-here in this main folder.
+in this main folder.
 

@@ -40,7 +40,7 @@ PROJECT(${TARGET})
 
 SET(CLEAN_UP_FILES
   # a custom list of globs, e.g. *.log *.vtk
-  ${CLEAN_UP_FILES} matlab/*m plot/*eps gnuplot/*gpl
+  ${CLEAN_UP_FILES} matlab/*m plot/*eps gnuplot/*gpl *m
 )
 
 find_package(OpenMP)

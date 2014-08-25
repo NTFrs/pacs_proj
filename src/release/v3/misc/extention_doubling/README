@@ -1,1 +1,1 @@
-Small extension of the library that uses a different error estimator for the mesh refinement: It refines the grid eveywhere once, computes the solution on this finer grid, and reinterpolates it to the coarser mesh and calculates the error on every cell w.r.t the old solution.
+Small extension of the library that uses a different error estimator for the mesh refinement: it refines the grid eveywhere once, computes the solution on this finer grid, and reinterpolates it to the coarser mesh and calculates the error on every cell w.r.t the old solution.
