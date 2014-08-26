@@ -1,0 +1,4 @@
+We extend here some funcionality of our library.
+With a simple add, we create a tool to price a barrier option.
+We write a new class, which inherits from EuropeanOptionPrice<dim>, and we re write the make_grid() and solve() in order to solve this particular problem.
+Then, we test the behavior of this new object pricing with Black&Scholes, Kou and Merton models, in 1d and 2d.
