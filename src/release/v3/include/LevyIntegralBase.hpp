@@ -76,7 +76,7 @@ public:
 	
 	virtual inline void set_time(double tm){};
         
-        //! Used to set the adaptivity parameters both for alpha and J
+        //! Used to set the adaptivity parameters both for alpha and J (used by LogPrice)
         /*!
          * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
 	 * \param order_max_	Maximum order of quadrature
@@ -85,7 +85,7 @@ public:
          */
         virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_, double J_toll_){};
         
-        //! Used to set the adaptivity parameters both for alpha
+        //! Used to set the adaptivity parameters for alpha (used by Price)
         /*!
          * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
          * \param order_max_	Maximum order of quadrature

@@ -19,9 +19,10 @@ public:
 	//! Only constructor of the class
 	/*!
          * Same as the constructor of the base class.
-	 * \param lower_limit_ 		the left-bottom limit of the domain		
-	 * \param upper_limit_ 		the rigth-upper limit of the domain
-	 * \param Models_			A vector containing the needed models
+	 * \param lower_limit_	the left-bottom limit of the domain		
+	 * \param upper_limit_ 	the rigth-upper limit of the domain
+	 * \param Models_	a vector containing the needed models
+         * \param order_        the beginning order of the numerical quadrature
          */
 	LevyIntegralPrice(dealii::Point<dim> lower_limit_,
                           dealii::Point<dim> upper_limit_,

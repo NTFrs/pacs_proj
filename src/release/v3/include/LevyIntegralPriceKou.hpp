@@ -30,10 +30,11 @@ public:
 	//! Only constructor of the class
 	/*!
          * Similar to constructor of base class,  adds the option to make the quadrature of alpha adaptive.
-	 * \param lower_limit_ 		the left-bottom limit of the domain		
-	 * \param upper_limit_ 		the rigth-upper limit of the domain
-	 * \param Models_			A vector containing the needed models
-	 * \param apt 				boolean indicating if the quadrature must be adaptive. Default true.
+	 * \param lower_limit_	the left-bottom limit of the domain		
+	 * \param upper_limit_ 	the rigth-upper limit of the domain
+	 * \param Models_	a vector containing the needed models
+	 * \param order_        the beginning order of the numerical quadrature
+         * \param apt 		boolean indicating if the quadrature must be adaptive. Default true.
          */
 	LevyIntegralPriceKou(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,

@@ -33,11 +33,12 @@ public:
         //! Only constructor of this class
         /*!
          * Similar to constructor of base class,  adds the space for a boundary condition.
-         * \param lower_limit_ 		the left-bottom limit of the domain		
-         * \param upper_limit_ 		the rigth-upper limit of the domain
-         * \param Models_			A vector containing the needed models
-         * \param BC_ 				Pointer to the Boundary Condition. Best to use std::move(BC),  where BC is std::unique_ptr to a dinamically allocated Function\<dim\> object from Deal.II (possibly a BoundaryConditionLogPrice)
-         * \param apt				Used to set if the quadrature uses adaptive nodes (Default true) 
+         * \param lower_limit_ 	the left-bottom limit of the domain		
+         * \param upper_limit_ 	the rigth-upper limit of the domain
+         * \param Models_	A vector containing the needed models
+         * \param BC_ 		Pointer to the Boundary Condition. Best to use std::move(BC),  where BC is std::unique_ptr to a dinamically allocated Function\<dim\> object from Deal.II (possibly a BoundaryConditionLogPrice)
+         * \param order_        The beginning order of the numerical quadrature
+         * \param apt		Used to set if the quadrature uses adaptive nodes (Default true) 
          */
         LevyIntegralLogPriceKou(dealii::Point<dim> lower_limit_,
                                 dealii::Point<dim> upper_limit_,
