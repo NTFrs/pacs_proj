@@ -53,7 +53,8 @@ makefile
 *.bbl
 *.blg
 *.dvi
-
+*.lof
+*.lot
 
 #doxy
 @ONLY
