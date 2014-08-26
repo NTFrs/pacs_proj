@@ -70,7 +70,7 @@ public:
         {};
         
         AmericanOptionLogPrice& operator=(const AmericanOptionLogPrice &)=delete;
-
+        
 };
 
 template <unsigned dim>
@@ -141,7 +141,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         cout<< "Step "<<Step<<"\t at time "<<time<<"\n";
                 }
                 
-			 if (this->refine && Step%20==0 && Step!=this->time_step) {
+                if (this->refine && Step%20==0 && Step!=this->time_step) {
                         this->refine_grid();
                         if (dim==2 && this->print_grids) {
                                 this->print_grid(Step);
@@ -153,9 +153,9 @@ void AmericanOptionLogPrice<dim>::solve ()
                         Vector<double> *J_x;
                         Vector<double> *J_y;
                         Vector<double> temp;
-						this->levy->set_time(this->T);
+                        this->levy->set_time(this->T);
                         
-					this->levy->compute_J(this->solution, this->dof_handler, this->fe, this->vertices);
+                        this->levy->compute_J(this->solution, this->dof_handler, this->fe, this->vertices);
                         
                         if (dim==1)
                                 this->levy->get_j_1(J_x);
@@ -195,8 +195,8 @@ void AmericanOptionLogPrice<dim>::solve ()
                                                                   bc,
                                                                   boundary_values);
                         
-						if (dim==1)
-						VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
+                        if (dim==1)
+                                VectorTools::interpolate_boundary_values (this->dof_handler,1,bc,boundary_values);
                         
                         MatrixTools::apply_boundary_values (boundary_values,
                                                             (this->system_matrix),
@@ -215,10 +215,10 @@ void AmericanOptionLogPrice<dim>::solve ()
                                                               solution_old,
                                                               this->system_rhs,
                                                               this->vertices,
-                                FinalConditionLogPrice<dim>(S0, this->K, OptionType::Put),
+                                                              FinalConditionLogPrice<dim>(S0, this->K, OptionType::Put),
                                                               this->omega);
-						this->constraints.distribute(this->solution);
-						this->constraints.distribute(solution_old);
+                        this->constraints.distribute(this->solution);
+                        this->constraints.distribute(solution_old);
                         
                         auto temp=this->solution;
                         temp.add(-1, solution_old);
@@ -236,7 +236,7 @@ void AmericanOptionLogPrice<dim>::solve ()
                         }
                         
                 }
-				                
+                
         }
         
         if (this->print) {

@@ -17,7 +17,7 @@ namespace tools {
                         return counter_;
                 }
         };
-
+        
         
         //! A small class that implements the extension of a function when out of domain
         /*!

@@ -15,7 +15,7 @@ public:
         //! Constructor
         /*!
          * \param K_    Strike Price
-		 * \param T_    Excercise time
+         * \param T_    Excercise time
          * \param r_    Interest Rate
          * \param type_ Option type (Put or Call)
          */

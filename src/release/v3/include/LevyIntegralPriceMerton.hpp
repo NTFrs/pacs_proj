@@ -31,8 +31,8 @@ public:
 	 * Similar to constructor of base class,  adds the option to make the quadrature of alpha adaptive.
 	 * \param lower_limit_ 		the left-bottom limit of the domain		
 	 * \param upper_limit_ 		the rigth-upper limit of the domain
-	 * \param Models_			A vector containing the needed models
-	 * \param apt 				boolean indicating if the quadrature must be adaptive. Default true.
+	 * \param Models_		A vector containing the needed models
+	 * \param apt 			boolean indicating if the quadrature must be adaptive. Default true.
 	 */
 	LevyIntegralPriceMerton(dealii::Point<dim> lower_limit_,
                                 dealii::Point<dim> upper_limit_,

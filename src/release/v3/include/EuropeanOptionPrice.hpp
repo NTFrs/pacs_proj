@@ -184,7 +184,7 @@ void EuropeanOptionPrice<dim>::solve ()
                 
                 this->solution=this->system_rhs;
                 
-				this->constraints.distribute(this->solution);
+                this->constraints.distribute(this->solution);
         }
         
         if (this->print) {

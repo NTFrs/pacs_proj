@@ -75,8 +75,8 @@ public:
                 //cgqf ( int nt, int kind, double alpha, double beta, double a, double b, double t[], double wts[] )
                 quadrature::cgqf ( order, kind, 0., 0., mu, 1/(2*delta*delta), nodes.data(), weights.data() );
         }
-    
-    //! Returns the order of the method
+        
+        //! Returns the order of the method
 	inline unsigned get_order () {return order;}
 	//! Returns the integration nodes
 	inline std::vector<double> const & get_nodes () {return nodes;}

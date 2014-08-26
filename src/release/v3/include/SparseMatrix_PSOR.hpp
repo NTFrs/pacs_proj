@@ -64,7 +64,7 @@ public:
                                 const Vector<number> &v_old,
                                 const Vector<number> &b,
                                 const std::vector< dealii::Point<dim> > &vertices,
-								Function<dim> const & payoff,
+                                Function<dim> const & payoff,
                                 const number        om = 1.);
         
 };
@@ -109,7 +109,7 @@ dealii::SparseMatrix_PSOR<number, dim>::ProjectedSOR_step (Vector<number> &v,
                 
                 v(row)=(payoff.value(vertices[row])>v_old(row)+om*(z/(this->diag_element(row))-v_old(row)))
                 ?
-				(payoff.value(vertices[row]))
+                (payoff.value(vertices[row]))
                 :
                 v_old(row)+om*(z/(this->diag_element(row))-v_old(row));
                 

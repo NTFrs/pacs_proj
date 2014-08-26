@@ -2,7 +2,7 @@
 #  CMake script for the test 1 program:
 ##
 
-include_directories(../include)
+include_directories(../../include)
 
 # Set the name of the project and target:
 SET(TARGET "doubling")
@@ -11,7 +11,7 @@ SET(TARGET "doubling")
 SET(TARGET_SRC
   ${TARGET}.cpp
   # You can specify additional files here!
-  ../src/QuadratureRule.cpp
+  ../../src/QuadratureRule.cpp
   )
   
 # Usually, you will not need to modify anything beyond this point...

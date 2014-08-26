@@ -555,7 +555,7 @@ print_grids(false)
         }
         
         if (rho_>1. || rho_<-1.)
-			throw(std::logic_error("Error! Correlation coefficient greater than 1 or lower than -1!"));
+                throw(std::logic_error("Error! Correlation coefficient greater than 1 or lower than -1!"));
         
         models.push_back(model1);
         models.push_back(model2);

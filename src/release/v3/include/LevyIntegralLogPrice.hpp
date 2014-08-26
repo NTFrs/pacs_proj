@@ -24,9 +24,9 @@ protected:
         //! Computes one entry of the J vector
         /*!
          * Computes,  using a generic Gauss quadrature formula,  the value of a single entry of J relative the point vert. All info needed is passed through the Solution_Trimmer trim,  and the dimension.
-		 * \param vert		dealii::Point\<dim\> on wich the entry is calculated
-		 * \param trim		tools::Solution_Trimmer\<dim\> that returns the correct value of solution
-		 * \param d			dimension along which is calculated (0 for x and 1 for y normally)
+         * \param vert		dealii::Point\<dim\> on wich the entry is calculated
+         * \param trim		tools::Solution_Trimmer\<dim\> that returns the correct value of solution
+         * \param d		dimension along which is calculated (0 for x and 1 for y normally)
          */
 	virtual double get_one_J(dealii::Point<dim> vert, tools::Solution_Trimmer<dim> & trim,  unsigned d);
 public:
@@ -40,8 +40,8 @@ public:
          * Similar to constructor of base class,  adds the space for a boundary condition.
          * \param lower_limit_ 		the left-bottom limit of the domain		
          * \param upper_limit_ 		the rigth-upper limit of the domain
-         * \param Models_			A vector containing the needed models
-         * \param BC_ 				Pointer to the Boundary Condition. Best to use std::move(BC),  where BC is std::unique_ptr to a dinamically allocated Function\<dim\> object from Deal.II (possibly a BoundaryConditionLogPrice)
+         * \param Models_		A vector containing the needed models
+         * \param BC_ 			Pointer to the Boundary Condition. Best to use std::move(BC),  where BC is std::unique_ptr to a dinamically allocated Function\<dim\> object from Deal.II (possibly a BoundaryConditionLogPrice)
          */
         LevyIntegralLogPrice(dealii::Point<dim> lower_limit_,
                              dealii::Point<dim> upper_limit_,
@@ -78,9 +78,9 @@ public:
 	//! Computes the J part of the integral for a logprice transformation
 	/*!
 	 * This method computes the j part of the integrals and stores them inside j1 and j2 members. It calls the LevyIntegralLogPrice::get_one_J() method.
-	 * \param sol			DealII Vector containing the values of the solutio function
+	 * \param sol		DealII Vector containing the values of the solutio function
 	 * \param dof_handler	DealII DoF Handler associated to this triangulation and solution
-	 * \param fe			DealII Finite elements associated to this triangulation and solution
+	 * \param fe		DealII Finite elements associated to this triangulation and solution
 	 */
 	virtual void compute_J(dealii::Vector<double> & sol,
                                dealii::DoFHandler<dim> & dof_handler,

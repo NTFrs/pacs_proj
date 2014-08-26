@@ -31,11 +31,11 @@
  * \arg Set where this library can be found through include_directories(<em>path to the directory with headers</em>)
  * \arg It may be needed to set the additional sources. For example,  this tool uses a source file called `QuadratureRule.cpp` that is specified by setting the variable TARGET_SRC
  * \code# Declare all source files the target consists of:
-	SET(TARGET_SRC
-	${TARGET}.cpp
-	# You can specify additional files here!
-	../src/QuadratureRule.cpp
-	) \endcode
+ SET(TARGET_SRC
+ ${TARGET}.cpp
+ # You can specify additional files here!
+ ../src/QuadratureRule.cpp
+ ) \endcode
  *Note that it alredy sets the main file,  so it is not needed to set it explicitly
  *
  * In the default configuration, the main file is in a directory,  while the include and source directories with the library files are just outside it. In that case,  it would only be needed to add the name of the main file and eventual sources.

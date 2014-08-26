@@ -72,25 +72,25 @@ public:
 	
 	virtual void compute_J(dealii::Vector<double> & sol, 
                                dealii::DoFHandler<dim> & dof_handler,
-	 dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices)=0;
+                               dealii::FE_Q<dim> & fe, std::vector< dealii::Point<dim> > const & vertices)=0;
 	
 	virtual inline void set_time(double tm){};
         
         //! Used to set the adaptivity parameters both for alpha and J
         /*!
          * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
-		 * \param order_max_	Maximum order of quadrature
-		 * \param alpha_toll_	Tollerance for error in alpha 
+	 * \param order_max_	Maximum order of quadrature
+         * \param alpha_toll_	Tollerance for error in alpha 
          * \param J_toll_		Tollerance for the error in J
          */
         virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_, double J_toll_){};
-
-		//! Used to set the adaptivity parameters both for alpha
-		/*!
-		 * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
-		 * \param order_max_	Maximum order of quadrature
-		 * \param alpha_toll_	Tollerance for error in alpha 
-		 */
+        
+        //! Used to set the adaptivity parameters both for alpha
+        /*!
+         * Sets the parameters for the adaptivity in the integral. Not defined for thi base class.
+         * \param order_max_	Maximum order of quadrature
+         * \param alpha_toll_	Tollerance for error in alpha 
+         */
         virtual void set_adaptivity_params(unsigned order_max_, double alpha_toll_){};
 	
 	//! Returns the value of the alpha part of the first integral
@@ -136,7 +136,7 @@ public:
         //! Used to get j parts of both integrals
 	virtual void get_j_both(dealii::Vector<double> * &J_x, dealii::Vector<double> * &J_y) {
                 if (!j_ran) {
-						throw(std::logic_error("Run J first!\n"));
+                        throw(std::logic_error("Run J first!\n"));
                 }
                 else{
                         J_x=&j1;

@@ -86,7 +86,7 @@ void LevyIntegralPrice<1>::compute_J(dealii::Vector<double> & sol, dealii::DoFHa
 	std::vector< Point <1> > quad_points(n_q_points);
 	
 	double logz(0.);
-                
+        
 	//we loop over cells. In each cell,  we get the values of the function as well as the quadrature points.
         for (;cell !=endc;++cell) {
 		fe_values.reinit(cell);
