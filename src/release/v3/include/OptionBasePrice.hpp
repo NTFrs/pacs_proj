@@ -55,7 +55,7 @@ public:
         
         virtual double get_price();
         
-		virtual void set_refine_status(bool status, float refine_=0.2, float coarse_=0.03);
+        virtual void set_refine_status(bool status, float refine_=0.2, float coarse_=0.03);
 };
 
 
@@ -182,15 +182,6 @@ void OptionBasePrice<dim>::assemble_system()
                 auto pointer=static_cast<SparseMatrix<double> *> (&(this->system_matrix));
                 this->constraints.distribute_local_to_global(cell_mat, local_dof_indices, *pointer);
                 this->constraints.distribute_local_to_global(cell_ff, local_dof_indices, this->ff_matrix);
-                /*
-                 for (unsigned int i=0; i<dofs_per_cell;++i)
-                 for (unsigned int j=0; j< dofs_per_cell; ++j) {
-                 
-                 ((this->system_matrix)).add(local_dof_indices[i], local_dof_indices[j], cell_mat(i, j));
-                 (this->ff_matrix).add(local_dof_indices[i], local_dof_indices[j], cell_ff(i, j));
-                 
-                 }
-                 */
         }
         
 	(this->system_M2).add(1./(this->dt), this->ff_matrix);
@@ -271,10 +262,11 @@ double OptionBasePrice<dim>::get_price() {
 template<unsigned dim>
 void OptionBasePrice<dim>::set_refine_status(bool status, float refine_, float coarse_)
 {
-	if(dim==2)
-	throw(std::logic_error("Sorry! You cannot use mesh refinement with 2d Price transformation!"));
+	if(dim==2 && this->model_type!=OptionBase<dim>::ModelType::BlackScholes) {
+                throw(std::logic_error("Sorry! You cannot use mesh refinement with 2d Price transformation!"));
+        }
 	else
-	OptionBase<dim>::set_refine_status(status, refine_, coarse_);
+                OptionBase<dim>::set_refine_status(status, refine_, coarse_);
 }
 
 
