@@ -1,6 +1,18 @@
 \documentclass{beamer}
 \usetheme{Warsaw}
 
+\usepackage[utf8]{inputenc}
+\usepackage{default}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\usepackage{graphicx}
+
+\newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dder}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\dmix}[3]{\frac{\partial^2 #1}{\partial #2 \partial #3}}
+
 \AtBeginSection[]
 {
   \begin{frame}
@@ -20,9 +32,10 @@
 \begin{frame}
 \frametitle{L'equazione da risolvere}
 \begin{multline*}
-\alert<3>{\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+}\\ \alert<4>{+ 
-\int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)}=0.
+\alert<2>{\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC}+\\ + 
+\alert<3>{\int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)}=0.
 \end{multline*}
+\pause
 Possiamo scomporre il problema in due pezzi
 \begin{itemize}[<+->]
 \item La parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
