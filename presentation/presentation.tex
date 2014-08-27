@@ -1,0 +1,37 @@
+\documentclass{beamer}
+\usetheme{Warsaw}
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+\section{Introduzione}
+
+
+\section{Il problema}
+
+\begin{frame}
+\frametitle{L'equazione da risolvere}
+\begin{multline*}
+\alert<3>{\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+}\\ \alert<4>{+ 
+\int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)}=0.
+\end{multline*}
+Possiamo scomporre il problema in due pezzi
+\begin{itemize}[<+->]
+\item La parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
+\item La parte integrale, trattata in modo esplicito ad ogni passaggio
+\end{itemize}
+\end{frame}
+
+\section{Struttura del codice}
+
+\section{Risultati}
+
+\section{Conclusioni}
+
+\end{document}
