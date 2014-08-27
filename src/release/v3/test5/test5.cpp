@@ -8,7 +8,7 @@ int main(){
         
         // We test here a 1d PIDE in both transformation with the mesh adaptivity.
         
-        cout<<"*** Mesh Adaptivity, Kou 1d\n";
+        cout<<"*** Mesh Adaptivity, Kou 1d.\n";
         
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
@@ -30,7 +30,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         {
                 auto goofy=Factory::instance()->create(ExerciseType::EU,
@@ -49,7 +49,7 @@ int main(){
                 cout<<"The price of the option is "<<goofy->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
         }
         
-        cout<<"*** Mesh Adaptivity, American Option 1d, B&S\n";
+        cout<<"*** Mesh Adaptivity, American Option 1d, B&S.\n";
         
         BlackScholesModel model1(95., 0.120381);
         
@@ -135,7 +135,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         cout<<"*** Mesh Adaptivity, Merton 2d\n";
         
@@ -164,7 +164,7 @@ int main(){
                         cout<<"Refinement=0.03, Coarsening=0.15.\nThe price of the option is "<<minnie->get_price()<<", evaluated in "<<times.second/1.e6<<"s.\n";
                 }
                 cout<<"Press return to continue...\n";
-                //cin.get();
+                cin.get();
                 
                 {
                         auto minnie=Factory::instance()->create(ExerciseType::EU,
@@ -190,7 +190,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         return 0;
 }

@@ -91,10 +91,13 @@ int main(){
         }
         
         cout<<"*** Do you want to perform also a 2d test? (y/n) ";
-        string s="n";
+        string s;
         cin>>s;
         
-        if (s=="y") {
+        if (s=="y" || s=="yes" || s=="Yes" || s=="YES" || s=="Y") {
+                
+                cout<<"*** SpeedTest for LogPrice 2d, serial vs. parallel.\n";
+                
                 KouModel model1(80, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
                 KouModel model2(120, 0.2, 0.33189, 0.400123, 8.3456, 5.12904);
                 
@@ -174,7 +177,7 @@ int main(){
                 
                 return 0;
         }
-        else if (s!="n") {
+        else if (s!="n" && s!="N" && s!="no" && s!="NO" && s!="No") {
                 throw(logic_error("Something went wrong..."));
         }
         else {

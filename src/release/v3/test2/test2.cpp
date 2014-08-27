@@ -8,6 +8,8 @@ int main(){
         
         // We test here a 1d PIDE in both transformation.
         
+        cout<<"*** European Call 1d, Kou.\n";
+        
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
         {
@@ -27,7 +29,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         {
                 auto goofy=Factory::instance()->create(ExerciseType::EU,
@@ -46,10 +48,10 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         // We test here the convergence of the price modifing the width of the grid.
-        
+        cout<<"*** Convergence test\n";
         {
                 std::array<double, 4>      f={0., 0.33, 0.66, 0.99};       // scale factor
                 std::array<double, 4>      p={0., 0., 0., 0.};             // prices from price transformation
@@ -103,9 +105,10 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         // We test here a 2d call with Merton model
+        cout<<"*** European Call 2d, Merton.\n";
         
         MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
         MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
@@ -151,37 +154,37 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         cout<<"*** Do you want to perform some convergence tests for the integral part? (y/n) ";
-        string s="y";
-        //cin>>s;
+        string s;
+        cin>>s;
         
-        if (s=="y") {
+        if (s=="y" || s=="yes" || s=="Yes" || s=="YES" || s=="Y") {
                 
                 array<unsigned, 6>      max_order={4, 8, 16, 32, 64, 128};
                 array<double, 6>        prices, times;
                 
-                auto foo=Factory::instance()->create(ExerciseType::EU,
-                                                     OptionType::Call,
-                                                     Transformation::LogPrice,
-                                                     model.get_pointer(),
-                                                     0.0367, 1., 90., 10, 100);
+                auto clarabell=Factory::instance()->create(ExerciseType::EU,
+                                                           OptionType::Call,
+                                                           Transformation::LogPrice,
+                                                           model.get_pointer(),
+                                                           0.0367, 1., 90., 10, 100);
                 
-                foo->set_timing(true);
-                foo->set_verbose(false);
+                clarabell->set_timing(true);
+                clarabell->set_verbose(false);
                 
                 for (unsigned i=0; i<max_order.size(); ++i) {
                         
                         cout<<"Evaluating option with "<<max_order[i]<<"...\n";
                         
-                        foo->reset();
-                        foo->set_integral_adaptivity_params(true, 4, max_order[i]);
+                        clarabell->reset();
+                        clarabell->set_integral_adaptivity_params(true, 4, max_order[i]);
                         
-                        foo->run();
+                        clarabell->run();
                         
-                        auto time=foo->get_times();
-                        prices[i]=foo->get_price();
+                        auto time=clarabell->get_times();
+                        prices[i]=clarabell->get_price();
                         times[i]=time.second;
                 }
                 cout<<"Convergence table\n";
@@ -199,7 +202,7 @@ int main(){
                 cout<<"\n";
                 
         }
-        else if (s!="n") {
+        else if (s!="n" && s!="N" && s!="no" && s!="NO" && s!="No") {
                 throw(logic_error("Something went wrong..."));
         }
         

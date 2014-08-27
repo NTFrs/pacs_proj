@@ -75,7 +75,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         {
                 // We create an object of type Option, a European Put with the LogPrice transformation
@@ -96,7 +96,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         cout<<"*** European Call 2d.\n";
         
@@ -123,7 +123,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         {
                 auto mickey=Factory::instance()->create(ExerciseType::EU,
@@ -144,13 +144,13 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         cout<<"*** Do you want to perform some convergence tests? (y/n) ";
-        string s="y";
-        //cin>>s;
+        string s;
+        cin>>s;
         
-        if (s=="y") {
+        if (s=="y" || s=="yes" || s=="Yes" || s=="YES" || s=="Y") {
                 cout<<"*** Convergence test for 1d Call, Black&Scholes\n";
                 
                 {
@@ -298,7 +298,7 @@ int main(){
                 }
 
         }
-        else if (s!="n") {
+        else if (s!="n" && s!="N" && s!="no" && s!="NO" && s!="No") {
                 throw(logic_error("Something went wrong..."));
         }
         

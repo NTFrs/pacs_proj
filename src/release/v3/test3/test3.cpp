@@ -6,7 +6,7 @@ int main(){
         using namespace dealii;
         using namespace std;
         
-        cout<<"*** American Put Price 1d, Black&Scholes\n";
+        cout<<"*** American Put 1d, Black&Scholes.\n";
         
         BlackScholesModel model(95., 0.120381);
         
@@ -27,9 +27,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
-        
-        cout<<"*** American Put LogPrice 1d, Black&Scholes\n";
+        cin.get();
         
         {
                 auto goofy=Factory::instance()->create(ExerciseType::US,
@@ -48,9 +46,9 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
-        cout<<"*** American Put Price 2d, Black&Scholes\n";
+        cout<<"*** American Put 2d, Black&Scholes.\n";
         
         BlackScholesModel model1(80., 0.1256);
         BlackScholesModel model2(120., 0.2);
@@ -74,9 +72,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
-        
-        cout<<"*** American Put LogPrice 2d, Black&Scholes\n";
+        cin.get();
         
         {
                 auto mickey=Factory::instance()->create(ExerciseType::US,
@@ -97,9 +93,9 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
-        cout<<"*** American Put Price 1d, Kou\n";
+        cout<<"*** American Put 1d, Kou.\n";
         
         KouModel model3(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
         
@@ -164,9 +160,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
-        
-        cout<<"*** American Put LogPrice 1d, Kou\n";
+        cin.get();
         
         {
                 auto daisy=Factory::instance()->create(ExerciseType::US,
@@ -185,7 +179,7 @@ int main(){
         }
         
         cout<<"Press return to continue...\n";
-        //cin.get();
+        cin.get();
         
         return 0;
 }
