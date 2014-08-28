@@ -138,15 +138,40 @@ Una potente libreria ad elementi finiti sui quadrilateri. Molto completa e sempl
 
 \begin{frame}
  \frametitle{La nostra implementazione }
+ Tre strutture chiave per il problema, tutte che sfruttano il meccanismo dell'ereditarietà al fine di COMPLETE HERE
  \begin{block}{Classi Opzione}
- Seguendo la linea di \textsf{deal.ii}, è stata creata una serie classi principali che rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
+ Seguendo la linea di \textsf{deal.ii}, è stata creata una serie classi principali che rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione. Templatizzata sulla dimensione.
  \end{block}
  \begin{block}{Classi Model}
- I vari modelli utilizzati in finanza sono 
+ I vari modelli utilizzati in finanza sono rappresentati con questa classe, la cui interfaccia è stabilita da una classe base astratta.
+ \end{block}
+ \begin{block}{Classi Integrali}
+  Il calcolo della parte integrale è fatto da queste classi, e le Opzioni salvano un puntatore a un oggetto di questo tipo. Anche in questo caso sono dei template in cui il parametro rappresenta la dimensione.
  \end{block}
 
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+ \frametitle{Le classi Opzione}
+ \begin{figure}
+  
+ \end{figure}
 \end{frame}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\iffalse
+\begin{frame}
+ \frametitle{Le classi Model}
+ 
+\end{frame}
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+ \frametitle{Le classi Integrale}
+ 
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Risultati}
