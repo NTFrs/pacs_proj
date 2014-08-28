@@ -9,6 +9,8 @@
 \usepackage{amsfonts}
 
 \usepackage{graphicx}
+\graphicspath{{img/}}
+
 
 \newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\dder}[2]{\frac{\partial^2 #1}{\partial #2^2}}
@@ -137,28 +139,32 @@ Una potente libreria ad elementi finiti sui quadrilateri. Molto completa e sempl
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
- \frametitle{La nostra implementazione }
+\frametitle{La nostra implementazione }
  Tre strutture chiave per il problema, tutte che sfruttano il meccanismo dell'ereditarietà al fine di COMPLETE HERE
  \begin{block}{Classi Opzione}
- Seguendo la linea di \textsf{deal.ii}, è stata creata una serie classi principali che rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione. Templatizzata sulla dimensione.
+Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
  \end{block}
  \begin{block}{Classi Model}
  I vari modelli utilizzati in finanza sono rappresentati con questa classe, la cui interfaccia è stabilita da una classe base astratta.
  \end{block}
  \begin{block}{Classi Integrali}
-  Il calcolo della parte integrale è fatto da queste classi, e le Opzioni salvano un puntatore a un oggetto di questo tipo. Anche in questo caso sono dei template in cui il parametro rappresenta la dimensione.
+  Il calcolo della parte integrale è gestito da queste classi, e le Opzioni salvano un puntatore a un oggetto di questo tipo. 
  \end{block}
-
-
 \end{frame}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
  \frametitle{Le classi Opzione}
  \begin{figure}
-  
+  \centering
+  \includegraphics[width=\linewidth]{classOptionBase}
+ \caption{Schema delle classi Opzione}
  \end{figure}
 \end{frame}
+\begin{block}
+ Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il corpo del programma
+\end{block}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \iffalse
