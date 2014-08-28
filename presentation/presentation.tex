@@ -1,5 +1,5 @@
 \documentclass{beamer}
-\usetheme{Warsaw}
+
 \hypersetup{pdfpagemode=FullScreen}
 
 \usepackage[utf8]{inputenc}
@@ -24,14 +24,27 @@
   \end{frame}
 }
 
+%%presentation theme
+\usetheme{Warsaw}
+
+%%remove navigation symbols
+\beamertemplatenavigationsymbolsempty
+
+%%add page numbering
+\useoutertheme{infolines}
+% \setbeamertemplate{footline}
+
 \begin{document}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduzione}
 \begin{frame}
-\frametitle{Scopo del progetto}
-\begin{block}{}
-Lo scopo è di creare una piccola libreria per il pricing di derivati finanziari con il metodo degli elementi finiti, appoggiandosi sulla libreria \textsf{deal.ii}.
+\frametitle{Il progetto}
+\begin{block}{Scopo}
+Lo scopo è di creare una piccola libreria per il pricing di derivati finanziari con il metodo degli elementi finiti, appoggiandosi sulla libreria \textsf{deal.ii}.L'idea è che l'utilizzatore possa sia utilizzare gli oggetti presenti, sia crearne altri con grande facilità nel caso ne avesse bisogno.
 \end{block}
+\pause
 \begin{block}{Motivazioni}
 La procedura pi\`u diffusa in finananza è di usare le differenze finite. Gli elementi finiti, seppure leggermente pi\`u complicati da implementare, presentano solo vantaggi.
 \end{block}
@@ -126,7 +139,7 @@ Con la trasformazione \emph {logprice}
 \begin{frame}
 \frametitle{La libreria \textsf{deal.ii}}
 \begin{block}{Libreria \textsf{deal.ii}}
-Una potente libreria ad elementi finiti sui quadrilateri. Molto completa e semplice da iniziare a utilizzare, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
+Una potente libreria opensource ad elementi finiti sui quadrilateri. Molto completa e semplice da iniziare a utilizzare, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
 \end{block}
 \pause
 \begin{block}{Vantaggi}
@@ -157,17 +170,22 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 \begin{frame}[t]
  \frametitle{Le classi Opzione}
 
- Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia finali sono quelle usate, e dove si potrebbero eventualmente creare altre opzioni finanziarie.
+ Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia finali sono quelle effettivamente usate, In quanto implementano tutto.
  \only<1>{\begin{figure}
   \centering
   \includegraphics[width=\linewidth]{classOptionBase}
  \caption{Schema delle classi Opzione}
  \end{figure}}
- \only<2>{
+ \only<2->{
  \begin{block}{Factory di Opzioni}
   Per facilitare la creazione di opzioni all'user, è stata creata una \emph{Factory} che permette di creare i vari oggetti \textbf{Opzione} con un interfaccia comune.
  \end{block}
  }
+ \pause
+ \begin{block}{Estensibile}
+  L'user pu\`o sia utilizzare le opzioni gi\`a esistenti, che crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
+ \end{block}
+
 \end{frame}
 
 
