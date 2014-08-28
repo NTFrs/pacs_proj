@@ -53,8 +53,9 @@ La procedura pi\`u diffusa in finananza è di usare le differenze finite. Gli el
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Il problema}
 
-\begin{frame}
+\begin{frame}[t]
 \frametitle{L'equazione da risolvere}
+\begin{overlayarea}{\linewidth}{3cm}
 \only<-5>{\begin{multline*}
 \alert<2>{\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+rS\der{C}{S}-rC}+\\ + 
 \alert<3>{\int_\mathbb{R}\left(C(t,Se^y)\alert<4>{-C(t,S)-S(e^y-1)\der{C}{S}(t,S)}\right)\nu(dy)}=0
@@ -64,12 +65,13 @@ La procedura pi\`u diffusa in finananza è di usare le differenze finite. Gli el
 \der{u}{t}+\left(r-\frac{\sigma^2}{2}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-ru\\
 +\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)=0
 \end{multline*}}
+\end{overlayarea}
 Con opportune condizioni al contorno.\\
 \pause
 Possiamo scomporre il problema in due parti
 \begin{itemize}[<+->]
 \item La parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
-\item La parte integrale, trattata in modo esplicito ad ogni passaggio. \only<4>{Separabile in due pezzi.}
+\item La parte integrale, che necessita di un trattamento speciale. \only<4>{Separabile in due pezzi.}
 \end{itemize}
 \pause
 Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{logprice}}
@@ -116,7 +118,7 @@ Con la trasformazione \emph{Price}
 }
 
 \only<2>{
-Con la trasformazione \emph {logprice}
+Con la trasformazione \emph {Logprice}
 \begin{multline*}
 \der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
 \left(r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}\right)\der{u}{x_1}\\+
@@ -128,17 +130,23 @@ Con la trasformazione \emph {logprice}
 
 \end{frame}
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
- \frametitle{Calcolo dell'integrale in forma \emph{logprice}}
+ \frametitle{Discretizzazione}
+ 
 \end{frame}
 
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \begin{frame}
- \frametitle{Calcolo dell'integrale in forma \emph{price}}
+ \frametitle{Calcolo dell'integrale in forma \emph{Price}}
 \begin{columns}[C]
 %%explanation column
 \only<1>{
@@ -213,7 +221,11 @@ e si distribuiscono ai nodi di competenza:
 \end{columns}
 \end{frame}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}
+ \frametitle{Calcolo dell'integrale in forma \emph{logprice}}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Struttura del codice}
