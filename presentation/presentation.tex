@@ -11,7 +11,6 @@
 \usepackage{graphicx}
 \graphicspath{{img/}}
 
-
 \newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\dder}[2]{\frac{\partial^2 #1}{\partial #2^2}}
 \newcommand{\dmix}[3]{\frac{\partial^2 #1}{\partial #2 \partial #3}}
@@ -140,37 +139,70 @@ Con la trasformazione \emph {logprice}
 
 \begin{frame}
  \frametitle{Calcolo dell'integrale in forma \emph{price}}
-\begin{columns}[c]
+\begin{columns}[C]
 %%explanation column
-\begin{column}{.5\linewidth}
+\only<1>{
+\begin{column}[t]{.5\linewidth}
 
+Ricordiamo l'integrale da calcolare
+
+\begin{equation*}
+ \int_\mathbb{R}C(t,Se^y)\nu(y)dy
+\end{equation*}
+al quale applichiamo il cambio di variabile
+\begin{equation*}
+ z=Se^y
+\end{equation*}
 \end{column}
+}
+
+\only<2->{
+\begin{column}[t]{.5\linewidth}
+
+L'integrale diventa allora 
+\begin{equation*}
+\int_0^\infty \frac{C(t,z)}{z}\nu\left(\log\left(\frac{z}{S}\right)\right)dz
+\end{equation*}
+
+\only<3->{
+Quindi per ogni cella, si calcolano i contributi dovuti alla cella
+}
+
+\only<4->{
+e si distribuiscono ai nodi di competenza:
+\begin{itemize}
+ \item In 1d, a tutti i nodi.
+ \item In 2d, solo a quelli che giaciono sulla retta passante per la faccia selezionata. \only<4>{Prima sull'asse x.} \only<5>{Poi sull'asse y.}
+\end{itemize}
+}
+\end{column}
+}
 
 %%image column
-\begin{column}{.5\linewidth}
+\begin{column}[t]{.5\linewidth}
 
-\only<1>{
+\only<-2>{
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{BaseGrid}
 \caption{Una semplice griglia strutturata}
 \end{figure}}
 
-\only<2>{
+\only<3>{
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{CellSelected}
 \caption{Poniamoci su una cella}
 \end{figure}}
 
-\only<3>{
+\only<4>{
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{Integrating_on_x}
 \caption{I contributi della cella ai nodi x}
 \end{figure}}
 
-\only<4>{
+\only<5>{
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{Integrating_on_y}
