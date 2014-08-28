@@ -42,7 +42,7 @@ La procedura pi\`u diffusa in finananza è di usare le differenze finite. Gli el
 \frametitle{L'equazione da risolvere}
 \only<-5>{\begin{multline*}
 \alert<2>{\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+rS\der{C}{S}-rC}+\\ + 
-\alert<3>{\int_\mathbb{R}\left(C(t,Se^y)\alert<4>{-C(t,S)-S(e^y-1)\der{C}{S}(t,S)}\right)\nu(dy)}=0.
+\alert<3>{\int_\mathbb{R}\left(C(t,Se^y)\alert<4>{-C(t,S)-S(e^y-1)\der{C}{S}(t,S)}\right)\nu(dy)}=0
 \end{multline*}}
 
 \only<6>{\begin{multline*}
@@ -96,7 +96,7 @@ Con la trasformazione \emph{Price}
 \begin{multline*}
  \der{C}{t}+(r-\hat{\alpha}_1)S_1\der{C}{S_1}+(r-\hat{\alpha}_2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}\\
  +\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-(r+\lambda_1+\lambda_2)C\\
- +\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0.
+ +\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0
 \end{multline*}
 }
 
@@ -107,18 +107,18 @@ Con la trasformazione \emph {logprice}
 \left(r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}\right)\der{u}{x_1}\\+
 \left(r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}\right)\der{u}{x_2}-(r+\hat{\lambda_1}+\hat{\lambda_2})u\\+
 \int_\mathbb{R}u(t,x_1+y,x_2)\nu_1(y)dy+
-\int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0.
+\int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0
 \end{multline*}
 }
 
 \end{frame}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Struttura del codice}
 
 \begin{frame}
@@ -139,8 +139,12 @@ Una potente libreria ad elementi finiti sui quadrilateri. Molto completa e sempl
 \begin{frame}
  \frametitle{La nostra implementazione }
  \begin{block}{Classi Opzione}
- Seguendo la linea di \textsf{deal.ii}, è stata creata una serie classi principale che rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
+ Seguendo la linea di \textsf{deal.ii}, è stata creata una serie classi principali che rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
  \end{block}
+ \begin{block}{Classi Model}
+ I vari modelli utilizzati in finanza sono 
+ \end{block}
+
 \end{frame}
 
 
