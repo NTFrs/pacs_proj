@@ -42,7 +42,8 @@
 \begin{frame}
 \frametitle{Il progetto}
 \begin{block}{Scopo}
-Lo scopo è di creare una piccola libreria per il pricing di derivati finanziari con il metodo degli elementi finiti, appoggiandosi sulla libreria \textsf{deal.ii}.L'idea è che l'utilizzatore possa sia utilizzare gli oggetti presenti, sia crearne altri con grande facilità nel caso ne avesse bisogno.
+Lo scopo è di creare una piccola libreria per il pricing di derivati finanziari con il metodo degli elementi finiti, appoggiandosi sulla libreria \textsf{deal.ii}.
+L'idea è che l'utilizzatore possa sia utilizzare gli oggetti presenti, sia crearne altri con grande facilità nel caso ne avesse bisogno.
 \end{block}
 \pause
 \begin{block}{Motivazioni}
@@ -130,6 +131,55 @@ Con la trasformazione \emph {logprice}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}
+ \frametitle{Calcolo dell'integrale in forma \emph{logprice}}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}
+ \frametitle{Calcolo dell'integrale in forma \emph{price}}
+\begin{columns}[c]
+%%explanation column
+\begin{column}{.5\linewidth}
+
+\end{column}
+
+%%image column
+\begin{column}{.5\linewidth}
+
+\only<1>{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{BaseGrid}
+\caption{Una semplice griglia strutturata}
+\end{figure}}
+
+\only<2>{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{CellSelected}
+\caption{Poniamoci su una cella}
+\end{figure}}
+
+\only<3>{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{Integrating_on_x}
+\caption{I contributi della cella ai nodi x}
+\end{figure}}
+
+\only<4>{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{Integrating_on_y}
+\caption{I contributi della cella ai nodi y}
+\end{figure}}
+
+\end{column}
+\end{columns}
+\end{frame}
 
 
 
@@ -141,7 +191,8 @@ Con la trasformazione \emph {logprice}
 \begin{block}{Libreria \textsf{deal.ii}}
 Una potente libreria opensource ad elementi finiti sui quadrilateri. Molto completa e semplice da iniziare a utilizzare, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
 \end{block}
-\pause
+
+\pause
 \begin{block}{Vantaggi}
  \begin{itemize}
   \item Documentazione molto ampia e chiara, a cui si aggiunge la presenza di 51 tutorial programs che illustrano come usare la libreria per problemi tipici
@@ -181,11 +232,11 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
   Per facilitare la creazione di opzioni all'user, è stata creata una \emph{Factory} che permette di creare i vari oggetti \textbf{Opzione} con un interfaccia comune.
  \end{block}
  }
- \pause
+ \only<3->{
  \begin{block}{Estensibile}
   L'user pu\`o sia utilizzare le opzioni gi\`a esistenti, che crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
  \end{block}
-
+}
 \end{frame}
 
 
@@ -197,9 +248,19 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 \end{frame}
 \fi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}
+\begin{frame}[t]
  \frametitle{Le classi Integrale}
- 
+ Per calcolare la parte integrale, sono state create una serie di classi. Il secondo livello di ereditarietà distingue fra \emph{price} e \emph{logprice}, mentre le classi foglia implementano quadrature specifiche ai modelli.
+
+ \begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{classLevyIntegralBase}
+ \caption{Schema delle classi LevyIntegral}
+ \end{figure}
+ \pause
+ \begin{block}{anything else?}
+
+ \end{block}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
