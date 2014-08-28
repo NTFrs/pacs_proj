@@ -269,7 +269,7 @@ Quindi, $\forall t\in[0,T]$, dobbiamo determinare il punto $S_f(t)$, attraverso 
 \begin{equation}
 \begin{cases}
 \displaystyle
-\der{P}{t}+r S \der{P}{S} +\frac{1}{2}P^2\dder{P}{S}\leq rP,\\
+\der{P}{t}+r S \der{P}{S} +\frac{1}{2}S^2\dder{P}{S}\leq rP,\\
 P(S,t)\geq \max(K-S_T,0),\\
 P(S,T)=\max(K-S_T,0),\\
 P(0,t)=K,\qquad\qquad\forall t\in[0,T]\\
@@ -335,7 +335,7 @@ Riportiamo ora un risultato che permette di individuare un'equazione differenzia
 \begin{theorem}
 Sia $S_t$ nella forma \ref{explevy} con l'ipotesi: $$\int_{|x|>1} e^{2x}\nu(dx)<\infty.$$ Sia $C:\mathbb{R}^+\times[0,T]\rightarrow\mathbb{R}^+$, $C=C(S_t,t)$ nella forma: $$C(S_t,t)=e^{-r(T-t)}\mathbb{E}(\Phi(S_t)),$$ dove $\Phi$ \`e un \emph{payoff Lipschitz} che dipende dall'unico sottostante $S_t$. Allora $C$ soddisfa l'equazione:
 \begin{multline}
-\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+r\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)=0.
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+rS\der{C}{S}-rC+\\+ \int_\mathbb{R}\left(C(t,Se^y)-C(t,S)-S(e^y-1)\der{C}{S}(t,S)\right)\nu(dy)=0.
 \end{multline}
 \end{theorem}
 Per quanto riguarda opzioni su due \emph{asset}, nell'ipotesi che le parti di salto dei due sottostanti siano indipendenti fra di loro, l'equazione \ref{pde2d} diventa:
