@@ -54,7 +54,7 @@ La procedura pi\`u diffusa in finananza è di usare le differenze finite. Gli el
 Possiamo scomporre il problema in due pezzi
 \begin{itemize}[<+->]
 \item La parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
-\item La parte integrale, trattata in modo esplicito ad ogni passaggio. Separabile in due pezzi.
+\item La parte integrale, trattata in modo esplicito ad ogni passaggio. \only<4>{Separabile in due pezzi.}
 \end{itemize}
 \pause
 Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{logprice}}
@@ -66,14 +66,32 @@ Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{logprice}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
-\frametitle{La libreria \textsf{deal.ii}}
 
-\end{frame}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Struttura del codice}
+
+\begin{frame}
+\frametitle{La libreria \textsf{deal.ii}}
+\begin{block}{Libreria \textsf{deal.ii}}
+Una potente libreria ad elementi finiti sui quadrilateri. Molto completa e semplice da iniziare a utilizzare, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
+\end{block}
+\pause
+\begin{block}{Vantaggi}
+ \begin{itemize}
+  \item Documentazione molto ampia e chiara, a cui si aggiunge la presenza di 51 tutorial programs che illustrano come usare la libreria per problemi tipici
+  \item Organizzata in moduli che coprono le diverse aree di un problema ad elementi finiti (\emph{creazione griglie, algebra lineare, output risultati, etc})
+ \end{itemize}
+\end{block}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+ \frametitle{La nostra implementazione}
+ Seguendo la linea di deal.ii
+\end{frame}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Risultati}
