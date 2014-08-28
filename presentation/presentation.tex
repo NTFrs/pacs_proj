@@ -46,7 +46,7 @@ L'idea è che l'utilizzatore possa sia utilizzare gli oggetti presenti, sia crea
 \end{block}
 \pause
 \begin{block}{Motivazioni}
-La procedura pi\`u diffusa in finanza è di usare le differenze finite. Gli elementi finiti, seppure leggermente pi\`u complicati da implementare, presentano solo vantaggi.
+La procedura pi\`u diffusa in finanza è di usare le differenze finite. Gli elementi finiti, a fronte di una maggiore difficoltà implementativa, risultano essere più vantaggiosi.
 \end{block}
 \end{frame}
 
@@ -66,7 +66,7 @@ La procedura pi\`u diffusa in finanza è di usare le differenze finite. Gli elem
 +\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)=0
 \end{multline*}}
 \end{overlayarea}
-Con opportune condizioni al contorno.\\
+con opportune condizioni al contorno.\\
 \pause
 Possiamo scomporre il problema in due parti
 \begin{itemize}[<+->]
@@ -81,7 +81,7 @@ Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{logprice}}
 \begin{frame}
  \frametitle{Scomposizione della parte integrale}
 \only<1>{
-Definendo in modo seguente le quantità
+Definendo nel modo seguente le quantità
  \begin{align*}
  \hat{\alpha}&=\int_\mathbb{R}(e^y-1)\nu(y)dy \\
  \hat{\lambda}&=\int_\mathbb{R}\nu(y)dy
@@ -225,6 +225,53 @@ e si distribuiscono ai nodi di competenza:
 
 \begin{frame}
  \frametitle{Calcolo dell'integrale in forma \emph{logprice}}
+ \begin{columns}[C]
+%%explanation column
+\only<1->{
+\begin{column}[t]{.5\linewidth}
+
+
+In questo caso l'integrale da calcolare è
+
+\begin{equation*}
+ \int_{-\infty}^\infty u(t,x+y)\nu(y)dy
+\end{equation*}
+su una griglia qualunque. Notare come si può uscire dal domininio a causa del termine $x+y$\\
+
+\only<2->{
+In questo caso si cicla su tutti i vertici. Selezionato un vertice $i$,}
+\only<3->{
+si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in blu), e se la dimensione è due, anche su $y$ lungo $y_i+z_l$.} 
+\end{column}
+}
+
+%%image column
+\begin{column}[t]{.5\linewidth}
+
+\only<1>{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{BaseGrid}
+\caption{Una griglia}
+\end{figure}}
+
+\only<2>{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{VertexSelected}
+\caption{Poniamoci su un nodo}
+\end{figure}}
+
+\only<3->{
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth,clip=true,trim=0 0 0 100]{LogPrice_X_and_Y_integr}
+\caption{Calcolo lungo le direzioni}
+\end{figure}}
+
+\end{column}
+\end{columns}
+ 
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -248,7 +295,7 @@ Una potente libreria opensource ad elementi finiti sui quadrilateri. Molto compl
 
 \begin{frame}
 \frametitle{La nostra implementazione }
- Tre strutture chiave per il problema, tutte sfruttanti il meccanismo dell'ereditarietà al fine di COMPLETE HERE
+ Tre strutture chiave per il problema
  \begin{block}{Classi Opzione}
 Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
  \end{block}
@@ -258,6 +305,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \begin{block}{Classi Integrali}
   Il calcolo della parte integrale è gestito da queste classi, e le Opzioni salvano un puntatore a un oggetto di questo tipo. 
  \end{block}
+ Tutte sfruttanti il meccanismo dell'ereditarietà al fine di COMPLETE HERE
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -265,7 +313,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 \begin{frame}[t]
  \frametitle{Le classi Opzione}
 
- Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia finali sono quelle effettivamente usate, in quanto implementano tutti i metodi.
+ Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia sono quelle effettivamente usate, in quanto implementano tutti i metodi.
  \only<1>{\begin{figure}
   \centering
   \includegraphics[width=\linewidth]{classOptionBase}
@@ -273,12 +321,12 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \end{figure}}
  \only<2->{
  \begin{block}{Factory di Opzioni}
-  Per facilitare la creazione di opzioni all'user, è stata creata una \emph{Factory} che permette di creare i vari oggetti \textbf{Opzione} con un interfaccia comune.
+  Per facilitare la creazione di opzioni all'utente, è stata creata una \emph{Factory} che permette di creare i vari oggetti \textbf{Opzione} con un'interfaccia comune.
  \end{block}
  }
  \only<3->{
  \begin{block}{Estensibile}
-  L'user pu\`o sia utilizzare le opzioni gi\`a esistenti, che crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
+  L'utente pu\`o sia utilizzare le opzioni gi\`a esistenti, che crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
  \end{block}
 }
 \end{frame}
