@@ -49,9 +49,9 @@ La procedura pi\`u diffusa in finananza è di usare le differenze finite. Gli el
 \der{u}{t}+\left(r-\frac{\sigma^2}{2}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-ru\\
 +\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)=0
 \end{multline*}}
-
+Con opportune condizioni al contorno.\\
 \pause
-Possiamo scomporre il problema in due pezzi
+Possiamo scomporre il problema in due parti
 \begin{itemize}[<+->]
 \item La parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
 \item La parte integrale, trattata in modo esplicito ad ogni passaggio. \only<4>{Separabile in due pezzi.}
@@ -63,7 +63,28 @@ Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{logprice}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
  \frametitle{Scomposizione della parte integrale}
- Definendo
+\only<1>{
+Definendo in modo seguente le quantità
+ \begin{align*}
+ \hat{\alpha}&=\int_\mathbb{R}(e^y-1)\nu(y)dy \\
+ \hat{\lambda}&=\int_\mathbb{R}\nu(y)dy
+\end{align*}
+l'equazione diventa
+\begin{equation*}
+\der{C}{t}+\frac{\sigma^2}{2}S^2\dder{C}{S}+(r-\hat{\alpha})S\der{C}{S}-(r+\hat{\lambda})C+ \int_\mathbb{R}C(t,Se^y)\nu(y)dy=0
+\end{equation*}
+}
+\only<2>{
+Analogamente per la trasformazione logprice si ha
+\begin{align*}
+\hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
+\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
+\end{align*}
+con rispettiva equazione
+\begin{equation*}
+\der{u}{t}+\left(r-\frac{\sigma^2}{2}-\hat{\alpha}\right)\der{u}{x}+\frac{\sigma^2}{2}\dder{u}{x}-(r+\hat{\lambda})u+\int_\mathbb{R}u(t,x+y)\nu(y)dy=0
+\end{equation*}
+}
 \end{frame}
 
 
