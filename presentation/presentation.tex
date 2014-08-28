@@ -154,17 +154,22 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
+\begin{frame}[t]
  \frametitle{Le classi Opzione}
- \begin{figure}
+
+ Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia finali sono quelle usate, e dove si potrebbero eventualmente creare altre opzioni finanziarie.
+ \only<1>{\begin{figure}
   \centering
   \includegraphics[width=\linewidth]{classOptionBase}
  \caption{Schema delle classi Opzione}
- \end{figure}
+ \end{figure}}
+ \only<2>{
+ \begin{block}{Factory di Opzioni}
+  Per facilitare la creazione di opzioni all'user, è stata creata una \emph{Factory} che permette di creare i vari oggetti \textbf{Opzione} con un interfaccia comune.
+ \end{block}
+ }
 \end{frame}
-\begin{block}
- Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il corpo del programma
-\end{block}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \iffalse
