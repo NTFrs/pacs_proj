@@ -9,7 +9,7 @@ int main()
 
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
 
-//        omp_set_num_threads(1);
+        omp_set_num_threads(1);
 
         auto foo=Factory::instance()->create(ExerciseType::EU,
                                              OptionType::Call,

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Factory.hpp"
+#include "Levy.hpp"
 
 template<unsigned dim>
 class EuropeanLogPrice_Doubling: public EuropeanOptionLogPrice<dim>
@@ -18,10 +18,30 @@ public:
         EuropeanLogPrice_Doubling()=delete;
         EuropeanLogPrice_Doubling(const EuropeanLogPrice_Doubling &)=delete;
 
-        EuropeanLogPrice_Doubling(OptionType type_, Model * const model, double r_, double T_,	double K_,	unsigned refs_,	unsigned time_step_) :EuropeanOptionLogPrice<dim>::EuropeanOptionLogPrice(type_, model, r_, T_, K_, refs_, time_step_) {};
+        EuropeanLogPrice_Doubling(OptionType type_,
+                                  Model * const model,
+                                  double r_,
+                                  double T_,
+                                  double K_,
+                                  unsigned refs_,
+                                  unsigned time_step_)
+        :
+        EuropeanOptionLogPrice<dim>::EuropeanOptionLogPrice(type_, model, r_, T_, K_, refs_, time_step_)
+        {};
 
-        EuropeanLogPrice_Doubling(OptionType type_, Model * const model1, Model * const model2, double rho_, double r_, double T_,	double K_,	unsigned refs_,	unsigned time_step_) :EuropeanOptionLogPrice<dim>::EuropeanOptionLogPrice(type_, model1, model2, rho_, r_, T_, K_, refs_, time_step_),  actual_time(1.) {};
-
+        EuropeanLogPrice_Doubling(OptionType type_,
+                                  Model * const model1,
+                                  Model * const model2,
+                                  double rho_,
+                                  double r_,
+                                  double T_,
+                                  double K_,
+                                  unsigned refs_,
+                                  unsigned time_step_)
+        :
+        EuropeanOptionLogPrice<dim>::EuropeanOptionLogPrice(type_, model1, model2, rho_, r_, T_, K_, refs_, time_step_),
+        actual_time(1.)
+        {};
 
 };
 
@@ -177,7 +197,8 @@ void EuropeanLogPrice_Doubling<dim>::solve_one_step(dealii::Function<dim> & bc)
 }
 
 //this is the real addon
-//Basically we save our old option status (triangulatio, dof_handler, fe and solution) and compute a new solution doubling the mesh. We project it on the old mesh and compute the error in each cell.
+//Basically we save our old option status (triangulatio, dof_handler, fe and solution)
+//and compute a new solution doubling the mesh. We project it on the old mesh and compute the error in each cell.
 template<unsigned dim>
 void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float > & errors)
 {
@@ -186,9 +207,9 @@ void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float > &
         using namespace std;
 
 
-        //we define some copies to the triangulation and all the dealii stuff
+        // we define some copies to the triangulation and all the dealii stuff
         Triangulation<dim> old_tria;
-        //there is no copyconstructor to trangulation,  so we use this
+        // there is no copyconstructor to trangulation,  so we use this
         old_tria.copy_triangulation(this->triangulation);
         FE_Q<dim> old_fe(1);
         DoFHandler<dim> old_dof(old_tria);
@@ -196,16 +217,17 @@ void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float > &
         Vector<double> old_solution=this->solution;
 
         {
-                //we use a field describing our solution to interpolate a solution to the more refined mesh
+                // we use a field describing our solution to interpolate a solution to the more refined mesh
                 Functions::FEFieldFunction<dim>	moveSol(old_dof,  old_solution);
 
                 this->triangulation.refine_global(1);
                 this->setup_system();
                 VectorTools::interpolate(this->dof_handler, moveSol, this->solution);
         }
-        //and we set up a new system
+        
+        // and we set up a new system
         this->assemble_system();
-        //we solve here only a time step without moving the time
+        // we solve here only a time step without moving the time
         {
                 //yet to do it we need a BC
                 std::vector<double> S0(dim);
@@ -217,26 +239,29 @@ void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float > &
                 //here we solve
                 solve_one_step(bc);
         }
-        //now we have a newly computed solution on the refined mesh,  we want to interpolate it to the old mesh and we do it in the same way as before
+        
+        // now we have a newly computed solution on the refined mesh,
+        // we want to interpolate it to the old mesh and we do it in the same way as before
         {
                 Functions::FEFieldFunction<dim> moveSol(this->dof_handler, this->solution);
 
                 Vector<double> temp(old_dof.n_dofs());
                 VectorTools::interpolate(old_dof, moveSol, temp);
-                //now solution is the interpolation of the solution computed on a refined mesh
+                // now solution is the interpolation of the solution computed on a refined mesh
                 this->solution=temp;
         }
-        //and we re-establish the status of our old option (except for solution,  we still need that)
+        // and we re-establish the status of our old option (except for solution,  we still need that)
         this->triangulation.clear();
         this->triangulation.copy_triangulation(old_tria);
         this->setup_system();
         this->assemble_system();
 
-        //we can finally calculate the quadratic error on each cell
-        //for that we need a cell iterator
+        // we can finally calculate the quadratic error on each cell
+        // for that we need a cell iterator
         typename DoFHandler<dim>::active_cell_iterator cell=this->dof_handler.begin_active(),  endc=this->dof_handler.end();
         vector<types::global_dof_index> local_dof_indices(this->fe.dofs_per_cell);
-        //the vector of errors
+        
+        // the vector of errors
         errors.reinit(old_tria.n_active_cells());
         double err(0);
         unsigned ind(0),  count(0);
@@ -245,7 +270,7 @@ void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float > &
         {
                 err=0;
                 cell->get_dof_indices(local_dof_indices);
-                //on each cell,  we compute the error of every vertex of the cell
+                // on each cell,  we compute the error of every vertex of the cell
                 for (unsigned i=0; i<this->fe.dofs_per_cell; ++i)
                 {
                         ind=local_dof_indices[i];
@@ -254,11 +279,11 @@ void EuropeanLogPrice_Doubling<dim>::estimate_doubling(dealii::Vector< float > &
                 errors[count]=(err);
                 count++;
         }
-        //and we finally re establish the satus of the solution
+        // and we finally re establish the satus of the solution
         this->solution=old_solution;
 }
 
-//just substituted kelly with estimate_doubling,  rest is equal to the one in OptionBase
+// just substituted kelly with estimate_doubling,  rest is equal to the one in OptionBase
 template<unsigned dim>
 void EuropeanLogPrice_Doubling<dim>::refine_grid()
 {
@@ -284,8 +309,6 @@ void EuropeanLogPrice_Doubling<dim>::refine_grid()
         this->assemble_system();
 }
 
-
-
 int main()
 {
 
@@ -293,20 +316,18 @@ int main()
         using namespace dealii;
         using namespace std;
 
-// 	BlackScholesModel model(95., 0.120381);
         KouModel model(95, 0.120381, 0.20761, 0.330966, 9.65997, 3.13868);
 
         MertonModel model1(80., 0.2, 0.1, 0.4552, 0.258147);
         MertonModel model2(120., 0.1, -0.390078, 0.338796, 0.174814);
 
-        //this option is not on the factory,  so we declare it
-        EuropeanLogPrice_Doubling<1> optie(OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
-        optie.set_refine_status(true, 0.03, 0.1);
-        optie.set_integral_adaptivity_params(false,16);
-        optie.run();
+        // this option is not on the factory,  so we declare it
+        EuropeanLogPrice_Doubling<1> foo (OptionType::Call, model.get_pointer(), 0.0367, 1., 90., 10, 100);
+        foo.set_refine_status(true, 0.03, 0.1);
+        foo.set_integral_adaptivity_params(false,16);
+        foo.run();
 
-        cout<< "And the price is "<< optie.get_price()<< endl;
-        cout<< "my target price is 12.427 \n";
-
+        cout<< "And the price is "<<foo.get_price()<<".\n";
+        
         return 0;
 }
