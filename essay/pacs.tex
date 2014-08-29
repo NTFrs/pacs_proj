@@ -671,10 +671,10 @@ In sostanza, se definiamo per ogni nodo $(S_1,S_2)_j$ l'insieme $\mathcal{F}^1_j
  (J_1^{k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^1_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,z_l,S_2)}{z_l}\nu_1\left(\log\left(\frac{z_l}{S_{1,j}}\right)\right)w_l,\\
  (J_2^{k})_j&=\sum\limits_{\mathbb{F}\in \mathcal{F}^2_j} \sum\limits_{z_l \in \mathbb{F}}\frac{C(t_k,S_1,z_l)}{z_l}\nu_2\left(\log\left(\frac{z_l}{S_{2,j}}\right)\right)w_l,
 \end{align*}
-dove $z_l$, $w_l$ sono nodi e pesi di quadratura.\\\\
+dove $z_l$, $w_l$ sono nodi e pesi di quadratura.\\
 
 Se la griglia è strutturata, come in figura \ref{fig:struct_grid}, la procedura può essere resa molto veloce ciclando su tutte le celle e poi sui nodi.\\
-Per ogni cella (per esempio quella in figura \ref{fig:sel_cell}), si calcolano i contributi delle sue facce e si distribuiscono ai nodi giusti. Cosi quando si sceglie è sulla faccia orizzontale (in blu in figura \ref{fig:integrating_x}) si calcola il valore di $\sfrac{C(t,z_l)}{z_l}$ con $z_l$ nodi di quadratura sulla faccia, e si distribuisce questo contributo a tutti i nodi (rossi in figura \ref{fig:integrating_x}) che giacciono sulla retta passante per quella faccia. La procedura si ripete per le facce verticali come in figura \ref{fig:integrating_y}.
+Per ogni cella (per esempio quella in figura \ref{fig:sel_cell}), si calcolano i contributi delle sue facce e si distribuiscono ai nodi giusti. Cos\`i, quando si sceglie la faccia orizzontale (in blu in figura \ref{fig:integrating_x}) si calcola il valore di $\sfrac{C(t,z_l)}{z_l}$ con $z_l$ nodi di quadratura sulla faccia, e si distribuisce questo contributo a tutti i nodi (rossi in figura \ref{fig:integrating_x}) che giacciono sulla retta passante per quella faccia. La procedura si ripete per le facce verticali come in figura \ref{fig:integrating_y}.
 
 
 
