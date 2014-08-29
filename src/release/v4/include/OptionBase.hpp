@@ -212,9 +212,9 @@ public:
          */
         virtual void set_scale_factor(double f_)
         {
-                if (f_<=0. && f_>=1.)
+                if (f_<0. || f_>=1.)
                 {
-                        throw(std::logic_error("Error! The scale factor must be in ]0,1[.\n"));
+                        throw(std::logic_error("Error! The scale factor must be in [0,1[.\n"));
                 }
                 else
                 {
