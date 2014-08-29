@@ -1060,13 +1060,13 @@ Il nostro \emph{solver}, che \`e in grado di lavorare anche in parallelo, sembra
 \hline
 Trasformazione & Prezzo & Tempo \\ \hline
 \emph{price} & 4.42944\officialeuro & 22.9670s \\ \hline
-\emph{log-price} & 4.4122\officialeuro & 22.9427s \\ \hline
+\emph{log-price} & 4.4122\officialeuro & 13.4689s \\ \hline
 \end{tabular}
 \end{center}
 \caption{Prezzi di una \emph{put} americana, Kou.}
 \label{test3-2}
 \end{table}
-Come possiamo notare i prezzi sono simili per entrambe le trasformazioni, come pure i tempi di calcolo. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una \emph{put} europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: a differenza di quanto accade nella figura \ref{fig:test1-derivative}, qui possiamo vedere come esse siano molto ``lisce'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
+Come possiamo notare i prezzi sono simili per entrambe le trasformazioni, mentre i tempi di calcolo rispecchiano il comportamento delle PIDE 1d mostrato in \ref{step2-1}. In figura \ref{fig:test2-putamkou} possiamo apprezzare come la soluzione stia sempre sopra alla condizione finale, cosa che per esempio non avviene in figura \ref{fig:test1-put1d-price}, che descrive il comportamento di una \emph{put} europea. Nel secondo grafico invece della figura \ref{fig:test2-putamkou} abbiamo plottato la derivata prima e la derivata seconda della soluzione: a differenza di quanto accade nella figura \ref{fig:test1-derivative}, qui possiamo vedere come esse siano molto ``lisce'' fino al punto di contatto con l'ostacolo, dove notiamo un cambio un po' brusco di inclinazione. Ci\`o \`e dovuto al fatto che da quel punto in poi, nonostante la soluzione tenda a scendere sotto l'ostacolo, il \emph{solver} impone che la soluzione sia pari al \emph{payoff}.
 \begin{figure}[htp!]
 \begin{center}
 \includegraphics[width=\textwidth]{img/test2-putamkou.eps}

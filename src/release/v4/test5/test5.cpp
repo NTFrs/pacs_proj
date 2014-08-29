@@ -163,7 +163,7 @@ int main()
                         minnie->set_print_grid(true);
                         minnie->set_print(true);
                         minnie->set_timing(true);
-                        minnie->set_integral_adaptivity_params(false);
+                        minnie->set_integral_adaptivity_params(false, 32);
 
                         minnie->set_refine_status(true, 0.03, 0.15);
                         minnie->run();
@@ -186,7 +186,7 @@ int main()
                         minnie->set_print_grid(true);
                         minnie->set_print(true);
                         minnie->set_timing(true);
-                        minnie->set_integral_adaptivity_params(false);
+                        minnie->set_integral_adaptivity_params(false, 32);
 
                         minnie->set_refine_status(true, 0., 0.1);
                         minnie->run();
