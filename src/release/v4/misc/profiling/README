@@ -1,0 +1,6 @@
+This program is designed to be used with the profiling tool callgrind from valgrind. After building it with make (better if make debug):
+valgrind --tool=callgrind ./main_profiling
+
+The file contains the output from callgrind that can be analyzed (for example with KCacheGrind). With a simple edit on the CMakeLists.txt, the flag '-pg' can be added to compiler and linker in the debug target: just decomment the relative instructions.
+
+NOTE: The compiler may produce some warnings since openMP is deactivated.
