@@ -14,7 +14,6 @@
 
 #compiled practice mains
 main
-test*
 main_profiling
 
 # Cmake Files
