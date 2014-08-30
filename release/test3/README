@@ -1,0 +1,3 @@
+In this third example we show how to price American Options.
+We start here with 1d and 2d Options with Black&Scholes-driven assets.
+At the end, we price an American Put with a Kou model, printing also the value of the first and second derivatives in a m file.

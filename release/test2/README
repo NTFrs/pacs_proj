@@ -1,0 +1,3 @@
+In this program, we start the pricing in the Lévy framework, solving some PIDEs.
+We start with a simple PIDE in 1d, with the Kou model. Then, we test the convergence of the price varying the width of the grid.
+We finallu price a Merton 2d Call, and we test the performance of the Log-Price transformation varying the number of quadrature nodes.
