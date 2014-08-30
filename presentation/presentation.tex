@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{xfrac}
+\usepackage{tabularx}
 
 \usepackage{graphicx}
 \graphicspath{{img/}}
@@ -379,35 +380,45 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Risultati}
 
-\begin{frame}
+\begin{frame}[t]
  \frametitle{\emph{Price} v.s \emph{LogPrice}}
 Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
-  \begin{columns}[T]
-  \begin{column}{0.5\linewidth}
-   \begin{itemize}
-    \item In 1d molto veloce
-    \hline
-    \item In 2d abbastanza conveniente
-    \hline
-    \item Non parallelizzabile
-   \end{itemize}
 
-  \end{column}
+%spazio fra le righe!  
+\renewcommand{\arraystretch}{1.5}
 
-  \begin{column}{0.5\linewidth}
-   \begin{itemize}
-    \item In 1d mediamente veloce
-    \item Parallelizzabile, quindi più veloce di \emph{Price} 1d
-   \end{itemize}
+\only<1>{
+\begin{table}
+\centering
+\begin{tabular}{|p{0.43\linewidth}|p{0.43\linewidth}|}
+\hline
+\emph{Price} & \emph{LogPrice}\\
+\hline
+In 1d molto veloce & In 1d mediamente veloce\\
+In 2d buone performance & In 2d lento \\
+Non parallelizzabile & Parallelizzabile, quindi più veloce di \emph{Price} 1d \\
+No \emph{mesh adapting} in 2d & \emph{Mesh adapting} anche in 2d, migliorando le performance\\
+Troncamento del domionio può introdurre problemi & Nessun problema troncamento dominio \\
+\hline
+\end{tabular}
+\caption{Confronto fra \emph{Price} e \emph{LogPrice}}
+\end{table}}
 
-  \end{column}
-
-  
- \end{columns}
-
+\only<2>{
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{test2-scalefactor}
+\caption{Convergenza del prezzo per una put al variare dello \emph{scaling factor}}
+ \end{figure}
+}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+ \frametitle{}
+\end{frame}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusioni}
