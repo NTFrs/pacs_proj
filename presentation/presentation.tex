@@ -7,6 +7,7 @@
 \usepackage[italian]{babel}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{xfrac}
 
 \usepackage{graphicx}
 \graphicspath{{img/}}
@@ -134,9 +135,29 @@ Con la trasformazione \emph {Logprice}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
+\begin{frame}[t]
  \frametitle{Discretizzazione}
- 
+ \begin{overprint}
+ Data una griglia con nodi $S_i$
+\end{overprint}
+\only<1-3>{\begin{itemize}
+  \item<1-3> Per la parte differenziale, si scrive la formulazione variazionale e la si discetizza nel modo usuale 
+  
+  \item<2,3> Per la parte integrale, si calcola il valore della parte integrale relativa al nodo $S_i$
+  \begin{equation*}
+   J^1(S_i)=\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy
+  \end{equation*}
+	ottenendo una vettore $\mathbf{J}$ funzione di $S_i$. Tale funzione va poi scritta come elemento dello spazio a elementi finiti 
+	
+	\item<3> Per la discretizzazione temporale, viene applicato uno schema di eulero implicito, ma la parte integrale viene lasciata esplicita. Lo schema è stabile se Stabile se $\frac{1}{dt}<\lambda$.
+	 \end{itemize}}
+\only<4>{
+\begin{block}{}
+Otteniamo dunque il seguente schema, con $\mathbf{C}_h^k$ vettore componenti soluzione al tempo $k$
+\begin{equation*}
+ M_1\mathbf{C}_h^k=M_2\mathbf{C}_h^{k+1}+M\mathbf{J}^1+M\mathbf{J}^2
+\end{equation*}
+\end{block}}
 \end{frame}
 
 
