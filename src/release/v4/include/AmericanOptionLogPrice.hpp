@@ -260,7 +260,7 @@ void AmericanOptionLogPrice<dim>::solve ()
 
                         if (k==this->maxiter-1 && this->verbose)
                         {
-                                cout<<"Warning: maxiter reached, with error="<<temp.linfty_norm()<<"\n";
+                                cerr<<"Warning: maxiter reached, with error="<<temp.linfty_norm()<<"\n";
                         }
 
                 }

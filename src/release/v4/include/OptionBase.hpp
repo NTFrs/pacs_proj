@@ -519,7 +519,13 @@ OptionBase<1>::OptionBase(ExerciseType type_,
         {
                 throw(std::logic_error("Error! Unknown models.\n"));
         }
-
+        
+        // checking wheter the problem is stable
+        if (model_type!=ModelType::BlackScholes && dt>1./(model->get_lambda()))
+        {
+                std::cerr<<"Warning: dt>1/lambda. The method could be instable.\n";
+        }
+        
 }
 
 // Constructor 2d
@@ -630,6 +636,13 @@ OptionBase<2>::OptionBase(ExerciseType type_,
         else
         {
                 throw(std::logic_error("Error! Unknown models.\n"));
+        }
+        
+        // checking wheter the problem is stable
+        if (model_type!=ModelType::BlackScholes &&
+            (dt>1./(model1->get_lambda()) || dt>1./(model2->get_lambda())))
+        {
+                std::cerr<<"Warning: dt>1/lambda. The method could be instable.\n";
         }
 
 }
