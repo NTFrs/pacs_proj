@@ -21,7 +21,7 @@ int main()
 
         // Serial
         {
-                omp_set_num_threads(2);
+                omp_set_num_threads(1);
 
                 auto foo=Factory::instance()->create(ExerciseType::EU,
                                                      OptionType::Call,
