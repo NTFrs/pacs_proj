@@ -30,7 +30,7 @@ int main()
                                                      0.0367, 1., 90., 1, 100);
 
                 foo->set_verbose(false);
-                foo->set_integral_adaptivity_params(false, 16);
+                foo->set_integral_adaptivity_params(false, 64);
 
                 for (unsigned i=0; i<refinement.size(); ++i)
                 {
@@ -57,7 +57,7 @@ int main()
                                                        0.0367, 1., 90., 1, 100);
 
                 goofy->set_verbose(false);
-                goofy->set_integral_adaptivity_params(false, 16);
+                goofy->set_integral_adaptivity_params(false, 64);
 
                 for (unsigned i=0; i<refinement.size(); ++i)
                 {
@@ -123,6 +123,7 @@ int main()
                                                                 0.2, 0.0367, 1., 200., 1, 100);
 
                         minnie->set_verbose(false);
+                        minnie->set_integral_adaptivity_params(false, 64);
 
                         for (unsigned i=0; i<refinement.size(); ++i)
                         {
@@ -150,7 +151,8 @@ int main()
                                                                0.2, 0.0367, 1., 200., 1, 100);
 
                         daisy->set_verbose(false);
-
+                        daisy->set_integral_adaptivity_params(false, 64);
+                        
                         for (unsigned i=0; i<refinement.size(); ++i)
                         {
                                 daisy->reset();
