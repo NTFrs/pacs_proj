@@ -22,7 +22,7 @@
 \AtBeginSection[]
 {
   \begin{frame}
-    \frametitle{Struttura della presentazione}
+    \frametitle{Indice}
     \tableofcontents[currentsection]
   \end{frame}
 }
@@ -42,7 +42,7 @@
 {Metodo a elementi finiti per il pricing di opzioni multi-asset con modelli di L\'evy}
 \subtitle{Progetto di Programmazione Avanzata per il Calcolo Scientifico}
 \author[Foresta, Re] % (optional, for multiple authors)
-{Nahuel~Foresta \and Giorigo~Re}
+{Nahuel~Foresta \and Giorgio~Re}
 \institute[Politecnico di Milano]{Dipartimento di Matematica\\ \bf{Politecnico di Milano}} % (optional)
 \date{\today}
 
@@ -171,7 +171,7 @@ Con la trasformazione \emph {Logprice}
  Data una griglia con nodi $S_i$
 \end{overprint}
 \only<1-3>{\begin{itemize}
-  \item<1-3> Per la parte differenziale, si scrive la formulazione variazionale e la si discetizza nel modo usuale 
+  \item<1-3> Per la parte differenziale, si scrive la formulazione variazionale e la discretizzazione nel modo usuale 
   
   \item<2,3> Per la parte integrale, si calcola il valore della parte integrale relativa al nodo $S_i$
   \begin{equation*}
@@ -179,7 +179,7 @@ Con la trasformazione \emph {Logprice}
   \end{equation*}
 	ottenendo una vettore $\mathbf{J}$ funzione di $S_i$. Tale funzione va poi scritta come elemento dello spazio a elementi finiti 
 	
-	\item<3> Per la discretizzazione temporale, viene applicato uno schema di eulero implicito, ma la parte integrale viene lasciata esplicita. Lo schema è stabile se Stabile se $\frac{1}{dt}<\lambda$.
+	\item<3> Per la discretizzazione temporale, viene applicato uno schema di Eulero Implicito, ma la parte integrale viene lasciata esplicita. Lo schema è stabile se Stabile se $\frac{1}{dt}<\lambda$.
 	 \end{itemize}}
 \only<4>{
 \begin{block}{}
@@ -231,7 +231,7 @@ Quindi per ogni cella, si calcolano i contributi dovuti alla cella
 e si distribuiscono ai nodi di competenza:
 \begin{itemize}
  \item In 1d, a tutti i nodi.
- \item In 2d, solo a quelli che giaciono sulla retta passante per la faccia selezionata. \only<4>{Prima sull'asse x.} \only<5>{Poi sull'asse y.}
+ \item In 2d, solo a quelli che giacciono sulla retta passante per la faccia selezionata. \only<4>{Prima sull'asse x.} \only<5>{Poi sull'asse y.}
 \end{itemize}
 }
 \end{column}
@@ -287,10 +287,10 @@ In questo caso l'integrale da calcolare è
 \begin{equation*}
  \int_{-\infty}^\infty u(t,x+y)\nu(y)dy
 \end{equation*}
-su una griglia qualunque. Notare come si può uscire dal domininio a causa del termine $x+y$\\
+su una griglia qualunque. Notare come si può uscire dal dominio a causa del termine $x+y$\\
 
 \only<2->{
-In questo caso si cicla su tutti i vertici. Selezionato un vertice $i$,}
+In questo caso si realizza un ciclo su tutti i vertici. Selezionato un vertice $i$,}
 \only<3->{
 si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in blu), e se la dimensione è due, anche su $y$ lungo $y_i+z_l$.} 
 \end{column}
@@ -331,7 +331,7 @@ si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in 
 \begin{frame}
 \frametitle{La libreria \textsf{deal.ii}}
 \begin{block}{Libreria \textsf{deal.ii}}
-Una potente libreria opensource ad elementi finiti sui quadrilateri. Molto completa e semplice da utilizzare all'inizio, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
+Una potente libreria \emph{open source} ad elementi finiti sui quadrilateri. Molto completa e semplice da utilizzare all'inizio, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
 \end{block}
 
 \pause
@@ -356,7 +356,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \begin{block}{Classi Integrali}
   Il calcolo della parte integrale è gestito da queste classi, e le Opzioni salvano un puntatore a un oggetto di questo tipo. 
  \end{block}
- Tutte sfruttanti il meccanismo dell'ereditarietà al fine di COMPLETE HERE
+ Tutte queste strutture sfruttano il meccanismo dell'ereditarietà al fine di coprire i diversi casi possibili.
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -365,7 +365,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \frametitle{Le classi Opzione}
 
  Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia sono quelle effettivamente usate, in quanto implementano tutti i metodi.
- \only<1>{\begin{figure}
+ \only<1>{\begin{figure}[b!]
   \centering
   \includegraphics[width=\linewidth]{classOptionBase}
  \caption{Schema delle classi Opzione}
@@ -411,7 +411,22 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 
 
 \begin{frame}
- \frametitle{Qua cosa mettiamo?}
+ \frametitle{Prezzi dei derivati?}
+Alcuni esempi di risultati ottenuti: 
+\begin{figure}
+ \begin{subfigure}{0.48\linewidth}
+ \centering
+ \includegraphics[width=.9\linewidth]{test2-call1dkou}
+ \caption{Call europea, modello di Kou}
+ \end{subfigure}
+ \hfill
+ \begin{subfigure}{0.48\linewidth}
+  \centering
+  \includegraphics[width=0.9\linewidth]{test1-call2dpriceSolution}
+  \caption{Basket Call Europea, modello di B\&S }
+ \end{subfigure}
+ \end{figure}
+I risultati, confrontati con la soluzione analitica (nei pochi casi in cui esiste)  o con altri \emph{software} di simulazione (differenze finite o Montecarlo), sono corretti.
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -432,8 +447,8 @@ Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
 In 1d molto veloce & In 1d mediamente veloce\\
 In 2d buone performance & In 2d lento \\
 Non parallelizzabile & Parallelizzabile, quindi più veloce di \emph{Price} 1d \\
-No \emph{mesh adapting} in 2d & \emph{Mesh adapting} anche in 2d, migliorando le performance\\
-Troncamento del domionio può introdurre problemi & Nessun problema troncamento dominio \\
+No \emph{mesh adapting} in 2d & \emph{Mesh adapting} anche in 2d, migliorando le prestazioni\\
+Troncamento del dominio può introdurre problemi & Nessun problema troncamento dominio \\
 \hline
 \end{tabular}
 \caption{Confronto fra \emph{Price} e \emph{LogPrice}}
@@ -454,7 +469,7 @@ Troncamento del domionio può introdurre problemi & Nessun problema troncamento 
 
 \begin{frame}[c]
  \frametitle{\emph{Mesh adaptivity}}
- Utilizzando le funzioni della librearia \textsf{deal.ii}, è facile adattare la griglia:
+ Utilizzando le funzioni della libreria \textsf{deal.ii}, è facile adattare la griglia:
  \begin{figure}
  \begin{subfigure}{0.48\linewidth}
  \centering
@@ -470,14 +485,46 @@ Troncamento del domionio può introdurre problemi & Nessun problema troncamento 
   \centering
   \onslide<2->{
   \includegraphics[width=0.9\linewidth]{test5-1}
-  \caption{soluzione adattata}}
+  \caption{Soluzione con griglia adattata}}
  \end{subfigure}
- \caption{Adattazione di griglia per una Call Europea 2d in forma \emph{LogPrice}}
+ \caption{Adattamento di griglia per una Call Europea 2d in forma \emph{LogPrice}}
  \end{figure}
 \end{frame}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusioni}
+
+\begin{frame}
+ \frametitle{Bilancio del progetto}
+Il programma finale si configura come una piccola ma solida libreria che serve da base per il pricing di derivati finanziari di base, e altri possono essere costruiti facilmente.Inoltre lascia molta libertà all'utente (più trasformazioni, scelta di parametri).\\ \vspace{1cm}
+Anche se non velocissimo, le prestazioni sono migliori se comparate con altri software. 
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+ \frametitle{Possibilità di estensioni}
+ 
+ Il progetto, data al sua struttura aperta, si presta molto ad estensioni. Alcune idee:
+ \begin{itemize}[<+->]
+  \item Aggiunta di altri derivati finanziari simili
+  \item Aggiunta di altri modelli finanziari
+  \item Parallelizzazione in memoria distribuita
+  \item Estensione al caso con tre sottostanti
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[plain]
+\centering
+ \bf{\LARGE Vi ringraziamo dell'attenzione.}\\
+\end{frame}
+
 
 \end{document}
