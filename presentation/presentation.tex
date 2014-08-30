@@ -9,9 +9,11 @@
 \usepackage{amsfonts}
 \usepackage{xfrac}
 \usepackage{tabularx}
-
 \usepackage{graphicx}
 \graphicspath{{img/}}
+
+\usepackage{caption}
+\usepackage{subcaption}
 
 \newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\dder}[2]{\frac{\partial^2 #1}{\partial #2^2}}
@@ -20,7 +22,7 @@
 \AtBeginSection[]
 {
   \begin{frame}
-    \frametitle{Table of Contents}
+    \frametitle{Struttura della presentazione}
     \tableofcontents[currentsection]
   \end{frame}
 }
@@ -35,10 +37,37 @@
 \useoutertheme{infolines}
 % \setbeamertemplate{footline}
 
+
+\title[PIDE pricing con elementi finiti] % (optional, only for long titles)
+{Metodo a elementi finiti per il pricing di opzioni multi-asset con modelli di L\'evy}
+\subtitle{Progetto di Programmazione Avanzata per il Calcolo Scientifico}
+\author[Foresta, Re] % (optional, for multiple authors)
+{Nahuel~Foresta \and Giorigo~Re}
+\institute[Politecnico di Milano]{Dipartimento di Matematica\\ \bf{Politecnico di Milano}} % (optional)
+\date{\today}
+
+
+
+
+
 \begin{document}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\centering
+ \includegraphics[scale=0.2]{poli_logo}
+ \maketitle
+\end{frame}
+
+% \frame{\titlepage}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduzione}
 \begin{frame}
 \frametitle{Il progetto}
@@ -380,6 +409,12 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Risultati}
 
+
+\begin{frame}
+ \frametitle{Qua cosa mettiamo?}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}[t]
  \frametitle{\emph{Price} v.s \emph{LogPrice}}
 Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
@@ -413,10 +448,32 @@ Troncamento del domionio può introdurre problemi & Nessun problema troncamento 
 }
 \end{frame}
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
- \frametitle{}
+\begin{frame}[c]
+ \frametitle{\emph{Mesh adaptivity}}
+ Utilizzando le funzioni della librearia \textsf{deal.ii}, è facile adattare la griglia:
+ \begin{figure}
+ \begin{subfigure}{0.48\linewidth}
+ \centering
+ \only<1>{
+ \includegraphics[width=.9\linewidth]{Price1}
+ \caption{Griglia iniziale}}
+ \only<2->{
+ \includegraphics[width=.9\linewidth]{Price3}
+ \caption{Griglia adattata}}
+ \end{subfigure}
+ \hfill
+ \begin{subfigure}{0.48\linewidth}
+  \centering
+  \onslide<2->{
+  \includegraphics[width=0.9\linewidth]{test5-1}
+  \caption{soluzione adattata}}
+ \end{subfigure}
+ \caption{Adattazione di griglia per una Call Europea 2d in forma \emph{LogPrice}}
+ \end{figure}
 \end{frame}
 
 
