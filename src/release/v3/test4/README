@@ -1,5 +1,0 @@
-In this program we test the behavior of the Log-Price trasformation varying the number of threads.
-The Log-Price transformation in fact benefits from a multi-core computers.
-We test here the speed-up between the serial and the parallel computation.
-
-HINT: if you don't want to leave your computer crunching data for hours, answer no the question the program will ask you.

@@ -1,5 +1,0 @@
-Noncost coefficient implementation of B&S PDE
-
-Without #define __PIDE__ it solves the classic B&S PDE.
-
-It uses Laguerre nodes for the integration of exp(-b*x).

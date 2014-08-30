@@ -1,3 +1,0 @@
-In this program we show how to use Mesh Adaptivity for our problems.
-We test the adaptivity in 1d for European Options with Kou models and for American Options with Black&Scholes model.
-Then, we use Mesh Adaptivity in a 2d Option with Merton models.
