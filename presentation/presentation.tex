@@ -68,12 +68,13 @@
 \begin{frame}
 \frametitle{Il progetto}
 \begin{block}{Scopo}
-Lo scopo è di creare una piccola libreria per il pricing di derivati finanziari con il metodo degli elementi finiti, appoggiandosi sulla libreria \textsf{deal.ii}.
-L'idea è che l'utilizzatore possa sia utilizzare gli oggetti presenti, sia crearne altri con grande facilità nel caso ne avesse bisogno.
+Lo scopo di questo progetto è creare una piccola libreria per il \emph{pricing} di derivati finanziari con il metodo degli elementi finiti, utilizzando la libreria \textsf{deal.ii}.
+L'idea è che l'utente possa sia utilizzare gli strumenti presenti, sia aggiungerne altri nel caso di bisogno, con grande facilità (ereditariet\`a).
 \end{block}
 \pause
+\vspace{0.5cm}
 \begin{block}{Motivazioni}
-La procedura pi\`u diffusa in finanza è di usare le differenze finite. Gli elementi finiti, a fronte di una maggiore difficoltà implementativa, risultano essere più vantaggiosi.
+La procedura pi\`u diffusa in finanza è l'utilizzo delle differenze finite. Gli elementi finiti, a fronte di una maggiore difficoltà implementativa, risultano essere più vantaggiosi.
 \end{block}
 \end{frame}
 
@@ -95,13 +96,13 @@ La procedura pi\`u diffusa in finanza è di usare le differenze finite. Gli elem
 \end{overlayarea}
 con opportune condizioni al contorno.\\
 \pause
-Possiamo scomporre il problema in due parti
+Possiamo scomporre il problema in due parti:
 \begin{itemize}[<+->]
-\item La parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
-\item La parte integrale, che necessita di un trattamento speciale. \only<4>{Separabile in due pezzi.}
+\item la parte differenziale, trattata in modo usuale con l'aiuto della libreria \textsf{deal.ii}
+\item la parte integrale, che necessita di un trattamento speciale \only<4>{ed \`e separabile in due parti.}
 \end{itemize}
 \pause
-Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{logprice}}
+Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{log-price}}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -119,7 +120,7 @@ l'equazione diventa
 \end{equation*}
 }
 \only<2>{
-Analogamente per la trasformazione logprice si ha
+Analogamente per la trasformazione \emph{log-price} si ha
 \begin{align*}
 \hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
 \hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
@@ -136,7 +137,7 @@ con rispettiva equazione
 \begin{frame}
 \frametitle{In due dimensioni}
 \only<1>{
-Con la trasformazione \emph{Price}
+Con la trasformazione \emph{price}
 \begin{multline*}
  \der{C}{t}+(r-\hat{\alpha}_1)S_1\der{C}{S_1}+(r-\hat{\alpha}_2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}\\
  +\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-(r+\lambda_1+\lambda_2)C\\
@@ -145,7 +146,7 @@ Con la trasformazione \emph{Price}
 }
 
 \only<2>{
-Con la trasformazione \emph {Logprice}
+Con la trasformazione \emph {log-price}
 \begin{multline*}
 \der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
 \left(r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}\right)\der{u}{x_1}\\+
@@ -175,7 +176,7 @@ Con la trasformazione \emph {Logprice}
   \end{equation*}
 	ottenendo una vettore $\mathbf{J}$ funzione di $S_i$. Tale funzione va poi scritta come elemento dello spazio a elementi finiti 
 	
-	\item<3> Per la discretizzazione temporale, viene applicato uno schema di Eulero Implicito, ma la parte integrale viene lasciata esplicita. Lo schema è stabile se Stabile se $\frac{1}{dt}<\lambda$.
+	\item<3> Per la discretizzazione temporale, viene applicato uno schema di Eulero Implicito, ma la parte integrale viene trattata in modo esplicito. Lo schema è stabile se $\sfrac{1}{\Delta t}<\lambda$.
 	 \end{itemize}}
 \only<4>{
 \begin{block}{}
@@ -193,7 +194,7 @@ Otteniamo dunque il seguente schema, con $\mathbf{C}_h^k$ vettore componenti sol
 
 
 \begin{frame}
- \frametitle{Calcolo dell'integrale in forma \emph{Price}}
+ \frametitle{Calcolo dell'integrale in forma \emph{price}}
 \begin{columns}[c]
 %%explanation column
 \only<1>{
@@ -226,8 +227,8 @@ Quindi per ogni cella, si calcolano i contributi dovuti alla cella
 \only<4->{
 e si distribuiscono ai nodi di competenza:
 \begin{itemize}
- \item In 1d, a tutti i nodi.
- \item In 2d, solo a quelli che giacciono sulla retta passante per la faccia selezionata. \only<4>{Prima sull'asse x.} \only<5>{Poi sull'asse y.}
+ \item in 1d, a tutti i nodi
+ \item in 2d, solo a quelli che giacciono sulla retta passante per la faccia selezionata. \only<4>{Prima sull'asse x.} \only<5>{Poi sull'asse y.}
 \end{itemize}
 }
 \end{column}
@@ -271,7 +272,7 @@ e si distribuiscono ai nodi di competenza:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
- \frametitle{Calcolo dell'integrale in forma \emph{logprice}}
+ \frametitle{Calcolo dell'integrale in forma \emph{log-price}}
  \begin{columns}[c]
 %%explanation column
 \only<1->{
@@ -283,12 +284,12 @@ In questo caso l'integrale da calcolare è
 \begin{equation*}
  \int_{-\infty}^\infty u(t,x+y)\nu(y)dy
 \end{equation*}
-su una griglia qualunque. Notare come si può uscire dal dominio a causa del termine $x+y$\\
+su una griglia qualunque. Osserviamo che si può uscire dal dominio a causa del termine $x+y$.\\
 
 \only<2->{
 In questo caso si realizza un ciclo su tutti i vertici. Selezionato un vertice $i$,}
 \only<3->{
-si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in blu), e se la dimensione è due, anche su $y$ lungo $y_i+z_l$.} 
+si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in blu), e se la dimensione è due, anche su $y$ lungo $y_i+z_q$ (in verde).} 
 \end{column}
 }
 
@@ -329,12 +330,12 @@ si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in 
 \begin{block}{Libreria \textsf{deal.ii}}
 Una potente libreria \emph{open source} ad elementi finiti sui quadrilateri. Molto completa e semplice da utilizzare all'inizio, permette di risolvere problemi variazionali fino a 3 dimensioni con poche righe di codice. 
 \end{block}
-
+\vspace{0.5cm}
 \pause
 \begin{block}{Vantaggi}
  \begin{itemize}
-  \item Documentazione molto ampia e chiara, a cui si aggiunge la presenza di 51 tutorial programs che illustrano come usare la libreria per problemi tipici
-  \item Organizzata in moduli che coprono le diverse aree di un problema ad elementi finiti (\emph{creazione griglie, algebra lineare, output risultati, etc})
+  \item Documentazione molto ampia e chiara, a cui si aggiunge la presenza di 51 \emph{tutorial} che illustrano come usare la libreria per problemi pi\`u o meno tipici.
+  \item Organizzata in moduli che coprono le diverse aree di un problema ad elementi finiti (\emph{creazione griglie, algebra lineare, output risultati, etc}).
  \end{itemize}
 \end{block}
 \end{frame}
@@ -347,7 +348,7 @@ Una potente libreria \emph{open source} ad elementi finiti sui quadrilateri. Mol
 Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
  \end{block}
  \begin{block}{Classi Model}
- I vari modelli utilizzati in finanza sono rappresentati con questa classe, la cui interfaccia è stabilita da una classe base astratta.
+ I vari modelli utilizzati in finanza sono rappresentati con queste classi, la cui interfaccia è stabilita da una classe base astratta.
  \end{block}
  \begin{block}{Classi Integrali}
   Il calcolo della parte integrale è gestito da queste classi, e le Opzioni salvano un puntatore a un oggetto di questo tipo. 
@@ -361,19 +362,22 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \frametitle{Le classi Opzione}
 
  Seguendo la linea di \textsf{deal.ii}, le classi opzione costituiscono il \emph{core} del programma ad elementi finiti. Implementano i vari metodi necessari per la soluzione del problema.\\ Le classi foglia sono quelle effettivamente usate, in quanto implementano tutti i metodi.
+ \vspace{1cm}
  \only<1>{\begin{figure}[b!]
   \centering
   \includegraphics[width=\linewidth]{classOptionBase}
  \caption{Schema delle classi Opzione}
  \end{figure}}
+ \vspace{-0.7cm}
  \only<2->{
  \begin{block}{Factory di Opzioni}
   Per facilitare la creazione di opzioni all'utente, è stata creata una \emph{Factory} che permette di creare i vari oggetti \textbf{Opzione} con un'interfaccia comune.
  \end{block}
  }
+ \vspace{0.3cm}
  \only<3->{
  \begin{block}{Estensibile}
-  L'utente pu\`o sia utilizzare le opzioni gi\`a esistenti, che crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
+  L'utente pu\`o sia utilizzare le opzioni gi\`a esistenti, sia crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
  \end{block}
 }
 \end{frame}
@@ -383,7 +387,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}[t]
  \frametitle{Le classi Integrale}
- Per calcolare la parte integrale, sono state create una serie di classi. Il secondo livello di ereditarietà distingue fra \emph{price} e \emph{logprice}, mentre le classi foglia implementano quadrature specifiche ai modelli.
+ Per calcolare la parte integrale, sono state create una serie di classi. Il secondo livello di ereditarietà distingue fra \emph{price} e \emph{log-price}, mentre le classi foglia implementano quadrature specifiche per i modelli.
 
  \begin{figure}
   \centering
@@ -391,7 +395,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \caption{Schema delle classi LevyIntegral}
  \end{figure}
  \pause
- \begin{block}{anything else?}
+ \begin{block}{Add something.}
 
  \end{block}
 \end{frame}
