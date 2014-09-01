@@ -42,7 +42,7 @@
 {Metodo a elementi finiti per il pricing di opzioni multi-asset con modelli di L\'evy}
 \subtitle{Progetto di Programmazione Avanzata per il Calcolo Scientifico}
 \author[Foresta, Re] % (optional, for multiple authors)
-{Nahuel~Foresta \and Giorgio~Re}
+{Nahuel~Foresta \and Giorgio G.~Re}
 \institute[Politecnico di Milano]{Dipartimento di Matematica\\ \bf{Politecnico di Milano}} % (optional)
 \date{\today}
 
@@ -376,7 +376,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  }
  \vspace{0.3cm}
  \only<3->{
- \begin{block}{Estensibile}
+ \begin{block}{Estensibili}
   L'utente pu\`o sia utilizzare le opzioni gi\`a esistenti, sia crearne delle nuove partendo dal secondo o dal terzo livello di ereditarietà.
  \end{block}
 }
@@ -395,7 +395,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \caption{Schema delle classi LevyIntegral}
  \end{figure}
  \pause
- \begin{block}{Add something.}
+ \begin{block}{Generiche}{Le classi base non sono astratte e implementano formule di calcolo generiche (cio\`e, Gauss) per risolvere il problema con modelli qualsiasi.}
 
  \end{block}
 \end{frame}
@@ -405,7 +405,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
 
 
 \begin{frame}
- \frametitle{Prezzi dei derivati?}
+ \frametitle{Opzioni Europee}
 Alcuni esempi di risultati ottenuti: 
 \begin{figure}
  \begin{subfigure}{0.48\linewidth}
@@ -417,15 +417,34 @@ Alcuni esempi di risultati ottenuti:
  \begin{subfigure}{0.48\linewidth}
   \centering
   \includegraphics[width=0.9\linewidth]{test1-call2dpriceSolution}
-  \caption{Basket Call Europea, modello di B\&S }
+  \caption{Call Basket europea, modello di Black\&Scholes}
  \end{subfigure}
  \end{figure}
-I risultati, confrontati con la soluzione analitica (nei pochi casi in cui esiste)  o con altri \emph{software} di simulazione (differenze finite o Montecarlo), sono corretti.
+I risultati, confrontati con la soluzione analitica (nei pochi casi in cui esiste) o con altri \emph{software} di simulazione (differenze finite o Montecarlo), sono corretti.
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}
+\frametitle{Opzioni Americane}
+Risultati ottenuti nel problema con ostacolo:
+\begin{figure}
+\begin{subfigure}{0.48\linewidth}
+\centering
+ \includegraphics[width=.9\linewidth]{img/us_put.jpg}
+ \caption{Put americana, modello di Black\&Scholes}
+ \end{subfigure}
+ \hfill
+ \begin{subfigure}{0.48\linewidth}
+  \centering
+  \includegraphics[width=0.9\linewidth]{test1-put1dprice.eps}
+  \caption{Put europea, modello di Black\&Scholes}
+ \end{subfigure}
+ \end{figure}
+ Come possiamo notare, il \emph{solver} dell'americana impone che la soluzione stia sempre sopra l'ostacolo, nonostante essa tenda ad andare sotto il \emph{payoff}.
+\end{frame}
+
 \begin{frame}[t]
- \frametitle{\emph{Price} v.s \emph{LogPrice}}
+ \frametitle{\emph{Price} v.s \emph{Log-price}}
 Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
 
 %spazio fra le righe!  
@@ -439,9 +458,9 @@ Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
 \emph{Price} & \emph{LogPrice}\\
 \hline
 In 1d molto veloce & In 1d mediamente veloce\\
-In 2d buone performance & In 2d lento \\
-Non parallelizzabile & Parallelizzabile, quindi più veloce di \emph{Price} 1d \\
-No \emph{mesh adapting} in 2d & \emph{Mesh adapting} anche in 2d, migliorando le prestazioni\\
+In 2d performance ottime & In 2d lento \\
+Non parallelizzabile & Facilmente parallelizzabile (quindi più veloce di \emph{price} 1d con almeno 4 \emph{cores}) \\
+No \emph{mesh adapting} in 2d per PIDE & \emph{Mesh adapting} anche in 2d, migliorando le prestazioni\\
 Troncamento del dominio può introdurre problemi & Nessun problema troncamento dominio \\
 \hline
 \end{tabular}
@@ -491,8 +510,15 @@ Troncamento del dominio può introdurre problemi & Nessun problema troncamento d
 
 \begin{frame}
  \frametitle{Bilancio del progetto}
-Il programma finale si configura come una piccola ma solida libreria che serve da base per il pricing di derivati finanziari di base, e altri possono essere costruiti facilmente.Inoltre lascia molta libertà all'utente (più trasformazioni, scelta di parametri).\\ \vspace{1cm}
-Anche se non velocissimo, le prestazioni sono migliori se comparate con altri software. 
+Il programma finale si configura come una piccola ma solida libreria per il \emph{pricing} di derivati finanziari di base, con la possibilit\`a di prezzarne altri facilmente. Inoltre lascia molta libertà all'utente (più trasformazioni, scelta di parametri, \emph{mesh adapting}).
+\vspace{0.4cm}
+\begin{block}{FEM vs. DFM}
+Grazie agli elementi finiti \`e possibile avere un'approssimazione pi\`u pregiata della soluzione, permettendo di calcolare in modo pi\`u preciso anche le derivate.\\
+\end{block}
+\vspace{0.4cm}
+\begin{block}{Prestazioni rispetto ad altri \emph{software}}
+Le prestazioni sono migliori se comparate con altri \emph{software}, specialmente nella risoluzione di problemi con ostacolo.
+\end{block}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -500,12 +526,12 @@ Anche se non velocissimo, le prestazioni sono migliori se comparate con altri so
 \begin{frame}
  \frametitle{Possibilità di estensioni}
  
- Il progetto, data al sua struttura aperta, si presta molto ad estensioni. Alcune idee:
+ Il progetto, avendo una struttura aperta, si presta molto facilmente ad estensioni. Alcune idee:
  \begin{itemize}[<+->]
-  \item Aggiunta di altri derivati finanziari simili
-  \item Aggiunta di altri modelli finanziari
-  \item Parallelizzazione in memoria distribuita
-  \item Estensione al caso con tre sottostanti
+  \item aggiunta di altri derivati finanziari simili
+  \item aggiunta di altri modelli finanziari
+  \item parallelizzazione in memoria distribuita
+  \item estensione al caso con tre sottostanti.
  \end{itemize}
 
  
