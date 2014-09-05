@@ -122,8 +122,8 @@ l'equazione diventa
 \only<2>{
 Analogamente per la trasformazione \emph{log-price} si ha
 \begin{align*}
-\hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy,\\
-\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy,
+\hat{\alpha}&=\int_{\mathbb{R}}(e^y-1)\nu(y)dy\\
+\hat{\lambda}&=\int_{\mathbb{R}}\nu(y)dy
 \end{align*}
 con rispettiva equazione
 \begin{equation*}
@@ -140,19 +140,19 @@ con rispettiva equazione
 Con la trasformazione \emph{price}
 \begin{multline*}
  \der{C}{t}+(r-\hat{\alpha}_1)S_1\der{C}{S_1}+(r-\hat{\alpha}_2)S_2\der{C}{S_2}+\frac{\sigma^2_1}{2}S_1^2\dder{C}{S_1}+\frac{\sigma^2_2}{2}S_2^2\dder{C}{S_2}\\
- +\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}-(r+\lambda_1+\lambda_2)C\\
- +\int_\mathbb{R}C(t,S_1e^y,S_2)\nu_1(y)dy+\int_\mathbb{R}C(t,S_1,S_2e^y)\nu_2(y)dy=0
+ \alert{+\rho\sigma_1\sigma_2S_1S_2\dmix{C}{S_1}{S_2}}-(r+\lambda_1+\lambda_2)C\\
+ +\int_\mathbb{R}\alert{C(t,S_1e^y,S_2)\nu_1}(y)dy+\int_\mathbb{R}\alert{C(t,S_1,S_2e^y)\nu_2}(y)dy=0
 \end{multline*}
 }
 
 \only<2>{
 Con la trasformazione \emph {log-price}
 \begin{multline*}
-\der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}+
+\der{u}{t}+\frac{\sigma_1^2}{2}\dder{u}{x_1}+\frac{\sigma_2^2}{2}\dder{u}{x_2}+\alert{\rho\sigma_1\sigma_2\dmix{u}{x_1}{x_2}}+
 \left(r-\frac{\sigma_1^2}{2}-\hat{\alpha_1}\right)\der{u}{x_1}\\+
 \left(r-\frac{\sigma_2^2}{2}-\hat{\alpha_2}\right)\der{u}{x_2}-(r+\hat{\lambda_1}+\hat{\lambda_2})u\\+
-\int_\mathbb{R}u(t,x_1+y,x_2)\nu_1(y)dy+
-\int_\mathbb{R}u(t,x_1,x_2+y)\nu_2(y)dy=0
+\int_\mathbb{R}\alert{u(t,x_1+y,x_2)\nu_1}(y)dy+
+\int_\mathbb{R}\alert{u(t,x_1,x_2+y)\nu_2}(y)dy=0
 \end{multline*}
 }
 
@@ -182,7 +182,7 @@ Con la trasformazione \emph {log-price}
 \begin{block}{}
 Otteniamo dunque il seguente schema, con $\mathbf{C}_h^k$ vettore componenti soluzione al tempo $k$
 \begin{equation*}
- M_1\mathbf{C}_h^k=M_2\mathbf{C}_h^{k+1}+M\mathbf{J}^1+M\mathbf{J}^2
+ M_1\mathbf{C}_h^k=M_2\mathbf{C}_h^{k+1}+M\mathbf{J}^{1,k}+M\mathbf{J}^{2,k}
 \end{equation*}
 \end{block}}
 \end{frame}
@@ -284,10 +284,10 @@ In questo caso l'integrale da calcolare è
 \begin{equation*}
  \int_{-\infty}^\infty u(t,x+y)\nu(y)dy
 \end{equation*}
-su una griglia qualunque. Osserviamo che si può uscire dal dominio a causa del termine $x+y$.\\
+su una griglia qualunque. Osserviamo che si può uscire dal dominio a causa del termine $x+y$.\\ \vspace{.5cm}
 
 \only<2->{
-In questo caso si realizza un ciclo su tutti i vertici. Selezionato un vertice $i$,}
+\iffalse In questo caso si realizza un ciclo su tutti i vertici.\fi Selezionato un vertice $i$,}
 \only<3->{
 si avranno dei nodi di quadratura in direzione $x$ e si quadra su $x_i+z_l$ (in blu), e se la dimensione è due, anche su $y$ lungo $y_i+z_q$ (in verde).} 
 \end{column}
@@ -395,7 +395,7 @@ Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e
  \caption{Schema delle classi LevyIntegral}
  \end{figure}
  \pause
- \begin{block}{Generiche}{Le classi base non sono astratte e implementano formule di calcolo generiche (cio\`e, Gauss) per risolvere il problema con modelli qualsiasi.}
+ \begin{block}{Generiche}{Le classi intermedie non sono astratte e implementano formule di calcolo generiche (cio\`e, Gauss) per risolvere il problema con modelli qualsiasi.}
 
  \end{block}
 \end{frame}
