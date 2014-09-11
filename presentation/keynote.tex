@@ -106,6 +106,26 @@ Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{log-price}}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}
+\frametitle{Il problema con l'ostacolo: Opzioni Americane}
+Nelle Opzioni Americane: $$P(S,t)\geq \max(K-S_T,0)\qquad\forall t\in[0,T]$$
+\pause
+L'equazione diventa:
+\begin{multline*}
+\begin{cases}
+\displaystyle
+\der{P}{t}+r S \der{P}{S} +\frac{1}{2}S^2\dder{P}{S}\\
+\displaystyle
++\int_\mathbb{R}\left(P(t,S)-P(t,S)-S(e^y-1)\der{P}{S}(t,S)\right)\nu(dy)\alert{\leq} rP,\\
+P(S,t)\alert{\geq} \max(K-S_T,0)
+\end{cases}
+\end{multline*}
+\pause
+Per risolvere questo problema si utilizza il PSOR:$$P_i^{(k+1)}=\max\left(K-S_i, P_i^{(k)}+\omega(z-P_i^{(k)})\right)$$
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
  \frametitle{Scomposizione della parte integrale}
 \only<1>{
@@ -157,7 +177,6 @@ Con la trasformazione \emph {log-price}
 }
 
 \end{frame}
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
