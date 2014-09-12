@@ -35,7 +35,23 @@ Descrivere perché non in altro modo integrale
 ### 10
 -) fare enfasi sulla pesantezza della ricerca
 ### 12
--) A noi è sembrata molto semplice, anche se essendo l'unico software per elementi finiti che conosciamo non abbiamo molto da confrontare >.< ????
 
--)Comunque ben strutturata per quello che riguarda l'utilizzo senza andare a scavare. Più complessa se si va a scavare dentro ????
 ### 13
+-) libreria FEM sui quadrilateri, molto ben documentata, con molti tutorial, dalla semplice creazione di grigile a complessi problemi 3d. A noi è sembrata semplice da usare nelle sue funzioni base (cioè creazione e risoluzione di un problema FEM), ma occorre scavare parecchio per trovare alcune funzioni particolari.
+
+### 14
+-) Spiegare perché ereditarietà
+
+### 15
+-) La classe base contiene tutte le variabili del problema, quali gli oggetti di dealii Elementi finiti, DoF_Handler e Triangulation e definisce l'interfaccia per tutte le classi opzione.
+-) Sulla factory sottolineare che grazie all'ereditarietà ritorna un puntatore alla classe base.
+-) Un altro aspetto che vorremmo sottolineare è l'estensibilità delle classi Opzioni (portare esempio barriera)
+
+### 19
+-) parlare del PSOR: dire che comportamenti alla volte velocissimi, altre invece fatica a convergere (come nel caso dell'adattività di griglia)
+
+### 20
+-) Un esempio evidente di troncamento del dominio è visibile in una put
+
+### 23
+-) Dire che le derivate vengono usate per la gestione del rischio, e dire che comunque il drawback degli elementi finiti è la difficoltà concettuale e di implementazione rispetto alle DF

@@ -366,7 +366,7 @@ Una potente libreria \emph{open source} ad elementi finiti sui quadrilateri. Mol
  \begin{block}{Classi Opzione}
 Rappresentano il problema e gestiscono creazione griglia, assemblaggio sistema e soluzione.
  \end{block}
- \begin{block}{Classi Model}
+ \begin{block}{Classi Modello}
  I vari modelli utilizzati in finanza sono rappresentati con queste classi, la cui interfaccia è stabilita da una classe base astratta.
  \end{block}
  \begin{block}{Classi Integrali}
@@ -463,7 +463,7 @@ Risultati ottenuti nel problema con ostacolo:
 \end{frame}
 
 \begin{frame}[t]
- \frametitle{\emph{Price} v.s \emph{Log-price}}
+ \frametitle{\emph{Price} v.s \emph{Log-Price}}
 Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
 
 %spazio fra le righe!  
@@ -474,7 +474,7 @@ Con entrambi i metodi si ottengono risultati corretti e soddisfacenti:
 \centering
 \begin{tabular}{|p{0.43\linewidth}|p{0.43\linewidth}|}
 \hline
-\emph{Price} & \emph{LogPrice}\\
+\emph{Price} & \emph{Log-Price}\\
 \hline
 In 1d molto veloce & In 1d mediamente veloce\\
 In 2d performance ottime & In 2d lento \\
@@ -483,7 +483,7 @@ No \emph{mesh adapting} in 2d per PIDE & \emph{Mesh adapting} anche in 2d, migli
 Troncamento del dominio può introdurre problemi & Nessun problema troncamento dominio \\
 \hline
 \end{tabular}
-\caption{Confronto fra \emph{Price} e \emph{LogPrice}}
+\caption{Confronto fra \emph{Price} e \emph{Log-Price}}
 \end{table}}
 
 \only<2>{
@@ -519,7 +519,7 @@ Troncamento del dominio può introdurre problemi & Nessun problema troncamento d
   \includegraphics[width=0.9\linewidth]{test5-1}
   \caption{Soluzione con griglia adattata}}
  \end{subfigure}
- \caption{Adattamento di griglia per una Call Europea 2d in forma \emph{LogPrice}}
+ \caption{Adattamento di griglia per una Call Europea 2d in forma \emph{Log-Price}}
  \end{figure}
 \end{frame}
 
@@ -531,7 +531,7 @@ Troncamento del dominio può introdurre problemi & Nessun problema troncamento d
  \frametitle{Bilancio del progetto}
 Il programma finale si configura come una piccola ma solida libreria per il \emph{pricing} di derivati finanziari di base, con la possibilit\`a di prezzarne altri facilmente. Inoltre lascia molta libertà all'utente (più trasformazioni, scelta di parametri, \emph{mesh adapting}).
 \vspace{0.4cm}
-\begin{block}{FEM vs. DFM}
+\begin{block}{FEM vs. FDM}
 Grazie agli elementi finiti \`e possibile avere un'approssimazione pi\`u pregiata della soluzione, permettendo di calcolare in modo pi\`u preciso anche le derivate.\\
 \end{block}
 \vspace{0.4cm}
