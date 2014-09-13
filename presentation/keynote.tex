@@ -87,19 +87,20 @@ La procedura pi\`u diffusa in finanza \`e l'utilizzo delle differenze finite. Gl
 \begin{frame}
  \frametitle{Opzioni Finanziarie e Prezzi}
 \begin{block}{Opzione}
-Un opzione finanziaria \`e un contratto, caratterizzabile tramite una funzione \emph{Payoff} finale, che dipende da un sottostante che evolve stocasticamente.
+Un'opzione finanziaria \`e un contratto, caratterizzabile tramite una funzione \emph{payoff} finale, che dipende da un sottostante $S$ che evolve stocasticamente.
 \end{block}
+\vspace{0.2cm}
+Un esempio di opzione finanziaria \`e la Put Europea, con un \emph{payoff}:
+ 
+ \[
+  \mathrm{\Phi}(S)=\max\left\lbrace K-S,0\right\rbrace
+ \]
+ \pause
+
 \begin{block}{Pricing}
 Il problema di \emph{pricing} consiste nel trovare il prezzo equo di tale opzione. Questo problema pu\`o essere ricondotto alla risoluzione di un equazione integro-differenziale.
 \end{block}
-\pause
-\vspace{1cm}
-Un esempio di opzione finanziaria \`e la Put Europea, con un \emph{Payoff}:
  
- \[
-  \mathrm{\Phi}(S)=\left(K-S\right)^+
- \]
-
 \end{frame}
 
 
