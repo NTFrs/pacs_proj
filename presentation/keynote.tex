@@ -81,6 +81,8 @@ La procedura pi\`u diffusa in finanza è l'utilizzo delle differenze finite. Gli
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Il problema}
 
+% Cos'� un opzione, trovare il prezzo di un derivato finanziario, che dipende dal sottostante aleatorio.
+
 \begin{frame}[t]
 \frametitle{L'equazione da risolvere}
 \begin{overlayarea}{\linewidth}{3cm}
@@ -94,7 +96,7 @@ La procedura pi\`u diffusa in finanza è l'utilizzo delle differenze finite. Gli
 +\int_\mathbb{R}\left( u(t,x+y)-u(t,x)-(e^y-1)\der{u}{x}\right)\nu(dy)=0
 \end{multline*}}
 \end{overlayarea}
-con opportune condizioni al contorno.\\
+con opportune condizioni al contorno e condizione finale.\\
 \pause
 Possiamo scomporre il problema in due parti:
 \begin{itemize}[<+->]
@@ -102,14 +104,14 @@ Possiamo scomporre il problema in due parti:
 \item la parte integrale, che necessita di un trattamento speciale \only<4->{ed \`e separabile in due parti.}
 \end{itemize}
 \pause
-Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{log-price}}
+Trasformazioni \alert<5>{\emph{price}} e \alert<6>{\emph{log-price}, $x=log\left(\sfrac{S}{S_{0}}\right)$.} 
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
 \frametitle{Il problema con l'ostacolo: Opzioni Americane}
-Nelle Opzioni Americane: $$P(S,t)\geq \max(K-S_T,0)\qquad\forall t\in[0,T]$$
+Nelle Opzioni Americane: $$P(S,t)\geq \max(K-S,0)\qquad\forall t\in[0,T]$$
 \pause
 L'equazione diventa:
 \begin{multline*}
@@ -117,12 +119,10 @@ L'equazione diventa:
 \displaystyle
 \der{P}{t}+r S \der{P}{S} +\frac{1}{2}S^2\dder{P}{S}\\
 \displaystyle
-+\int_\mathbb{R}\left(P(t,S)-P(t,S)-S(e^y-1)\der{P}{S}(t,S)\right)\nu(dy)\alert{\leq} rP,\\
-P(S,t)\alert{\geq} \max(K-S_T,0)
++\int_\mathbb{R}\left(P(t,Se^{y})-P(t,S)-S(e^y-1)\der{P}{S}(t,S)\right)\nu(dy)\alert{\leq} rP,\\
+P(S,t)\alert{\geq} \max(K-S, 0)
 \end{cases}
 \end{multline*}
-\pause
-Per risolvere questo problema si utilizza il PSOR:$$P_i^{(k+1)}=\max\left(K-S_i, P_i^{(k)}+\omega(z-P_i^{(k)})\right)$$
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -197,13 +197,18 @@ Con la trasformazione \emph {log-price}
 	
 	\item<3> Per la discretizzazione temporale, viene applicato uno schema di Eulero Implicito, ma la parte integrale viene trattata in modo esplicito. Lo schema è stabile se $\sfrac{1}{\Delta t}<\lambda$.
 	 \end{itemize}}
-\only<4>{
+\only<4->{
 \begin{block}{}
 Otteniamo dunque il seguente schema, con $\mathbf{C}_h^k$ vettore componenti soluzione al tempo $k$
 \begin{equation*}
  M_1\mathbf{C}_h^k=M_2\mathbf{C}_h^{k+1}+M\mathbf{J}^{1,k}+M\mathbf{J}^{2,k}
 \end{equation*}
-\end{block}}
+\end{block}
+}
+\vspace{0.75cm}
+\only<5>{
+Per la soluzione del sistema lineare abbiamo utilizzato un \emph{solver} diretto della libreria. Per il problema con l'ostacolo abbiamo scritto un \emph{solver} iterativo che impone ad ogni iterazione e per ogni punto della griglia che la soluzione stia sopra l'ostacolo.
+}
 \end{frame}
 
 
