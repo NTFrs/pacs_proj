@@ -68,20 +68,37 @@
 \begin{frame}
 \frametitle{Il progetto}
 \begin{block}{Scopo}
-Lo scopo di questo progetto è creare una piccola libreria per il \emph{pricing} di derivati finanziari con il metodo degli elementi finiti, utilizzando la libreria \textsf{deal.ii}.
+Lo scopo di questo progetto \`e creare una piccola libreria per il \emph{pricing} di derivati finanziari con il metodo degli elementi finiti, utilizzando la libreria \textsf{deal.ii}.
 L'idea è che l'utente possa sia utilizzare gli strumenti presenti, sia aggiungerne altri nel caso di bisogno, con grande facilità (ereditariet\`a).
 \end{block}
 \pause
 \vspace{0.5cm}
 \begin{block}{Motivazioni}
-La procedura pi\`u diffusa in finanza è l'utilizzo delle differenze finite. Gli elementi finiti, a fronte di una maggiore difficoltà implementativa, risultano essere più vantaggiosi.
+La procedura pi\`u diffusa in finanza \`e l'utilizzo delle differenze finite. Gli elementi finiti, a fronte di una maggiore difficoltà implementativa, risultano essere pi\`u vantaggiosi.
 \end{block}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Il problema}
 
-% Cos'� un opzione, trovare il prezzo di un derivato finanziario, che dipende dal sottostante aleatorio.
+% Cos un opzione, trovare il prezzo di un derivato finanziario, che dipende dal sottostante aleatorio.
+
+\begin{frame}
+ \frametitle{Opzioni Finanziarie e Prezzi}
+ 
+
+\pause
+Un esempio di opzione finanziaria \'e la Put Europea, il cui \emph{payoff} vale:
+ 
+ \[
+  \Phi(S)=\left(K-S\right)^+
+ \]
+
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[t]
 \frametitle{L'equazione da risolvere}
