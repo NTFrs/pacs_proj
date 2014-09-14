@@ -3,15 +3,14 @@ keynote.pdf
 [notes]
 ### 1
 Allora qua ci si presenta
-### 2
-Dire velocemente struttura della presentazione
 ### 3
 Scopo easy
 
 Motivi: non esistono altri facilmente trovabili
 Esempio: Premia, messa online da un equipe di INRIA
-### 4
 ### 5
+Esemplificare elocemente la put
+### 6
 -) Dare il tempo di leggere l'eq. Keywords: "Parabolica", "Dirichlet"
 
 -)La parte differenziale è standard
@@ -21,37 +20,30 @@ Esempio: Premia, messa online da un equipe di INRIA
 -)E dire che solo un pezzo dipende dalla funzione
 
 -)Far notare che il cambio di variabile è a livello equazione
-### 6
-Enfatizzare come questo aiuta a semplificare molto il problema.
 ### 7
-Discutere velocemente enfatizzando il termine misto e il fatto che esistano due integrali monodimensionali
-### 8
+molto veloce, problema con ostacolo
+### 9
+molto veloce, solo parlare degli integrali e della deivata mista
+### 10
 Ricordare elementi quadrati
 Funzioni di base lagrange
-Descrivere perché non in altro modo integrale
-### 9
+Descrivere solvers
+### 11
 -)Far vedere bene il cambio di variabile e spiegare il vantaggio
 -) Spiegare che si quadra su rette (quindi su faccie) in 2d
-### 10
--) fare enfasi sulla pesantezza della ricerca
 ### 12
-
-### 13
--) libreria FEM sui quadrilateri, molto ben documentata, con molti tutorial, dalla semplice creazione di grigile a complessi problemi 3d. A noi è sembrata semplice da usare nelle sue funzioni base (cioè creazione e risoluzione di un problema FEM), ma occorre scavare parecchio per trovare alcune funzioni particolari.
-
+-) fare enfasi sulla pesantezza della ricerca
 ### 14
--) Spiegare perché ereditarietà
-
+-) libreria FEM sui quadrilateri, molto ben documentata, con molti tutorial, dalla semplice creazione di grigile a complessi problemi 3d. A noi è sembrata semplice da usare nelle sue funzioni base (cioè creazione e risoluzione di un problema FEM), ma occorre scavare parecchio per trovare alcune funzioni particolari.
 ### 15
+-) Spiegare perché ereditarietà
+### 16
 -) La classe base contiene tutte le variabili del problema, quali gli oggetti di dealii Elementi finiti, DoF_Handler e Triangulation e definisce l'interfaccia per tutte le classi opzione.
 -) Sulla factory sottolineare che grazie all'ereditarietà ritorna un puntatore alla classe base.
 -) Un altro aspetto che vorremmo sottolineare è l'estensibilità delle classi Opzioni (portare esempio barriera)
-
-### 19
--) parlare del PSOR: dire che comportamenti alla volte velocissimi, altre invece fatica a convergere (come nel caso dell'adattività di griglia)
-
 ### 20
+-) parlare del PSOR: dire che comportamenti alla volte velocissimi, altre invece fatica a convergere (come nel caso dell'adattività di griglia)
+### 21
 -) Un esempio evidente di troncamento del dominio è visibile in una put
-
-### 23
+### 24
 -) Dire che le derivate vengono usate per la gestione del rischio, e dire che comunque il drawback degli elementi finiti è la difficoltà concettuale e di implementazione rispetto alle DF
